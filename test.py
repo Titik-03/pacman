@@ -1,2 +1,5 @@
-print("hello world")
-print("ill start drawing the maze")
+from mazegenerator import MazeGenerator
+
+m = MazeGenerator()
+
+print(m.maze)
