@@ -1,5 +1,4 @@
-README.
 
-*This is a README.*
+*to uv sync:*
 
-another space
+UV_SKIP_WHEEL_FILENAME_CHECK=1 uv sync --inexact
