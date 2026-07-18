@@ -1,4 +1,5 @@
 import arcade
+from mazegenerator import MazeGenerator
 
 # Bitmask directions
 NORTH_MASK = 1
@@ -30,8 +31,10 @@ class PacmanMazeGame(arcade.Window):
         self.pellets = set()
         for r in range(self.rows):
             for c in range(self.cols):
-                self.pellets.add((c, r))
-                
+                val = self.maze_grid[r][c]
+                if not (val & WEST_MASK and val & EAST_MASK and val & NORTH_MASK and val & SOUTH_MASK):
+                    self.pellets.add((c, r))
+
         # Eat the first pellet where Pac-man spawns
         self.pellets.discard((self.pacman_col, self.pacman_row))
 
@@ -64,6 +67,11 @@ class PacmanMazeGame(arcade.Window):
                 # Bit 3: West
                 if val & WEST_MASK:
                     arcade.draw_line(x_left, y_bottom, x_left, y_top, arcade.color.BLUE, self.wall_thickness)
+                
+                if val & WEST_MASK and val & EAST_MASK and val & NORTH_MASK and val & SOUTH_MASK:
+                    self.pellets
+
+
         # 2. DRAW THE PELLETS
         for pellet in list(self.pellets):
             p_col, p_row = pellet
@@ -73,6 +81,7 @@ class PacmanMazeGame(arcade.Window):
             arcade.draw_circle_filled(px, py, 4, arcade.color.ORANGE)
 
         # 3. DRAW PACMAN
+
         pac_y_idx = self.rows - 1 - self.pacman_row
         pac_x = (self.pacman_col + 0.5) * self.cell_size
         pac_y = (pac_y_idx + 0.5) * self.cell_size
@@ -128,8 +137,10 @@ sample_generated_map = [
 ]
 
 def main():
-    game = PacmanMazeGame(sample_generated_map)
+    m = MazeGenerator()
+    game = PacmanMazeGame(m.maze)
     arcade.run()
+    game.clear()
 
 if __name__ == "__main__":
     main()
