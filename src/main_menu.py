@@ -8,7 +8,7 @@ class MainMenu(arcade.View):
     def __init__(self):
 
         super().__init__()
-        
+
         #setting background color.
         arcade.set_background_color(arcade.color.BLACK)
 
@@ -29,6 +29,7 @@ class MainMenu(arcade.View):
             y = self.height - 200,
             color=arcade.color.WHITE,
             font_size=180,
+            bold=True,
             anchor_x="center"
         )
 
