@@ -1,146 +1,68 @@
 import arcade
-from mazegenerator import MazeGenerator
 
-# Bitmask directions
-NORTH_MASK = 1
-EAST_MASK  = 2
-SOUTH_MASK = 4
-WEST_MASK  = 8
+SCREEN_WIDTH = 600
+SCREEN_HEIGHT = 400
+SCREEN_TITLE = "Arcade Leaderboard"
 
-class PacmanMazeGame(arcade.Window):
-    def __init__(self, maze_grid):
-        self.maze_grid = maze_grid
-        self.rows = len(maze_grid)
-        self.cols = len(maze_grid[0]) if self.rows > 0 else 0
-        
-        # Sizing variables
-        self.cell_size = 50
-        self.wall_thickness = 4
-        
-        # Calculate screen size dynamically
-        screen_width = self.cols * self.cell_size
-        screen_height = self.rows * self.cell_size
-        super().__init__(screen_width, screen_height, "A-Maze-ing Pac-man")
-        
-        # Game State
-        self.score = 0
-        self.pacman_row = 0  # Spawn at top-left cell
-        self.pacman_col = 0
-        
-        # Generate pellets in all cells
-        self.pellets = set()
-        for r in range(self.rows):
-            for c in range(self.cols):
-                val = self.maze_grid[r][c]
-                if not (val & WEST_MASK and val & EAST_MASK and val & NORTH_MASK and val & SOUTH_MASK):
-                    self.pellets.add((c, r))
+class LeaderboardView(arcade.Window):
+    def __init__(self):
+        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        arcade.set_background_color(arcade.color.DARK_SLATE_GRAY)
 
-        # Eat the first pellet where Pac-man spawns
-        self.pellets.discard((self.pacman_col, self.pacman_row))
+        # Your input data
+        self.leaderboard_data = [{"name": 122}, {"name2": 211}]
 
     def on_draw(self):
         self.clear()
-        
-        # 1. DRAW THE MAZE WALLS
-        for r in range(self.rows):
-            for c in range(self.cols):
-                val = self.maze_grid[r][c]
-                
-                # Convert 2D array coordinates (0 at top) to arcade coords (0 at bottom)
-                y_idx = self.rows - 1 - r
-                
-                # Calculate pixel borders for this cell
-                x_left = c * self.cell_size
-                x_right = (c + 1) * self.cell_size
-                y_bottom = y_idx * self.cell_size
-                y_top = (y_idx + 1) * self.cell_size
-                
-                # Bit 0: North
-                if val & NORTH_MASK:
-                    arcade.draw_line(x_left, y_top, x_right, y_top, arcade.color.BLUE, self.wall_thickness)
-                # Bit 1: East
-                if val & EAST_MASK:
-                    arcade.draw_line(x_right, y_bottom, x_right, y_top, arcade.color.BLUE, self.wall_thickness)
-                # Bit 2: South
-                if val & SOUTH_MASK:
-                    arcade.draw_line(x_left, y_bottom, x_right, y_bottom, arcade.color.BLUE, self.wall_thickness)
-                # Bit 3: West
-                if val & WEST_MASK:
-                    arcade.draw_line(x_left, y_bottom, x_left, y_top, arcade.color.BLUE, self.wall_thickness)
-                
-                if val & WEST_MASK and val & EAST_MASK and val & NORTH_MASK and val & SOUTH_MASK:
-                    self.pellets
 
-
-        # 2. DRAW THE PELLETS
-        for pellet in list(self.pellets):
-            p_col, p_row = pellet
-            p_y_idx = self.rows - 1 - p_row
-            px = (p_col + 0.5) * self.cell_size
-            py = (p_y_idx + 0.5) * self.cell_size
-            arcade.draw_circle_filled(px, py, 4, arcade.color.ORANGE)
-
-        # 3. DRAW PACMAN
-
-        pac_y_idx = self.rows - 1 - self.pacman_row
-        pac_x = (self.pacman_col + 0.5) * self.cell_size
-        pac_y = (pac_y_idx + 0.5) * self.cell_size
-        arcade.draw_circle_filled(pac_x, pac_y, 14, arcade.color.YELLOW)
-
-        # 4. DRAW SCOREBOARD
+        # 1. Draw Title
         arcade.draw_text(
-            f"Score: {self.score}", 
-            10, self.height - 25, 
-            arcade.color.WHITE, 12, bold=True
+            "LEADERBOARD",
+            x=SCREEN_WIDTH / 2,
+            y=330,
+            color=arcade.color.GOLD,
+            font_size=24,
+            bold=True,
+            anchor_x="center"
         )
 
-    def on_key_press(self, key, modifiers):
-        # Retrieve the wall layout of Pacman's current cell
-        current_cell_walls = self.maze_grid[self.pacman_row][self.pacman_col]
+        # 2. Draw Table Headers
+        arcade.draw_text("Player", x=150, y=280, color=arcade.color.WHITE, font_size=16, bold=True)
+        arcade.draw_text("Score", x=400, y=280, color=arcade.color.WHITE, font_size=16, bold=True)
         
-        # UP ARROW -> Move North (if North wall is open & not at top border)
-        if key == arcade.key.UP:
-            if (current_cell_walls & NORTH_MASK) == 0 and self.pacman_row > 0:
-                self.pacman_row -= 1
-                
-        # DOWN ARROW -> Move South (if South wall is open & not at bottom border)
-        elif key == arcade.key.DOWN:
-            if (current_cell_walls & SOUTH_MASK) == 0 and self.pacman_row < self.rows - 1:
-                self.pacman_row += 1
-                
-        # LEFT ARROW -> Move West (if West wall is open & not at left border)
-        elif key == arcade.key.LEFT:
-            if (current_cell_walls & WEST_MASK) == 0 and self.pacman_col > 0:
-                self.pacman_col -= 1
-                
-        # RIGHT ARROW -> Move East (if East wall is open & not at right border)
-        elif key == arcade.key.RIGHT:
-            if (current_cell_walls & EAST_MASK) == 0 and self.pacman_col < self.cols - 1:
-                self.pacman_col += 1
+        # Divider line
+        arcade.draw_line(150, 270, 450, 270, arcade.color.LIGHT_GRAY, 2)
 
-        # Check if Pac-man ate a pellet in the new cell
-        current_pos = (self.pacman_col, self.pacman_row)
-        if current_pos in self.pellets:
-            self.pellets.remove(current_pos)
-            self.score += 10
+        # 3. Draw Each Row
+        start_y = 230
+        line_height = 40
 
+        for index, item in enumerate(self.leaderboard_data):
+            # Dynamic extraction of key & value
+            player_name, score = list(item.items())[0]
+            row_y = start_y - (index * line_height)
 
-# This matches the user's sample output representation
-# Let's mock a solvable sample generated grid
-# Bits: N=1, E=2, S=4, W=8
-sample_generated_map = [
-    [12, 5,  5,  3], # Row 0 (Top)
-    [12, 5,  1,  3], # Row 1
-    [12, 5,  4,  3], # Row 2
-    [12, 5,  5,  3], # Row 3
-    [12, 5,  5,  6]  # Row 4 (Bottom)
-]
+            # Player Name
+            arcade.draw_text(
+                str(player_name),
+                x=150,
+                y=row_y,
+                color=arcade.color.CYAN,
+                font_size=14
+            )
+
+            # Score
+            arcade.draw_text(
+                str(score),
+                x=400,
+                y=row_y,
+                color=arcade.color.WHITE,
+                font_size=14
+            )
 
 def main():
-    m = MazeGenerator()
-    game = PacmanMazeGame(m.maze)
+    window = LeaderboardView()
     arcade.run()
-    game.clear()
 
 if __name__ == "__main__":
     main()
