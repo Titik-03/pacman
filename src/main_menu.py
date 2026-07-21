@@ -23,15 +23,7 @@ class MainMenu(arcade.View):
         self.high_score_view = HighScore()
         self.instuctions_view = Instuctions()
 
-        self.title_text = arcade.Text(
-            text="PAC-MAN",
-            x = self.width / 2,
-            y = self.height - 200,
-            color=arcade.color.WHITE,
-            font_size=180,
-            bold=True,
-            anchor_x="center"
-        )
+        
 
 
     #update when ever resizing the screen. 
@@ -44,38 +36,40 @@ class MainMenu(arcade.View):
         #enabling the gui manager (if not it will just draw the buttons without intuctions).
         self.manager.enable()
 
+        arcade.load_font("src/assets/fonts/MickeyMouse_PERSONAL_USE_ONLY.otf")
+
         #init the gui box to make all the buttons in one group layout.
         menu_elements = arcade.gui.UIBoxLayout(space_between=40)
 
         #button style.
         button_style = {
             "normal": arcade.gui.UIFlatButton.UIStyle(
-                font_size=20,
-                font_name=("georgia", "times new roman", "serif"),
+                font_size=30,
+                font_name="Mickey Mouse PERSONAL USE",
                 font_color=(234, 236, 250),
                 bg=(20, 12, 48),
                 border=(90, 72, 160),
                 border_width=2,
             ),
             "hover": arcade.gui.UIFlatButton.UIStyle(
-                font_size=20,
-                font_name=("georgia", "times new roman", "serif"),
+                font_size=30,
+                font_name="Mickey Mouse PERSONAL USE",
                 font_color=(250, 250, 255),
                 bg=(64, 32, 120),
                 border=(180, 170, 255),
                 border_width=2,
             ),
             "press": arcade.gui.UIFlatButton.UIStyle(
-                font_size=20,
-                font_name=("georgia", "times new roman", "serif"),
+                font_size=30,
+                font_name="Mickey Mouse PERSONAL USE",
                 font_color=(252, 244, 255),
                 bg=(8, 6, 26),
                 border=(110, 78, 190),
                 border_width=3,
             ),
             "disabled": arcade.gui.UIFlatButton.UIStyle(
-                font_size=20,
-                font_name=("georgia", "times new roman", "serif"),
+                font_size=30,
+                font_name="Mickey Mouse PERSONAL USE",
                 font_color=(120, 118, 136),
                 bg=(18, 18, 36),
                 border=(56, 64, 96),
@@ -84,10 +78,10 @@ class MainMenu(arcade.View):
         }
 
         #init the buttons.
-        start_game = arcade.gui.UIFlatButton(text="START GAME", width=300, height=100, style=button_style)
-        high_score = arcade.gui.UIFlatButton(text="HIGH SCORE", width=300, height=100, style=button_style)
-        instructions = arcade.gui.UIFlatButton(text="INSTRUCTIONS", width=300, height=100, style=button_style)
-        quit_game = arcade.gui.UIFlatButton(text="QUIT GAME", width=300, height=100, style=button_style)
+        start_game = arcade.gui.UIFlatButton(text=" S T A R T G A M E", width=400, height=100, style=button_style)
+        high_score = arcade.gui.UIFlatButton(text=" H I G H S C O R E", width=400, height=100, style=button_style)
+        instructions = arcade.gui.UIFlatButton(text=" I N S T R U C T I O N S ", width=400, height=100, style=button_style)
+        quit_game = arcade.gui.UIFlatButton(text=" Q U I T G A M E", width=400, height=100, style=button_style)
 
         #nested function to do things if the buttons was clicked.
         @start_game.event("on_click")
@@ -134,7 +128,20 @@ class MainMenu(arcade.View):
 
         self.clear()
 
-        self.title_text.draw()
+        # self.title_text.draw()
+
+        
+        arcade.draw_text(
+            text="p  a  c  -  m  a  n",
+            x = self.width / 2,
+            y = self.height - 200,
+            color=arcade.color.WHITE,
+            font_size=180,
+            font_name="Mickey Mouse PERSONAL USE",
+            # bold=True,
+            anchor_x="center"
+        )
+
         self.manager.draw()
 
         # arcade.draw_text("Pac-Man",
@@ -157,11 +164,15 @@ class MainMenu(arcade.View):
     
     # def on_mouse_press(self, x, y, button, modifiers):
     #     self.window.show_view(Game())
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.ESCAPE:
+            arcade.exit()
 
-window = arcade.Window(1920, 1080, "Pac-man", resizable=True, fullscreen=True)
+window = arcade.Window(1920, 1080, "Pac-man", resizable=True)
 
 main_menu = MainMenu()
 
 window.show_view(main_menu)
 
 arcade.run()
+
