@@ -1,68 +1,42 @@
 import arcade
 
-SCREEN_WIDTH = 600
-SCREEN_HEIGHT = 400
-SCREEN_TITLE = "Arcade Leaderboard"
-
-class LeaderboardView(arcade.Window):
+class PauseMenu(arcade.View):
     def __init__(self):
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-        arcade.set_background_color(arcade.color.DARK_SLATE_GRAY)
-
-        # Your input data
-        self.leaderboard_data = [{"name": 122}, {"name2": 211}]
+        super().__init__()
 
     def on_draw(self):
         self.clear()
 
-        # 1. Draw Title
         arcade.draw_text(
-            "LEADERBOARD",
-            x=SCREEN_WIDTH / 2,
-            y=330,
-            color=arcade.color.GOLD,
-            font_size=24,
-            bold=True,
-            anchor_x="center"
+            "PAUSED",
+            self.window.width / 2,
+            self.window.height / 2 + 50,
+            arcade.color.WHITE,
+            40,
+            anchor_x="center",
         )
 
-        # 2. Draw Table Headers
-        arcade.draw_text("Player", x=150, y=280, color=arcade.color.WHITE, font_size=16, bold=True)
-        arcade.draw_text("Score", x=400, y=280, color=arcade.color.WHITE, font_size=16, bold=True)
-        
-        # Divider line
-        arcade.draw_line(150, 270, 450, 270, arcade.color.LIGHT_GRAY, 2)
+        arcade.draw_text(
+            "Press ESC to resume",
+            self.window.width / 2,
+            self.window.height / 2,
+            arcade.color.GRAY,
+            20,
+            anchor_x="center",
+        )
 
-        # 3. Draw Each Row
-        start_y = 230
-        line_height = 40
+    def on_key_press(self, symbol, modifiers):
+        if symbol == arcade.key.ESCAPE:
+            self.window.show_view(self.game)
 
-        for index, item in enumerate(self.leaderboard_data):
-            # Dynamic extraction of key & value
-            player_name, score = list(item.items())[0]
-            row_y = start_y - (index * line_height)
 
-            # Player Name
-            arcade.draw_text(
-                str(player_name),
-                x=150,
-                y=row_y,
-                color=arcade.color.CYAN,
-                font_size=14
-            )
 
-            # Score
-            arcade.draw_text(
-                str(score),
-                x=400,
-                y=row_y,
-                color=arcade.color.WHITE,
-                font_size=14
-            )
+window = arcade.Window(1920, 1080, "Pac-man", resizable=True, fullscreen=True)
 
-def main():
-    window = LeaderboardView()
-    arcade.run()
+p = PauseMenu()
 
-if __name__ == "__main__":
-    main()
+
+window.show_view(p)
+
+arcade.run()
+

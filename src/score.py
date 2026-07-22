@@ -2,13 +2,12 @@ from typing import List, Dict
 import json
 import arcade
 import arcade.gui
-from typing import List
 
 
 class HighScore(arcade.View):
 
     #init with deafults.
-    def __init__(self):
+    def __init__(self, main_menu: arcade.View, window: arcade.Window):
         super().__init__()
 
         self.x_center = self.width / 2
@@ -23,6 +22,8 @@ class HighScore(arcade.View):
             anchor_x="center"
         )
 
+        self.main_menu = main_menu
+        self.window = window
 
         self.score: List = []
 
@@ -76,6 +77,10 @@ class HighScore(arcade.View):
                 anchor_x= "center",
                 anchor_y= "center",
             )
+
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.ESCAPE:
+            self.window.show_view(self.main_menu)
 
 
 
