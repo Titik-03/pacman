@@ -1,6 +1,6 @@
 import arcade
 import arcade.gui
-from views import Game, HighScore, Instuctions
+from src.instructions import Game, HighScore, Instuctions
 
 #main menu view.
 class MainMenu(arcade.View):
