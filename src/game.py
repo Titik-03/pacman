@@ -4,6 +4,7 @@ from score import Score
 from typing import List
 from pause_menu import PauseMenu
 from game_over import GameOver
+from vectory import Vectory
 
 
 #Game test view.
@@ -31,7 +32,7 @@ class Game(arcade.View):
         self.window = window
         self.pause_menu = PauseMenu(self)
         self.pause = False
-        self.game_over = GameOver(self.window, self.main_menu)
+        self.score = 11  #has to be changing
 
 
     #what will happen if the view is showed.
@@ -117,6 +118,9 @@ class Game(arcade.View):
                 children=[menu_elements]
             )
         )
+
+    def on_hide_view(self):
+        self.manager.disable()
     
 
     def on_update(self, delta_time):
@@ -147,5 +151,10 @@ class Game(arcade.View):
                 self.pause = True
             else:
                 self.pause = False
-        if key == arcade.key.F1:
+        if key == arcade.key.F1:     #this is just for testing. Has to be changed!!!!
+            self.game_over = GameOver(self.window, self.main_menu, self.score)
             self.window.show_view(self.game_over)
+
+        if key == arcade.key.F2:
+            self.vectory = Vectory(self.window, self.main_menu, self.score)
+            self.window.show_view(self.vectory)
