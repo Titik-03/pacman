@@ -1,66 +1,93 @@
 import arcade
-import arcade.gui
+from mazegenerator import MazeGenerator
 
-class GameOverView(arcade.View):
-    def __init__(self, score: int):
+
+# Define direction bitmask constants
+NORTH = 1  # 0001
+SOUTH = 2  # 0010
+EAST = 4   # 0100
+WEST = 8   # 1000
+
+SPRITE_SIZE = 32  # Size of each cell grid tile in pixels
+
+
+class MazeView(arcade.View):
+    """Handles rendering and logic for the Pacman maze gameplay."""
+
+    def __init__(self, maze_grid: list[list[int]]) -> None:
+        """Initialize the game view with the 2D maze grid bitmask data."""
         super().__init__()
-        self.score = score
+        self.maze_grid = maze_grid
         
-        # 1. Initialize UIManager
-        self.manager = arcade.gui.UIManager()
-        
-        # 2. Build layout once inside __init__
-        layout = arcade.gui.UIAnchorLayout()
-        box = arcade.gui.UIBoxLayout(space_between=15)
-        
-        # Score Label
-        score_label = arcade.gui.UILabel(
-            text=f"GAME OVER! Score: {self.score}", 
-            font_size=20,
-            text_color=arcade.color.YELLOW
-        )
-        box.add(score_label)
-        
-        # Input Text Field
-        self.input_field = arcade.gui.UIInputText(
-            width=250, 
-            height=40, 
-            font_size=16
-        )
-        box.add(self.input_field)
-        
-        # Submit Button
-        submit_btn = arcade.gui.UIFlatButton(text="Submit Highscore", width=200)
-        box.add(submit_btn)
-        
-        # Bind button click event
-        @submit_btn.event("on_click")
-        def on_click_submit(event):
-            player_name = self.input_field.text.strip()
-            if player_name:
-                self.save_score(player_name, self.score)
+        # Calculate grid dimensions
+        self.grid_height = len(maze_grid)
+        self.grid_width = len(maze_grid[0]) if self.grid_height > 0 else 0
 
-        layout.add(box, anchor_x="center_x", anchor_y="center_y")
-        self.manager.add(layout)
-        
-    def on_show_view(self):
-        # Simply enable the manager when entering the view
-        self.manager.enable()
+        # Sprite lists for optimized rendering performance
+        self.wall_list: arcade.SpriteList = arcade.SpriteList()
+        self.pacgum_list: arcade.SpriteList = arcade.SpriteList()
 
-    def on_hide_view(self):
-        # Disable the manager when leaving the view
-        self.manager.disable()
+        self.setup_maze()
 
-    def on_draw(self):
+    def setup_maze(self) -> None:
+        """Decode the bitmask grid and populate the sprite lists."""
+        for row_idx, row in enumerate(self.maze_grid):
+            for col_idx, bitmask in enumerate(row):
+                # Calculate screen coordinates based on center of the tile
+                # Arcade (0,0) is bottom-left, grids are often top-down. 
+                # Reversing row coordinates handles inversion nicely if needed.
+                x = col_idx * SPRITE_SIZE + (SPRITE_SIZE / 2)
+                y = (self.grid_height - 1 - row_idx) * SPRITE_SIZE + (SPRITE_SIZE / 2)
+
+                # 1. Draw outer boundaries or explicit wall tiles if mask specifies
+                # 2. Alternatively, parse individual wall segments per cell:
+                if bitmask & NORTH:
+                    self._create_wall_segment(x, y + SPRITE_SIZE / 2, SPRITE_SIZE, 4)
+                if bitmask & SOUTH:
+                    self._create_wall_segment(x, y - SPRITE_SIZE / 2, SPRITE_SIZE, 4)
+                if bitmask & EAST:
+                    self._create_wall_segment(x + SPRITE_SIZE / 2, y, 4, SPRITE_SIZE)
+                if bitmask & WEST:
+                    self._create_wall_segment(x - SPRITE_SIZE / 2, y, 4, SPRITE_SIZE)
+
+                # Populate pacgums in open areas (e.g., if it's a valid corridor)
+                # Ensure you avoid placing them directly on the player spawn point!
+                if bitmask != 15:  # Not completely enclosed wall block
+                    pacgum = arcade.SpriteCircle(radius=4, color=arcade.color.WHITE)
+                    pacgum.position = (x, y)
+                    self.pacgum_list.append(pacgum)
+
+    def _create_wall_segment(self, x: float, y: float, width: int, height: int) -> None:
+        """Helper to create and place a solid color rectangle sprite as a wall."""
+        wall = arcade.SpriteSolidColor(width=width, height=height, color=arcade.color.BLUE)
+        wall.position = (x, y)
+        self.wall_list.append(wall)
+
+    def on_show_view(self) -> None:
+        """Set up background colors when switching to this view."""
+        arcade.set_background_color(arcade.color.BLACK)
+
+    def on_draw(self) -> None:
+        """Render the screen."""
         self.clear()
-        self.manager.draw()
+        
+        # Draw everything efficiently via SpriteLists
+        self.wall_list.draw()
+        # self.pacgum_list.draw()
 
-    def save_score(self, name: str, score: int):
-        print(f"Saved score for {name}: {score}")
+def main() -> None:
+    """Main entry point for running the game engine."""
+    # Dummy mock example of an external 4x4 bitmask grid layout
+    m = MazeGenerator()
+    sample_maze = m.maze
 
-# Create window, show view, and run the main game loop!
-window = arcade.Window(800, 600, "Pac-Man Highscore")
-g = GameOverView(999)
-window.show_view(g)
+    # Dynamically scale window bounds based on grid size
+    screen_width = len(sample_maze[0]) * SPRITE_SIZE
+    screen_height = len(sample_maze) * SPRITE_SIZE
+
+    window = arcade.Window(screen_width, screen_height, "Pacman: The Shattered Legacy", resizable=True)
+    game_view = MazeView(sample_maze)
+    window.show_view(game_view)
+    arcade.run()
 
 arcade.run()  # <--- Starts the game loop
