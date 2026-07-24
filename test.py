@@ -90,5 +90,4 @@ def main() -> None:
     window.show_view(game_view)
     arcade.run()
 
-if __name__ == "__main__":
-    main()
+arcade.run()  # <--- Starts the game loop

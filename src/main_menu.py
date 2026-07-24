@@ -1,16 +1,15 @@
 import arcade
 import arcade.gui
-from views import Game, HighScore, Instuctions
-
+from instructions import Instuctions
+from score import HighScore
+from game import Game
 #main menu view.
 class MainMenu(arcade.View):
 
-    def __init__(self):
+    def __init__(self, window):
 
         super().__init__()
 
-        #setting background color.
-        arcade.set_background_color(arcade.color.BLACK)
 
         # Create the manager brain.
         self.manager = arcade.gui.UIManager()
@@ -19,9 +18,10 @@ class MainMenu(arcade.View):
         self.y_center = self.height / 2
 
         #init the game view
-        self.game_view = Game()
-        self.high_score_view = HighScore()
-        self.instuctions_view = Instuctions()
+        self.game_view = Game(self, window)
+        self.high_score_view = HighScore(self, window)
+        self.instuctions_view = Instuctions(self, window)
+        self.window = window
 
         self.title_text = arcade.Text(
             text="PAC-MAN",
@@ -34,13 +34,18 @@ class MainMenu(arcade.View):
         )
 
 
+
     #update when ever resizing the screen. 
     def on_resize(self, width: int, height: int):
         # Call the parent resize handler to update the internal viewport matrix
         super().on_resize(width, height)
 
     #what will happen if the view is showed.
-    def on_show_view(self):  
+    def on_show_view(self):
+
+        #setting background color.
+        arcade.set_background_color(arcade.color.BLACK)
+
         #enabling the gui manager (if not it will just draw the buttons without intuctions).
         self.manager.enable()
 
@@ -160,7 +165,7 @@ class MainMenu(arcade.View):
 
 window = arcade.Window(1920, 1080, "Pac-man", resizable=True, fullscreen=True)
 
-main_menu = MainMenu()
+main_menu = MainMenu(window)
 
 window.show_view(main_menu)
 
