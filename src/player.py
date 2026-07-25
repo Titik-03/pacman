@@ -1,0 +1,96 @@
+
+
+import pathlib
+import arcade
+
+SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
+ASSETS_PATH = SCRIPT_DIR / "assets" / "Group.png"
+
+
+class Player(arcade.Sprite):
+    def __init__(self, center_x: float, center_y: float) -> None:
+        super().__init__(str(ASSETS_PATH))
+        self.center_x = center_x
+        self.center_y = center_y
+        self.target_x = center_x
+        self.target_y = center_y
+        self.speed = 4.0
+        self.queued_dir = (0, 0)
+        self.current_dir = (0, 0)
+
+    @staticmethod
+    def create_player(
+        center_x: float, center_y: float, cell_size: float
+    ) -> tuple["Player", arcade.SpriteList]:
+        player_list: arcade.SpriteList = arcade.SpriteList()
+
+        player = Player(center_x, center_y)
+        player.width = cell_size * 0.8
+        player.height = cell_size * 0.8
+        player_list.append(player)
+
+        return player, player_list
+
+    def on_key_press(self, key: int):
+        if key == arcade.key.UP:
+            self.queued_dir = (0, 1)
+        elif key == arcade.key.DOWN:
+            self.queued_dir = (0, -1)
+        elif key == arcade.key.LEFT:
+            self.queued_dir = (-1, 0)
+        elif key == arcade.key.RIGHT:
+            self.queued_dir = (1, 0)
+
+    def on_key_release(self, key: int):
+        pass
+
+    def can_move(self, dir_tuple: tuple[int, int], maze, cell_size: float, rows: int, cols: int) -> bool:
+        dx, dy = dir_tuple
+        if dx == 0 and dy == 0:
+            return False
+
+        col = int(round((self.center_x - cell_size / 2) / cell_size))
+        row = int(round(((rows - 1) * cell_size + cell_size / 2 - self.center_y) / cell_size))
+
+        col = max(0, min(cols - 1, col))
+        row = max(0, min(rows - 1, row))
+
+        cell_val = maze[row][col]
+
+        NORTH, EAST, SOUTH, WEST = 1, 2, 4, 8
+
+        if dy == 1 and (cell_val & NORTH):
+            return False
+        if dy == -1 and (cell_val & SOUTH):
+            return False
+        if dx == 1 and (cell_val & EAST):
+            return False
+        if dx == -1 and (cell_val & WEST):
+            return False
+
+        return True
+
+    def update_grid_movement(self, maze, cell_size: float, rows: int, cols: int):
+        # Arrived at cell center -> evaluate next move
+        if self.center_x == self.target_x and self.center_y == self.target_y:
+            if self.can_move(self.queued_dir, maze, cell_size, rows, cols):
+                self.current_dir = self.queued_dir
+            elif not self.can_move(self.current_dir, maze, cell_size, rows, cols):
+                self.current_dir = (0, 0)
+
+            if self.current_dir != (0, 0):
+                self.target_x = self.center_x + self.current_dir[0] * cell_size
+                self.target_y = self.center_y + self.current_dir[1] * cell_size
+
+        # Smoothly slide towards target cell center
+        step = self.speed
+
+        if self.center_x < self.target_x:
+            self.center_x = min(self.target_x, self.center_x + step)
+        elif self.center_x > self.target_x:
+            self.center_x = max(self.target_x, self.center_x - step)
+
+        if self.center_y < self.target_y:
+            self.center_y = min(self.target_y, self.center_y + step)
+        elif self.center_y > self.target_y:
+            self.center_y = max(self.target_y, self.center_y - step)
