@@ -1,6 +1,4 @@
 import arcade
-import arcade.gui
-from score import Score
 from typing import List
 
 

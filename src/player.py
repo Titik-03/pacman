@@ -13,7 +13,7 @@ class Player(arcade.Sprite):
         self.center_y = center_y
         self.target_x = center_x
         self.target_y = center_y
-        self.speed = 4.0
+        self.speed = 240.0
         self.queued_dir = (0, 0)
         self.current_dir = (0, 0)
 
@@ -69,8 +69,15 @@ class Player(arcade.Sprite):
 
         return True
 
-    def update_grid_movement(self, maze, cell_size: float, rows: int, cols: int, offset_x: float = 0.0, offset_y: float = 0.0):
-        # Arrived at cell center -> evaluate next move
+    def update_grid_movement(self, maze, cell_size: float, rows: int, cols: int, offset_x: float = 0.0, offset_y: float = 0.0, delta_time: float = 1 / 60):
+        step = self.speed * delta_time
+
+        # Snap to the target when we are close enough to avoid float jitter.
+        if abs(self.center_x - self.target_x) <= step and abs(self.center_y - self.target_y) <= step:
+            self.center_x = self.target_x
+            self.center_y = self.target_y
+
+        # Arrived at cell center -> evaluate next move.
         if self.center_x == self.target_x and self.center_y == self.target_y:
             if self.can_move(self.queued_dir, maze, cell_size, rows, cols, offset_x, offset_y):
                 self.current_dir = self.queued_dir
@@ -81,8 +88,6 @@ class Player(arcade.Sprite):
                 self.target_x = self.center_x + self.current_dir[0] * cell_size
                 self.target_y = self.center_y + self.current_dir[1] * cell_size
 
-        step = self.speed
-
         if self.center_x < self.target_x:
             self.center_x = min(self.target_x, self.center_x + step)
         elif self.center_x > self.target_x:
@@ -91,4 +96,4 @@ class Player(arcade.Sprite):
         if self.center_y < self.target_y:
             self.center_y = min(self.target_y, self.center_y + step)
         elif self.center_y > self.target_y:
-            self.center_y = max(self.target_y, self.center_y - step)
+            self.center_y = max(self.target_y, self.center_y - step) 

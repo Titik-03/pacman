@@ -2,7 +2,7 @@ from typing import List, Dict
 import json
 import arcade
 import arcade.gui
-from score import Score
+from src.score import Score
 
 #game over view prototype.
 class GameOver(arcade.View):
