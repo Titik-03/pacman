@@ -27,56 +27,155 @@ class HighScore(arcade.View):
 
         self.score: List = []
 
-    
+        self.high_score_text = arcade.Text(
+            "HIGH SCORES",
+            self.window.width / 2,
+            self.window.height - 140,
+            arcade.color.WHITE,
+            72,
+            bold=True,
+            anchor_x="center"
+        )
+
+
     #what will happen if the view is showed.
     def on_show_view(self):
-        arcade.set_background_color(arcade.color.BLACK_OLIVE)
         
         h = Score()
         self.score = h.load_score()
-    
+
+
+    def draw_background(self):
+
+        arcade.set_background_color((8, 12, 28))
+
+        color = (0, 180, 255, 30)
+
+        arcade.draw_line(300, 800, 700, 800, color, 6)
+        arcade.draw_line(700, 550, 700, 800, color, 6)
+
+        arcade.draw_line(1100, 600, 1500, 600, color, 6)
+        arcade.draw_line(1100, 300, 1100, 600, color, 6)
+        
+
+
+    def draw_score_panel(self):
+
+        x = self.window.width / 2 - 350
+        y = self.window.height - 220
+
+        width = 700
+        height = 580
+
+        arcade.draw_lrbt_rectangle_filled(
+            x,
+            x + width,
+            y - height,
+            y,
+            (0, 0, 0, 100)
+        )
+
+        arcade.draw_lrbt_rectangle_outline(
+            x,
+            x + width,
+            y - height,
+            y,
+            (0, 240, 255),
+            border_width=2
+        )
+
+        arcade.draw_text(
+            "#",
+            x + 40,
+            y - 50,
+            arcade.color.YELLOW,
+            24,
+            bold=True,
+        )
+
+        arcade.draw_text(
+            "PLAYER",
+            x + 100,
+            y - 50,
+            arcade.color.YELLOW,
+            24,
+            bold=True,
+        )
+
+        arcade.draw_text(
+            "SCORE",
+            x + width - 40,
+            y - 50,
+            arcade.color.YELLOW,
+            24,
+            bold=True,
+            anchor_x="right",
+        )
+
+        arcade.draw_line(
+            x + 25,
+            y - 85,
+            x + width - 25,
+            y - 85,
+            arcade.color.CYAN,
+            2
+        )
+
+        row_y = y - 140
+
+        for i, item in enumerate(self.score[:10]):
+
+            name, score = list(item.items())[0]
+
+            if i == 0:
+                color = arcade.color.GOLD
+            elif i == 1:
+                color = (220,220,220)
+            elif i == 2:
+                color = (205,127,50)
+            else:
+                color = arcade.color.WHITE
+
+            arcade.draw_text(
+                str(i + 1),
+                x + 40,
+                row_y,
+                color,
+                24,
+                bold=True,
+            )
+
+            arcade.draw_text(
+                name,
+                x + 100,
+                row_y,
+                arcade.color.WHITE,
+                24,
+            )
+
+            arcade.draw_text(
+                str(score),
+                x + width - 40,
+                row_y,
+                arcade.color.CYAN,
+                24,
+                anchor_x="right",
+            )
+
+            row_y -= 45
+
+
     #what will draw.
     def on_draw(self):
 
         #clear the screen before drawing new things to prevent overdrawing on last view.
         self.clear()
 
-        #draw circle
-        # arcade.draw_circle_filled(self.x_center , self.y_center, 15, arcade.color.RED)
 
-        start_y = 230
-        line_height = 100
-
+        self.draw_background()
         self.high_score_text.draw()
+        self.draw_score_panel()
 
-        self.score
-
-        for index, item in enumerate(self.score):
-
-            player_name, score = list(item.items())[0]
-            row_y = self.height / 2 - (index * line_height)
-
-            # Player Name
-            arcade.draw_text(
-                str(player_name),
-                x=self.width / 2 - 350,
-                y=row_y,
-                color=arcade.color.CYAN,
-                font_size=40,
-                anchor_x= "center",
-                anchor_y= "center",
-            )
-
-            # Score
-            arcade.draw_text(
-                str(score),
-                x=self.width / 2 + 350,
-                y=row_y,
-                color=arcade.color.WHITE,
-                font_size=40,
-                anchor_x= "center",
-                anchor_y= "center",
-            )
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ESCAPE:
