@@ -33,11 +33,12 @@ class MainMenu(arcade.View):
             y=window.height * 0.8,
             color=arcade.color.WHITE,
             font_size=100,
-            bold=True,
+            # bold=True,
             anchor_x="center"
         )
 
         self.hovered = -1
+        self.last_hovered = -1
 
         self.menu_items = []
 
@@ -72,6 +73,8 @@ class MainMenu(arcade.View):
                 )
             )
 
+        self.hover_sound = arcade.load_sound("src/assets/COMSE_00.VAG.wav")
+
 
 
     def on_update(self, delta_time):
@@ -96,8 +99,44 @@ class MainMenu(arcade.View):
                 self.banner.y,
                 self.banner.width
             )
+        
+        if self.hovered != self.last_hovered:
+            if self.hovered != -1:
+                arcade.play_sound(self.hover_sound)
+
+
+            self.last_hovered = self.hovered
 
         self.banner.update()
+
+
+    def on_key_press(self, key, modifiers):
+
+        if key == arcade.key.UP:
+            self.menu_items[self.last_hovered].hovered = False
+            self.hovered -= 1
+            self.hovered %= len(self.menu_items)
+            self.menu_items[self.hovered].hovered = True
+
+        if key == arcade.key.DOWN:
+            self.menu_items[self.last_hovered].hovered = False
+            self.hovered += 1
+            self.hovered %= len(self.menu_items)
+            self.menu_items[self.hovered].hovered = True
+
+
+        if key == arcade.key.ENTER:
+            if self.hovered == 0:
+                self.window.show_view(self.game_view)
+
+            elif self.hovered == 1:
+                self.window.show_view(self.high_score_view)
+    
+            elif self.hovered == 2:
+                self.window.show_view(self.instuctions_view)
+    
+            elif self.hovered == 3:
+                arcade.exit()
 
 
     def on_mouse_motion(self, x, y, dx, dy):
@@ -109,8 +148,9 @@ class MainMenu(arcade.View):
             item.hovered = item.contains(x, y)
 
             if item.hovered:
-                self.hovered = index       # <-- THIS
+                self.hovered = index
                 break
+        
 
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -120,6 +160,7 @@ class MainMenu(arcade.View):
 
         if self.hovered == 0:
             self.window.show_view(self.game_view)
+
 
         elif self.hovered == 1:
             self.window.show_view(self.high_score_view)
