@@ -1,167 +1,276 @@
 import arcade
 import arcade.gui
 from instructions import Instuctions
-from score import HighScore
+from score import HighScore, Score
 from game import Game
-#main menu view.
+from banner import Banner
+from menu_item import MenuItem
+from particle import Particle
+
+# Main menu view.
 class MainMenu(arcade.View):
 
     def __init__(self, window):
 
         super().__init__()
 
+        # self.x_center = window.width / 2
+        # self.y_center = window.height / 2
 
-        # Create the manager brain.
-        self.manager = arcade.gui.UIManager()
-
-        self.x_center = self.width / 2
-        self.y_center = self.height / 2
-
-        #init the game view
+        # Init the game view
         self.game_view = Game(self, window)
         self.high_score_view = HighScore(self, window)
         self.instuctions_view = Instuctions(self, window)
         self.window = window
+        self.banner = Banner()
+        self.score_manager = Score()
+
+        self.scores = []
 
         self.title_text = arcade.Text(
             text="PAC-MAN",
-            x = self.width / 2,
-            y = self.height - 200,
+            x=window.width * 0.2,
+            y=window.height * 0.8,
             color=arcade.color.WHITE,
-            font_size=180,
+            font_size=100,
             bold=True,
             anchor_x="center"
         )
 
+        self.hovered = -1
 
+        self.menu_items = []
 
-    #update when ever resizing the screen. 
-    def on_resize(self, width: int, height: int):
-        # Call the parent resize handler to update the internal viewport matrix
-        super().on_resize(width, height)
+        labels = [
+            "START GAME",
+            "HIGH SCORE",
+            "INSTRUCTIONS",
+            "QUIT GAME"
+        ]
 
-    #what will happen if the view is showed.
-    def on_show_view(self):
+        start_y = 650
 
-        #setting background color.
-        arcade.set_background_color(arcade.color.BLACK)
+        for i, label in enumerate(labels):
 
-        #enabling the gui manager (if not it will just draw the buttons without intuctions).
-        self.manager.enable()
+            self.menu_items.append(
 
-        #init the gui box to make all the buttons in one group layout.
-        menu_elements = arcade.gui.UIBoxLayout(space_between=40)
+                MenuItem(
+                    label,
+                    220,
+                    start_y - i * 90
+                )
 
-        #button style.
-        button_style = {
-            "normal": arcade.gui.UIFlatButton.UIStyle(
-                font_size=20,
-                font_name=("georgia", "times new roman", "serif"),
-                font_color=(234, 236, 250),
-                bg=(20, 12, 48),
-                border=(90, 72, 160),
-                border_width=2,
-            ),
-            "hover": arcade.gui.UIFlatButton.UIStyle(
-                font_size=20,
-                font_name=("georgia", "times new roman", "serif"),
-                font_color=(250, 250, 255),
-                bg=(64, 32, 120),
-                border=(180, 170, 255),
-                border_width=2,
-            ),
-            "press": arcade.gui.UIFlatButton.UIStyle(
-                font_size=20,
-                font_name=("georgia", "times new roman", "serif"),
-                font_color=(252, 244, 255),
-                bg=(8, 6, 26),
-                border=(110, 78, 190),
-                border_width=3,
-            ),
-            "disabled": arcade.gui.UIFlatButton.UIStyle(
-                font_size=20,
-                font_name=("georgia", "times new roman", "serif"),
-                font_color=(120, 118, 136),
-                bg=(18, 18, 36),
-                border=(56, 64, 96),
-                border_width=1,
             )
-        }
 
-        #init the buttons.
-        start_game = arcade.gui.UIFlatButton(text="START GAME", width=300, height=100, style=button_style)
-        high_score = arcade.gui.UIFlatButton(text="HIGH SCORE", width=300, height=100, style=button_style)
-        instructions = arcade.gui.UIFlatButton(text="INSTRUCTIONS", width=300, height=100, style=button_style)
-        quit_game = arcade.gui.UIFlatButton(text="QUIT GAME", width=300, height=100, style=button_style)
+        self.particles = []
 
-        #nested function to do things if the buttons was clicked.
-        @start_game.event("on_click")
-        def on_click_start(event):
-            #This is the action! Swap from current menu view to game view.
+        for _ in range(35):
+            self.particles.append(
+                Particle(
+                    window.width,
+                    window.height
+                )
+            )
+
+
+
+    def on_update(self, delta_time):
+
+        for particle in self.particles:
+            particle.update(delta_time)
+
+        for item in self.menu_items:
+            item.update()
+
+        if self.hovered != -1:
+            item = self.menu_items[self.hovered]
+
+            self.banner.move_to(
+                180,
+                item.text.y - 10,
+                item.text.content_width + 80
+            )
+        else:
+            self.banner.move_to(
+                -500,
+                self.banner.y,
+                self.banner.width
+            )
+
+        self.banner.update()
+
+
+    def on_mouse_motion(self, x, y, dx, dy):
+
+        self.hovered = -1
+
+        for index, item in enumerate(self.menu_items):
+
+            item.hovered = item.contains(x, y)
+
+            if item.hovered:
+                self.hovered = index       # <-- THIS
+                break
+
+
+    def on_mouse_press(self, x, y, button, modifiers):
+
+        if self.hovered == -1:
+            return
+
+        if self.hovered == 0:
             self.window.show_view(self.game_view)
-        
-        @high_score.event("on_click")
-        def on_click_high_score(event):
-            #This is the action! Swap from current menu view to game view.
+
+        elif self.hovered == 1:
             self.window.show_view(self.high_score_view)
-        
-        @instructions.event("on_click")
-        def on_click_instuctions(event):
-            #This is the action! Swap from current menu view to game view.
+
+        elif self.hovered == 2:
             self.window.show_view(self.instuctions_view)
-        
-        @quit_game.event("on_click")
-        def on_click_quit(event):
+
+        elif self.hovered == 3:
             arcade.exit()
 
-        #adding buttons to one group layout.
-        menu_elements.add(start_game)
-        menu_elements.add(high_score)
-        menu_elements.add(instructions)
-        menu_elements.add(quit_game)
+    # Update whenever resizing the screen. 
+    def on_resize(self, width: int, height: int):
 
+        super().on_resize(width, height)
+        self.title_text.x = width * 0.2
+        self.title_text.y = height * 0.8
 
-        #give the group to the manager.
-        self.manager.add(
-            arcade.gui.UIAnchorLayout(
-                anchor_x="center_x",
-                anchor_y="center_y",
-                children=[menu_elements]
-            )
+    # What will happen if the view is shown.
+    def on_show_view(self):
+
+        # Setting background color.
+        arcade.set_background_color((8, 12, 28))
+
+        self.scores = self.score_manager.load_score()
+
+    def draw_leaderboard(self):
+
+        x = self.window.width * 0.68
+        y = self.window.height * 0.66
+
+        width = 500
+        height = 460
+
+        arcade.draw_lrbt_rectangle_filled(
+            x + 8,
+            x + width + 8,
+            y - height - 8,
+            y - 8,
+            (0, 0, 0, 100)
         )
 
-    #when the view is hided.
-    def on_hide_view(self):
-        self.manager.disable()
+        arcade.draw_lrbt_rectangle_outline(
+            x,
+            x + width,
+            y - height,
+            y,
+            (0, 240, 255),
+            border_width=2
+        )
 
-    # what will draw.
+        arcade.draw_text(
+            "TOP PLAYERS",
+            x + width / 2,
+            y - 40,
+            (255, 255, 0),
+            28,
+            bold=True,
+            anchor_x="center"
+        )
+
+        arcade.draw_line(
+            x + 25,
+            y - 75,
+            x + width - 25,
+            y - 75,
+            (0,240,255),
+            line_width=2
+        )
+
+        row_y = y - 120
+
+        for i, item in enumerate(self.scores[:10]):
+
+            name, score = list(item.items())[0]
+
+            if i == 0:
+                rank_color = arcade.color.GOLD
+            elif i == 1:
+                rank_color = arcade.color.SILVER
+            elif i == 2:
+                rank_color = (205, 127, 50)   # bronze
+            else:
+                rank_color = arcade.color.WHITE
+
+            arcade.draw_text(
+                f"{i + 1}.",
+                x + 30,
+                row_y,
+                rank_color,
+                22,
+                bold=True,
+            )
+
+            arcade.draw_text(
+                name,
+                x + 70,
+                row_y,
+                arcade.color.WHITE,
+                22,
+            )
+
+            arcade.draw_text(
+                str(score),
+                x + width - 30,
+                row_y,
+                arcade.color.CYAN,
+                22,
+                anchor_x="right"
+            )
+
+            row_y -= 35
+        
+
+    def draw_maze_background(self):
+
+        color = (0, 180, 255, 30)
+
+        self.wall_h(900, 1200, 800, color)
+        self.wall_v(1200, 600, 800, color)
+
+        self.wall_h(700, 950, 500, color)
+        self.wall_v(700, 300, 500, color)
+
+    def wall_h(self, x1, x2, y, color):
+        arcade.draw_line(x1, y, x2, y, color, 6)
+
+    def wall_v(self, x, y1, y2, color):
+        arcade.draw_line(x, y1, x, y2, color, 6)
+
+
+    # What will draw.
     def on_draw(self):
 
         self.clear()
 
+        w = self.window.width
+        h = self.window.height
+
+        self.draw_maze_background()
+
+        self.draw_leaderboard()
+
+        for particle in self.particles:
+            particle.draw()
+
+        self.banner.draw()
+
+        for item in self.menu_items:
+            item.draw()
+
         self.title_text.draw()
-        self.manager.draw()
-
-        # arcade.draw_text("Pac-Man",
-        #          self.width / 2 + 4,
-        #          self.height - 84,
-        #          (6, 8, 30),
-        #          font_size=180,
-        #          anchor_x="center",
-        #          anchor_y="center")
-
-        
-        # arcade.draw_text("Pac-Man",
-        #                  self.width / 2,
-        #                  self.height - 360,
-        #                  arcade.color.RED,
-        #                  font_size=100,
-        #                  anchor_x="center",
-        #                  anchor_y="center")
-
-    
-    # def on_mouse_press(self, x, y, button, modifiers):
-    #     self.window.show_view(Game())
 
 window = arcade.Window(1920, 1080, "Pac-man", resizable=True, fullscreen=True)
 

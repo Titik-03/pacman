@@ -17,7 +17,7 @@ class GameWindow(arcade.Window):
         super().__init__(width, height, "Pac-Man")
         arcade.set_background_color((10, 10, 30))
 
-        self.m = MazeGenerator((10, 10))
+        self.m = MazeGenerator()
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
