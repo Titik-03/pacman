@@ -1,11 +1,8 @@
 import sys
 import os
-
-# Add src directory to python module search path
-sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
-
 import arcade
-from main_menu import MainMenu
+from src.main_menu import MainMenu
+
 
 
 def main():

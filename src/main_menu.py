@@ -1,11 +1,11 @@
 import arcade
 import arcade.gui
-from instructions import Instuctions
-from score import HighScore, Score
-from game import Game
-from banner import Banner
-from menu_item import MenuItem
-from particle import Particle
+from src.instructions import Instuctions
+from src.score import HighScore, Score
+from src.game import GameWindow
+from src.banner import Banner
+from src.menu_item import MenuItem
+from src.particle import Particle
 
 # Main menu view.
 class MainMenu(arcade.View):
@@ -18,7 +18,7 @@ class MainMenu(arcade.View):
         # self.y_center = window.height / 2
 
         # Init the game view
-        self.game_view = Game(self, window)
+        self.game_view = GameWindow(self, window)
         self.high_score_view = HighScore(self, window)
         self.instuctions_view = Instuctions(self, window)
         self.window = window
@@ -160,7 +160,6 @@ class MainMenu(arcade.View):
 
         if self.hovered == 0:
             self.window.show_view(self.game_view)
-
 
         elif self.hovered == 1:
             self.window.show_view(self.high_score_view)
@@ -312,11 +311,3 @@ class MainMenu(arcade.View):
             item.draw()
 
         self.title_text.draw()
-
-window = arcade.Window(1920, 1080, "Pac-man", resizable=True, fullscreen=True)
-
-main_menu = MainMenu(window)
-
-window.show_view(main_menu)
-
-arcade.run()
