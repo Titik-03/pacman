@@ -1,5 +1,4 @@
 
-
 import pathlib
 import arcade
 
@@ -25,8 +24,8 @@ class Player(arcade.Sprite):
         player_list: arcade.SpriteList = arcade.SpriteList()
 
         player = Player(center_x, center_y)
-        player.width = cell_size * 0.8
-        player.height = cell_size * 0.8
+        player.width = cell_size * 0.5
+        player.height = cell_size * 0.5
         player_list.append(player)
 
         return player, player_list
@@ -44,13 +43,13 @@ class Player(arcade.Sprite):
     def on_key_release(self, key: int):
         pass
 
-    def can_move(self, dir_tuple: tuple[int, int], maze, cell_size: float, rows: int, cols: int) -> bool:
+    def can_move(self, dir_tuple: tuple[int, int], maze, cell_size: float, rows: int, cols: int, offset_x: float = 0.0, offset_y: float = 0.0) -> bool:
         dx, dy = dir_tuple
         if dx == 0 and dy == 0:
             return False
 
-        col = int(round((self.center_x - cell_size / 2) / cell_size))
-        row = int(round(((rows - 1) * cell_size + cell_size / 2 - self.center_y) / cell_size))
+        col = int(round(((self.center_x - offset_x) - cell_size / 2) / cell_size))
+        row = int(round(((rows - 1) * cell_size + cell_size / 2 - (self.center_y - offset_y)) / cell_size))
 
         col = max(0, min(cols - 1, col))
         row = max(0, min(rows - 1, row))
@@ -70,19 +69,18 @@ class Player(arcade.Sprite):
 
         return True
 
-    def update_grid_movement(self, maze, cell_size: float, rows: int, cols: int):
+    def update_grid_movement(self, maze, cell_size: float, rows: int, cols: int, offset_x: float = 0.0, offset_y: float = 0.0):
         # Arrived at cell center -> evaluate next move
         if self.center_x == self.target_x and self.center_y == self.target_y:
-            if self.can_move(self.queued_dir, maze, cell_size, rows, cols):
+            if self.can_move(self.queued_dir, maze, cell_size, rows, cols, offset_x, offset_y):
                 self.current_dir = self.queued_dir
-            elif not self.can_move(self.current_dir, maze, cell_size, rows, cols):
+            elif not self.can_move(self.current_dir, maze, cell_size, rows, cols, offset_x, offset_y):
                 self.current_dir = (0, 0)
 
             if self.current_dir != (0, 0):
                 self.target_x = self.center_x + self.current_dir[0] * cell_size
                 self.target_y = self.center_y + self.current_dir[1] * cell_size
 
-        # Smoothly slide towards target cell center
         step = self.speed
 
         if self.center_x < self.target_x:
