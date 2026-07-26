@@ -57,7 +57,7 @@ class Banner:
         arcade.draw_polygon_outline(  # Draw a border around the banner.
             points,
             arcade.color.WHITE,  # Use white for the outline color.
-            line_width=4  # Make the border clearly visible.
+            line_width=2  # Make the border clearly visible.
         )
 
         accent = [  # Build the decorative accent polygon points.
