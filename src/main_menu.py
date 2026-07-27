@@ -27,8 +27,8 @@ class MainMenu(arcade.View):
         self.game_view = GameWindow(self, window)
         self.high_score_view = HighScore(self, window)
         self.instuctions_view = Instuctions(self, window)
-        self.top_banner = Banner(1300, 1300)
-        self.bottom_banner = Banner(1300, -1600)
+        self.top_banner = Banner(window.width + 300, window.height + 300)
+        self.bottom_banner = Banner(window.width + 300, -window.height - 500)
         self.score_manager = Score()
         self.window = window
 
@@ -97,17 +97,17 @@ class MainMenu(arcade.View):
 
         if self.hovered != self.last_hovered:
             if self.hovered == 1:
-                self.top_banner.move_to(1000, 600)
-                self.bottom_banner.move_to(1300, -1600)
+                self.top_banner.move_to(self.window.width - 920, self.window.height - 550)
+                self.bottom_banner.move_to(self.window.width + 300, -self.window.height - 500)
             elif self.hovered == 2:
-                self.top_banner.move_to(1300, 1300)
+                self.top_banner.move_to(self.window.width + 300, self.window.height + 300)
                 self.bottom_banner.move_to(570, -600)
             elif self.hovered == 3:
-                self.top_banner.move_to(1000, 600)
+                self.top_banner.move_to(self.window.width - 920, self.window.height - 550)
                 self.bottom_banner.move_to(570, -600)
             else:
-                self.top_banner.move_to(1300, 1300)
-                self.bottom_banner.move_to(1300, -1600)
+                self.top_banner.move_to(self.window.width + 300, self.window.height + 300)
+                self.bottom_banner.move_to(self.window.width + 300, -self.window.height - 500)
 
             if self.hovered != -1:
                 arcade.play_sound(self.hover_sound)
