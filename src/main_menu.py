@@ -1,3 +1,6 @@
+from arcade import application
+from arcade import window_commands
+from arcade.gui import widgets
 import arcade
 import arcade.gui
 from src.instructions import Instuctions
@@ -17,24 +20,30 @@ class MainMenu(arcade.View):
         # self.x_center = window.width / 2
         # self.y_center = window.height / 2
 
+        arcade.load_font("src/assets/Handjet/static/Handjet-Regular.ttf")
+        arcade.load_font("src/assets/Handjet/static/Handjet-Bold.ttf")
+
         # Init the game view
         self.game_view = GameWindow(self, window)
         self.high_score_view = HighScore(self, window)
         self.instuctions_view = Instuctions(self, window)
-        self.window = window
-        self.banner = Banner()
+        self.top_banner = Banner(1300, 1300)
+        self.bottom_banner = Banner(1300, -1600)
         self.score_manager = Score()
 
         self.scores = []
 
+        self.background = arcade.load_texture("src/assets/Desktop - 1.png")
+        self.instructions_image = arcade.load_texture("src/assets/Frame 1.png")
         self.title_text = arcade.Text(
             text="PAC-MAN",
-            x=window.width * 0.2,
+            x=5,
             y=window.height * 0.8,
             color=arcade.color.WHITE,
-            font_size=100,
-            # bold=True,
-            anchor_x="center"
+            font_size=160,
+            font_name="Handjet",
+            bold=True,
+            # anchor_x="right"
         )
 
         self.hovered = -1
@@ -57,7 +66,7 @@ class MainMenu(arcade.View):
 
                 MenuItem(
                     label,
-                    220,
+                    120,
                     start_y - i * 90
                 )
 
@@ -85,29 +94,27 @@ class MainMenu(arcade.View):
         for item in self.menu_items:
             item.update()
 
-        if self.hovered != -1:
-            item = self.menu_items[self.hovered]
-
-            self.banner.move_to(
-                180,
-                item.text.y - 10,
-                item.text.content_width + 80
-            )
-        else:
-            self.banner.move_to(
-                -500,
-                self.banner.y,
-                self.banner.width
-            )
-        
         if self.hovered != self.last_hovered:
+            if self.hovered == 1:
+                self.top_banner.move_to(1000, 600)
+                self.bottom_banner.move_to(1300, -1600)
+            elif self.hovered == 2:
+                self.top_banner.move_to(1300, 1300)
+                self.bottom_banner.move_to(600, -600)
+            elif self.hovered == 3:
+                self.top_banner.move_to(1000, 600)
+                self.bottom_banner.move_to(600, -600)
+            else:
+                self.top_banner.move_to(1300, 1300)
+                self.bottom_banner.move_to(1300, -1600)
+
             if self.hovered != -1:
                 arcade.play_sound(self.hover_sound)
 
-
             self.last_hovered = self.hovered
 
-        self.banner.update()
+        self.top_banner.update()
+        self.bottom_banner.update()
 
 
     def on_key_press(self, key, modifiers):
@@ -174,103 +181,86 @@ class MainMenu(arcade.View):
     def on_resize(self, width: int, height: int):
 
         super().on_resize(width, height)
-        self.title_text.x = width * 0.2
+        self.title_text.x = 5
         self.title_text.y = height * 0.8
 
     # What will happen if the view is shown.
     def on_show_view(self):
 
         # Setting background color.
-        arcade.set_background_color((8, 12, 28))
-
         self.scores = self.score_manager.load_score()
 
     def draw_leaderboard(self):
 
-        x = self.window.width * 0.68
-        y = self.window.height * 0.66
-
-        width = 500
-        height = 460
-
-        arcade.draw_lrbt_rectangle_filled(
-            x + 8,
-            x + width + 8,
-            y - height - 8,
-            y - 8,
-            (0, 0, 0, 100)
-        )
-
-        arcade.draw_lrbt_rectangle_outline(
-            x,
-            x + width,
-            y - height,
-            y,
-            (0, 240, 255),
-            border_width=2
-        )
-
-        arcade.draw_text(
-            "TOP PLAYERS",
-            x + width / 2,
-            y - 40,
-            (255, 255, 0),
-            28,
-            bold=True,
-            anchor_x="center"
-        )
-
-        arcade.draw_line(
-            x + 25,
-            y - 75,
-            x + width - 25,
-            y - 75,
-            (0,240,255),
-            line_width=2
-        )
-
-        row_y = y - 120
+        top_y = self.top_banner.y + 535
+        margin_x = 130
+        width = 700
+        row_height = 50
 
         for i, item in enumerate(self.scores[:10]):
 
             name, score = list(item.items())[0]
+            row_y = top_y - (i * row_height)
+
+            edge_x = (self.top_banner.x - 200) + (row_y - self.top_banner.y) * 0.35
+            row_x = edge_x + margin_x
 
             if i == 0:
-                rank_color = arcade.color.GOLD
+                rank_color = (255, 215, 0)      # Gold
             elif i == 1:
-                rank_color = arcade.color.SILVER
+                rank_color = (210, 220, 235)    # Silver
             elif i == 2:
-                rank_color = (205, 127, 50)   # bronze
+                rank_color = (225, 145, 65)     # Bronze
             else:
-                rank_color = arcade.color.WHITE
+                rank_color = (230, 230, 235)    # Crisp White
 
             arcade.draw_text(
-                f"{i + 1}.",
-                x + 30,
+                f"{i + 1:02d}.",
+                row_x,
                 row_y,
                 rank_color,
-                22,
+                45,
+                font_name="Handjet",
                 bold=True,
             )
 
             arcade.draw_text(
-                name,
-                x + 70,
+                str(name).upper(),
+                row_x + 65,
                 row_y,
                 arcade.color.WHITE,
-                22,
+                45,
+                font_name="Handjet",
+                bold=True,
             )
 
             arcade.draw_text(
-                str(score),
-                x + width - 30,
+                f"{score}",
+                row_x + width,
                 row_y,
-                arcade.color.CYAN,
-                22,
+                (0, 240, 255),
+                45,
+                font_name="Handjet",
+                bold=True,
                 anchor_x="right"
             )
 
-            row_y -= 35
+    def draw_instructions(self):
+
+        left = self.bottom_banner.x + 190
+        bottom = self.bottom_banner.y + 600
+        width = 1150
+        height = 400
+
+        arcade.draw_texture_rect(
+            self.instructions_image,
+            arcade.LBWH(
+                left,
+                bottom,
+                width,
+                height
+            )
+        )
         
 
     def draw_maze_background(self):
@@ -298,14 +288,25 @@ class MainMenu(arcade.View):
         w = self.window.width
         h = self.window.height
 
-        self.draw_maze_background()
-
-        self.draw_leaderboard()
+        # self.draw_maze_background()
+        arcade.draw_texture_rect(
+            self.background,
+            arcade.LBWH(
+                0,
+                0,
+                self.window.width,
+                self.window.height,
+            ),
+        )
 
         for particle in self.particles:
             particle.draw()
 
-        self.banner.draw()
+        self.top_banner.draw()
+        self.bottom_banner.draw()
+
+        self.draw_leaderboard()
+        self.draw_instructions()
 
         for item in self.menu_items:
             item.draw()

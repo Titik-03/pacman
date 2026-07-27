@@ -6,12 +6,7 @@ class MenuItem:
 
     def __init__(self, label: str, x: float, y: float):
 
-        self.base_x = x  # Store the original x position.
-        self.base_y = y  # Store the original y position.
-
         self.offset = 0  # Keep a generic offset value for layout or animation.
-
-        self.font_size = 32  # Set the menu text size.
 
         self.arrow_offset = -20  # Start the arrow slightly left of the text.
         self.time = 0  # Track elapsed time for animation.
@@ -21,7 +16,8 @@ class MenuItem:
             x,  # Use the provided x coordinate.
             y,  # Use the provided y coordinate.
             arcade.color.WHITE,  # Start with white text.
-            32,  # Use a 32-point font size.
+            50,  # Use a 32-point font size.
+            font_name="Handjet",
             bold=True,  # Draw the label in bold.
         )
 
@@ -43,13 +39,13 @@ class MenuItem:
 
     def draw(self):
 
-        arrow_x = self.text.x - 20 + self.arrow_offset  # Compute the arrow's x position.
-        arrow_y = self.text.y + math.sin(self.time * 8) * 2  # Add a small vertical wobble.
+        arrow_x = self.text.x - 30 + self.arrow_offset  # Compute the arrow's x position.
+        arrow_y = self.text.y + 4 + math.sin(self.time * 8) * 2  # Add a small vertical wobble.
 
         arrow = [  # Build the arrow polygon for this frame.
-            (arrow_x, arrow_y + 8),  # Set the arrow's top point.
-            (arrow_x + 18, arrow_y + 18),  # Set the arrow's tip point.
-            (arrow_x, arrow_y + 28),  # Set the arrow's bottom point.
+            (arrow_x, arrow_y + 6),  # Set the arrow's top point.
+            (arrow_x + 16, arrow_y + 16),  # Set the arrow's tip point.
+            (arrow_x, arrow_y + 26),  # Set the arrow's bottom point.
         ]
 
         if self.hovered:  # Only draw the arrow when the item is hovered.
@@ -60,7 +56,7 @@ class MenuItem:
 
         self.text.color = (  # Choose the label color based on hover state.
             arcade.color.YELLOW  # Use yellow when hovered.
-            if self.hovered  # Check whether the item is hovered.
+            if self.hovered # Check whether the item is hovered.
             else arcade.color.WHITE  # Use white otherwise.
         )
 
