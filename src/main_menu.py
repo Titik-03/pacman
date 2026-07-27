@@ -101,10 +101,10 @@ class MainMenu(arcade.View):
                 self.bottom_banner.move_to(1300, -1600)
             elif self.hovered == 2:
                 self.top_banner.move_to(1300, 1300)
-                self.bottom_banner.move_to(600, -600)
+                self.bottom_banner.move_to(570, -600)
             elif self.hovered == 3:
                 self.top_banner.move_to(1000, 600)
-                self.bottom_banner.move_to(600, -600)
+                self.bottom_banner.move_to(570, -600)
             else:
                 self.top_banner.move_to(1300, 1300)
                 self.bottom_banner.move_to(1300, -1600)
@@ -198,7 +198,7 @@ class MainMenu(arcade.View):
 
     def draw_leaderboard(self):
 
-        top_y = self.top_banner.y + 535
+        top_y = self.top_banner.y + 480
         margin_x = 130
         width = 700
         row_height = 50
