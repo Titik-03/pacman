@@ -33,6 +33,7 @@ class HighScore(arcade.View):
             self.window.height - 140,
             arcade.color.WHITE,
             72,
+            font_name="Handjet",
             bold=True,
             anchor_x="center"
         )
