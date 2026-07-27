@@ -205,7 +205,7 @@ class MainMenu(arcade.View):
 
         for i, item in enumerate(self.scores[:10]):
 
-            name, score = next(iter(item.items()))
+            name, score = list(item.items())[0]
             row_y = top_y - (i * row_height)
 
             edge_x = (self.top_banner.x - 200) + (row_y - self.top_banner.y) * 0.35
@@ -216,18 +216,18 @@ class MainMenu(arcade.View):
             elif i == 1:
                 rank_color = (210, 220, 235)    # Silver
             elif i == 2:
-                rank_color = (225, 145, 65)    # Bronze
+                rank_color = (225, 145, 65)     # Bronze
             else:
                 rank_color = (230, 230, 235)    # Crisp White
 
             arcade.draw_text(
-                    f"{i + 1:02d}.",
-                    row_x,
-                    row_y,
-                    rank_color,
-                    45,
+                f"{i + 1:02d}.",
+                row_x,
+                row_y,
+                rank_color,
+                45,
                 font_name="Handjet",
-                    bold=True,
+                bold=True,
             )
 
             arcade.draw_text(
@@ -245,28 +245,28 @@ class MainMenu(arcade.View):
                 row_x + width,
                 row_y,
                 (0, 240, 255),
-            45,
-            font_name="Handjet",
+                45,
+                font_name="Handjet",
                 bold=True,
-                anchor_x="right",
+                anchor_x="right"
             )
 
-        def draw_instructions(self):
+    def draw_instructions(self):
 
-            left = self.bottom_banner.x + 190
-            bottom = self.bottom_banner.y + 600
-            width = 1150
-            height = 400
+        left = self.bottom_banner.x + 190
+        bottom = self.bottom_banner.y + 600
+        width = 1150
+        height = 400
 
-            arcade.draw_texture_rect(
-                self.instructions_image,
-                arcade.LBWH(
-                    left,
-                    bottom,
-                    width,
-                    height
-                )
+        arcade.draw_texture_rect(
+            self.instructions_image,
+            arcade.LBWH(
+                left,
+                bottom,
+                width,
+                height
             )
+        )
 
 
     def draw_maze_background(self):
