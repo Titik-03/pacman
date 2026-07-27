@@ -30,6 +30,7 @@ class MainMenu(arcade.View):
         self.top_banner = Banner(1300, 1300)
         self.bottom_banner = Banner(1300, -1600)
         self.score_manager = Score()
+        self.window = window
 
         self.scores = []
 
@@ -121,8 +122,12 @@ class MainMenu(arcade.View):
 
         if key == arcade.key.UP:
             self.menu_items[self.last_hovered].hovered = False
-            self.hovered -= 1
-            self.hovered %= len(self.menu_items)
+            if self.hovered == -1:
+                self.hovered = 0
+
+            else:
+                self.hovered -= 1
+                self.hovered %= len(self.menu_items)
             self.menu_items[self.hovered].hovered = True
 
         if key == arcade.key.DOWN:
@@ -134,6 +139,7 @@ class MainMenu(arcade.View):
 
         if key == arcade.key.ENTER:
             if self.hovered == 0:
+                self.game_view = GameWindow(self, self.window)
                 self.window.show_view(self.game_view)
 
             elif self.hovered == 1:
@@ -159,13 +165,13 @@ class MainMenu(arcade.View):
                 break
         
 
-
     def on_mouse_press(self, x, y, button, modifiers):
 
         if self.hovered == -1:
             return
 
         if self.hovered == 0:
+            self.game_view = GameWindow(self, self.window)
             self.window.show_view(self.game_view)
 
         elif self.hovered == 1:
@@ -261,7 +267,7 @@ class MainMenu(arcade.View):
                 height
             )
         )
-        
+
 
     def draw_maze_background(self):
 
