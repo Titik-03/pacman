@@ -1,4 +1,3 @@
-
 import pathlib
 import arcade
 
@@ -13,9 +12,13 @@ class Player(arcade.Sprite):
         self.center_y = center_y
         self.target_x = center_x
         self.target_y = center_y
-        self.speed = 240.0
+        self.speed = 170.0
         self.queued_dir = (0, 0)
         self.current_dir = (0, 0)
+        
+        #Power-Up System
+        self.is_powered_up = False
+        self.power_timer = 0.0
 
     @staticmethod
     def create_player(
@@ -58,19 +61,53 @@ class Player(arcade.Sprite):
 
         NORTH, EAST, SOUTH, WEST = 1, 2, 4, 8
 
+        if dy == 1:
+            self.angle = 270
         if dy == 1 and (cell_val & NORTH):
             return False
+
+        if dy == -1:
+            self.angle = 90
         if dy == -1 and (cell_val & SOUTH):
             return False
+
+        if dx == 1:
+            self.angle = 0
         if dx == 1 and (cell_val & EAST):
             return False
+
+        elif dx == -1:
+            self.angle = 180
         if dx == -1 and (cell_val & WEST):
             return False
 
         return True
 
-    def update_grid_movement(self, maze, cell_size: float, rows: int, cols: int, offset_x: float = 0.0, offset_y: float = 0.0, delta_time: float = 1 / 60):
-        step = self.speed * delta_time
+    def activate_power_up(self, duration: float = 10.0):
+        """Triggers the power-up state and resets/starts the duration clock."""
+        self.is_powered_up = True
+        self.power_timer = duration
+
+    def update_grid_movement(self,
+                             maze,
+                             cell_size: float,
+                             rows: int,
+                             cols: int,
+                             offset_x: float = 0.0,
+                             offset_y: float = 0.0,
+                             delta_time: float = 1 / 60
+                             ) -> None:
+
+        #Tick down the power-up timer
+        if self.is_powered_up:
+            self.power_timer -= delta_time
+            if self.power_timer <= 0:
+                self.is_powered_up = False
+                self.power_timer = 0.0
+
+        #Calculate dynamic speed
+        current_speed = self.speed * 2.0 if self.is_powered_up else self.speed
+        step = current_speed * delta_time
 
         # Snap to the target when we are close enough to avoid float jitter.
         if abs(self.center_x - self.target_x) <= step and abs(self.center_y - self.target_y) <= step:
@@ -81,6 +118,7 @@ class Player(arcade.Sprite):
         if self.center_x == self.target_x and self.center_y == self.target_y:
             if self.can_move(self.queued_dir, maze, cell_size, rows, cols, offset_x, offset_y):
                 self.current_dir = self.queued_dir
+
             elif not self.can_move(self.current_dir, maze, cell_size, rows, cols, offset_x, offset_y):
                 self.current_dir = (0, 0)
 
@@ -96,4 +134,6 @@ class Player(arcade.Sprite):
         if self.center_y < self.target_y:
             self.center_y = min(self.target_y, self.center_y + step)
         elif self.center_y > self.target_y:
-            self.center_y = max(self.target_y, self.center_y - step) 
+            self.center_y = max(self.target_y, self.center_y - step)
+
+

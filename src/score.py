@@ -182,35 +182,65 @@ class HighScore(arcade.View):
             self.window.show_view(self.main_menu)
 
 
+import json
+import os
+from typing import Dict, List
+
 
 class Score:
 
-    def __init__(self) -> List[Dict]:
+    def __init__(self, filepath: str = "src/outputs/high_score.json") -> None:
+        self.filepath = filepath
+        self.scores: List[Dict] = []
+        self.load_score()
 
-        self.score: List[Dict] = []
-    
-    def load_score(self):
+    def load_score(self) -> List[Dict]:
+        """Loads scores from the JSON file. Creates file if missing or corrupted."""
+        if not os.path.exists(self.filepath):
+            self.scores = []
+            self._save_to_disk()
+            return self.scores
+
         try:
-            with open("src/outputs/high_score.json", "r") as fp:
-                self.score = json.load(fp)
-            print(self.score)
+            with open(self.filepath, "r") as fp:
+                data = json.load(fp)
 
-        except Exception as e:
-            print(e)
-        return self.score
+            # Filter out stray non-dict elements like empty lists [[]]
+            if isinstance(data, list):
+                self.scores = [item for item in data if isinstance(item, dict)]
+            else:
+                self.scores = []
 
-    def write_score(self, new_data: Dict) -> List[Dict]:
-        existing_data: List = []
+        except (json.JSONDecodeError, Exception) as e:
+            print(f"Error loading scores: {e}")
+            self.scores = []
+
+        return self.scores
+
+    def write_score(self, name: str, score: int) -> List[Dict]:
+        """Adds a new score, sorts the list descending, and saves to file."""
+        # Standardize structure: {"name": "Player", "score": 100}
+        new_entry = {"name": name, "score": score}
+
+        # Reload fresh data first to prevent overwriting parallel changes
+        self.load_score()
+        self.scores.append(new_entry)
+
+        # Sort highest scores to the top
+        self.scores.sort(key=lambda x: x.get("score", 0), reverse=True)
+
+        self._save_to_disk()
+        return self.scores
+
+    def _save_to_disk(self) -> None:
+        """Helper method to handle JSON write operations."""
+        # Ensure output directory exists before writing
+        os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
+
         try:
-            with open("src/outputs/high_score.json", "r") as fp:
-                existing_data = json.load(fp)
-            
-            existing_data.append(new_data)
-
-            with open("src/outputs/high_score.json", "w") as fp:
-                json.dump(existing_data, fp, indent=4)
-
+            with open(self.filepath, "w") as fp:
+                json.dump(self.scores, fp, indent=4)
         except Exception as e:
-            print(e)
-        
-        return existing_data
+            print(f"Error saving scores: {e}")
+
+

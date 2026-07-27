@@ -17,8 +17,7 @@ class MainMenu(arcade.View):
         # self.x_center = window.width / 2
         # self.y_center = window.height / 2
 
-        # Init the game view
-        self.game_view = GameWindow(self, window)
+
         self.high_score_view = HighScore(self, window)
         self.instuctions_view = Instuctions(self, window)
         self.window = window
@@ -114,8 +113,12 @@ class MainMenu(arcade.View):
 
         if key == arcade.key.UP:
             self.menu_items[self.last_hovered].hovered = False
-            self.hovered -= 1
-            self.hovered %= len(self.menu_items)
+            if self.hovered == -1:
+                self.hovered = 0
+
+            else:
+                self.hovered -= 1
+                self.hovered %= len(self.menu_items)
             self.menu_items[self.hovered].hovered = True
 
         if key == arcade.key.DOWN:
@@ -127,6 +130,7 @@ class MainMenu(arcade.View):
 
         if key == arcade.key.ENTER:
             if self.hovered == 0:
+                self.game_view = GameWindow(self, self.window)
                 self.window.show_view(self.game_view)
 
             elif self.hovered == 1:
@@ -152,13 +156,13 @@ class MainMenu(arcade.View):
                 break
         
 
-
     def on_mouse_press(self, x, y, button, modifiers):
 
         if self.hovered == -1:
             return
 
         if self.hovered == 0:
+            self.game_view = GameWindow(self, self.window)
             self.window.show_view(self.game_view)
 
         elif self.hovered == 1:
@@ -231,47 +235,52 @@ class MainMenu(arcade.View):
 
         row_y = y - 120
 
-        for i, item in enumerate(self.scores[:10]):
+        if self.scores:
+            for i, item in enumerate(self.scores[:10]):
+                # Prevent crash if an invalid item (like an empty list []) ended up in self.scores
+                if not isinstance(item, dict) or not item:
+                    continue
 
-            name, score = list(item.items())[0]
+                # Safely extract the first key-value pair
+                name, score = next(iter(item.items()))
 
-            if i == 0:
-                rank_color = arcade.color.GOLD
-            elif i == 1:
-                rank_color = arcade.color.SILVER
-            elif i == 2:
-                rank_color = (205, 127, 50)   # bronze
-            else:
-                rank_color = arcade.color.WHITE
+                if i == 0:
+                    rank_color = arcade.color.GOLD
+                elif i == 1:
+                    rank_color = arcade.color.SILVER
+                elif i == 2:
+                    rank_color = (205, 127, 50)  # bronze
+                else:
+                    rank_color = arcade.color.WHITE
 
-            arcade.draw_text(
-                f"{i + 1}.",
-                x + 30,
-                row_y,
-                rank_color,
-                22,
-                bold=True,
-            )
+                arcade.draw_text(
+                    f"{i + 1}.",
+                    x + 30,
+                    row_y,
+                    rank_color,
+                    22,
+                    bold=True,
+                )
 
-            arcade.draw_text(
-                name,
-                x + 70,
-                row_y,
-                arcade.color.WHITE,
-                22,
-            )
+                arcade.draw_text(
+                    name,
+                    x + 70,
+                    row_y,
+                    arcade.color.WHITE,
+                    22,
+                )
 
-            arcade.draw_text(
-                str(score),
-                x + width - 30,
-                row_y,
-                arcade.color.CYAN,
-                22,
-                anchor_x="right"
-            )
+                arcade.draw_text(
+                    str(score),
+                    x + width - 30,
+                    row_y,
+                    arcade.color.CYAN,
+                    22,
+                    anchor_x="right",
+                )
 
-            row_y -= 35
-        
+                row_y -= 35
+            
 
     def draw_maze_background(self):
 

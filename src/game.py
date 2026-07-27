@@ -7,6 +7,7 @@ from src.player import Player
 from src.pause_menu import PauseMenu
 from src.game_over import GameOver
 from src.vectory import Vectory
+from src.ghost import Ghost
 
 
 NORTH = 1
@@ -49,6 +50,7 @@ class GameWindow(arcade.View):
 
         self.coin = Coin(10, 10)
         self.score = 0
+        
 
         center_col = self.cols // 2
         center_row = self.rows // 2
@@ -61,7 +63,9 @@ class GameWindow(arcade.View):
         self.coins_lst = []
 
         self.init_maze()
-        
+
+        self.target_score = len(self.coins_lst) + 196
+
         self.physics_engine = arcade.PhysicsEngineSimple(self.player, self.wall_list)
 
         self.manager = arcade.gui.UIManager()
@@ -70,6 +74,12 @@ class GameWindow(arcade.View):
         self.window = window
         self.pause_menu = PauseMenu(self)
         self.pause = False
+        self.timer = 60
+
+    def init_ghosts(self):
+
+        self.ghost = Ghost.create_ghost()
+
 
     def init_maze(self):
 
@@ -135,11 +145,17 @@ class GameWindow(arcade.View):
         if self.pause:
             self.manager.draw()
 
+        arcade.draw_text(f"{int(self.timer)}", 1500, 1000)
+
 
     def on_update(self, delta_time: float):
 
         if self.pause:
             return
+
+        self.timer -= delta_time
+        if self.timer < 0.80:
+            self.window.show_view(self.game_over)
 
         self.player.update_grid_movement(
             self.maze,
@@ -156,7 +172,15 @@ class GameWindow(arcade.View):
                 distance = math.hypot(self.player.center_x - coin.x, self.player.center_y - coin.y)
                 if distance < (self.player.width / 2 + coin.radius):
                     coin.is_eaten = True
-                    self.score += 50 if coin.is_powerup else 1
+                    if coin.is_powerup:
+                        self.score += 50
+                        self.player.activate_power_up(10) #power up.
+                    else:
+                        self.score += 10
+
+        if self.score == self.target_score:
+            #change the view to vectory menu.
+            self.window.show_view(self.vectory)
 
     def on_key_release(self, key, modifiers):
         self.player.on_key_release(key)
@@ -207,22 +231,13 @@ class GameWindow(arcade.View):
         #init the buttons.
         resume_game = arcade.gui.UIFlatButton(text="RESUME GAME", width=300, height=100, style=button_style)
         quit_game = arcade.gui.UIFlatButton(text="MAIN_MENU", width=300, height=100, style=button_style)
-        
-        #settings if future needed.
-        # settings = arcade.gui.UIFlatButton(text="SETTINGS", width=300, height=100, style=button_style)
 
         #nested function to do things if the buttons was clicked.
         @resume_game.event("on_click")
         def on_click_start(event):
             #This is the action! Swap from current menu view to game view.
             self.pause = False
-        
-        #settings if futur needed.
-        # @settings.event("on_click")
-        # def on_click_high_score(event):
-        #     #This is the action! Swap from current menu view to game view.
-        #     self.window.show_view(self.settings)
-        
+
         @quit_game.event("on_click")
         def on_click_quit(event):
             self.window.show_view(self.main_menu)
@@ -231,9 +246,6 @@ class GameWindow(arcade.View):
         #adding buttons to one group layout.
         menu_elements.add(resume_game)
         menu_elements.add(quit_game)
-
-        #settings if futur needed...
-        # menu_elements.add(settings)
 
         #give the group to the manager.
         self.manager.add(
@@ -265,3 +277,4 @@ class GameWindow(arcade.View):
         if key == arcade.key.F2:
             self.vectory = Vectory(self.window, self.main_menu, self.score)
             self.window.show_view(self.vectory)
+
