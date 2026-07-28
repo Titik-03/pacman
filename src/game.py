@@ -1,4 +1,5 @@
 import math
+import pathlib
 import arcade
 import arcade.shape_list as shapes
 from mazegenerator import MazeGenerator
@@ -7,8 +8,14 @@ from src.player import Player
 from src.pause_menu import PauseMenu
 from src.game_over import GameOver
 from src.vectory import Vectory
-from src.ghost import Ghost
+from src.ghost import Blinky, Pinky
 
+
+SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
+BLINKY_PATH = SCRIPT_DIR / "assets" / "blinky.png"
+PINKY_PATH = SCRIPT_DIR / "assets" / "pinky.png"
+# INKY_PATH = SCRIPT_DIR / "assets" / "ghost.png"
+# CLYDE_PATH = SCRIPT_DIR / "assets" / "ghost.png"
 
 NORTH = 1
 EAST = 2
@@ -34,7 +41,7 @@ class GameWindow(arcade.View):
             super().__init__(width or 900, height or 900, "Pac-Man", resizable=True)
         arcade.set_background_color((10, 10, 30))
 
-        self.m = MazeGenerator()
+        self.m = MazeGenerator((10, 10))
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
@@ -50,13 +57,49 @@ class GameWindow(arcade.View):
 
         self.coin = Coin(10, 10)
         self.score = 0
-        
 
+
+        #player coords.
         center_col = self.cols // 2
         center_row = self.rows // 2
         start_x = self.offset_x + (center_col + 0.5) * self.cell_size
         start_y = self.offset_y + (self.rows - 1 - center_row + 0.5) * self.cell_size
+
         self.player, self.player_list = Player.create_player(start_x, start_y, self.cell_size)
+
+        # #ghosts coords.
+        # # Blinky (top-left)
+        # blinky_x = self.offset_x + (0 + 0.5) * self.cell_size
+        # blinky_y = self.offset_y + (self.rows - 1 - 0 + 0.5) * self.cell_size
+
+        # # Pinky (top-right)
+        # pinky_x = self.offset_x + (self.cols - 1 + 0.5) * self.cell_size
+        # pinky_y = self.offset_y + (self.rows - 1 - 0 + 0.5) * self.cell_size
+
+        # # Clyde (bottom-left)
+        # clyde_x = self.offset_x + (0 + 0.5) * self.cell_size
+        # clyde_y = self.offset_y + (self.rows - 1 - (self.rows - 1) + 0.5) * self.cell_size
+
+        # # Inky (bottom-right)
+        # inky_x = self.offset_x + (self.cols - 1 + 0.5) * self.cell_size
+        # inky_y = self.offset_y + (self.rows - 1 - (self.rows - 1) + 0.5) * self.cell_size
+
+
+        # self.blinky, self.blinky_list = Blinky.create_ghost(blinky_x, blinky_y, self.cell_size)
+        # self.pinky, self.pinky_list = Pinky.create_ghost(pinky_x, pinky_y, self.cell_size)
+        # self.inky, self.inky_list = Inky.create_ghost(start_x, start_y, self.cell_size)
+        # self.clyde, self.clyde_list = Clyde.create_ghost(start_x, start_y, self.cell_size)
+
+        self.init_ghosts()
+
+
+
+        self.blinky.home_row, self.blinky.home_col = self.blinky.get_cell(
+            self.blinky.center_x,
+            self.blinky.center_y,
+            self.cell_size,
+            self.rows,
+        )
 
         self.wall_shapes = shapes.ShapeElementList()
         self.wall_list = arcade.SpriteList(use_spatial_hash=True)
@@ -78,7 +121,74 @@ class GameWindow(arcade.View):
 
     def init_ghosts(self):
 
-        self.ghost = Ghost.create_ghost()
+        # ---------- Blinky ----------
+        blinky_row = 0
+        blinky_col = 0
+
+        blinky_x = self.offset_x + (blinky_col + 0.5) * self.cell_size
+        blinky_y = self.offset_y + (self.rows - 1 - blinky_row + 0.5) * self.cell_size
+
+        self.blinky, self.blinky_list = Blinky.create_ghost(
+            blinky_x,
+            blinky_y,
+            self.cell_size,
+        )
+
+        self.blinky.home_row = 0
+        self.blinky.home_col = 1
+
+
+        # ---------- Pinky ----------
+        pinky_row = 0
+        pinky_col = self.cols - 1
+
+        pinky_x = self.offset_x + (pinky_col + 0.5) * self.cell_size
+        pinky_y = self.offset_y + (self.rows - 1 - pinky_row + 0.5) * self.cell_size
+
+        self.pinky, self.pinky_list = Pinky.create_ghost(
+            pinky_x,
+            pinky_y,
+            self.cell_size,
+        )
+
+        self.pinky.home_row = 0
+        self.pinky.home_col = self.cols - 2
+
+
+        self.pinky.home_row = pinky_row
+        self.pinky.home_col = pinky_col
+
+        self.blinky.home_row, self.blinky.home_col = self.blinky.get_cell(
+            self.blinky.center_x,
+            self.blinky.center_y,
+            self.cell_size,
+            self.rows,
+            self.offset_x,
+            self.offset_y,
+        )
+
+        self.pinky.home_row, self.pinky.home_col = self.pinky.get_cell(
+            self.pinky.center_x,
+            self.pinky.center_y,
+            self.cell_size,
+            self.rows,
+            self.offset_x,
+            self.offset_y,
+        )
+
+        # self.inky.home_row, self.blinky.home_col = self.blinky.get_cell(
+        #             self.blinky.center_x,
+        #             self.blinky.center_y,
+        #             self.cell_size,
+        #             self.rows
+        # )
+
+        # self.clyde.home_row, self.blinky.home_col = self.blinky.get_cell(
+        #             self.blinky.center_x,
+        #             self.blinky.center_y,
+        #             self.cell_size,
+        #             self.rows
+        # )
 
 
     def init_maze(self):
@@ -139,6 +249,9 @@ class GameWindow(arcade.View):
         self.clear()
         self.wall_shapes.draw()
         self.player_list.draw()
+        self.blinky_list.draw()
+        self.pinky_list.draw()
+
         for i in self.coins_lst:
             i.draw()
 
@@ -146,6 +259,54 @@ class GameWindow(arcade.View):
             self.manager.draw()
 
         arcade.draw_text(f"{int(self.timer)}", 1500, 1000)
+
+
+    def ghosts_chase_player(self, delta_time):
+
+
+        self.blinky.chase_player(
+            self.player,
+            self.maze,
+            self.cell_size,
+            self.rows,
+            self.cols,
+            self.offset_x,
+            self.offset_y,
+            delta_time
+        )
+
+        self.pinky.chase_player(
+            self.player,
+            self.maze,
+            self.cell_size,
+            self.rows,
+            self.cols,
+            self.offset_x,
+            self.offset_y,
+            delta_time
+        )
+
+        # self.inky.chase_player(
+        #     self.player,
+        #     self.maze,
+        #     self.cell_size,
+        #     self.rows,
+        #     self.cols,
+        #     self.offset_x,
+        #     self.offset_y,
+        #     delta_time,
+        # )
+
+        # self.clyde.chase_player(
+        #     self.player,
+        #     self.maze,
+        #     self.cell_size,
+        #     self.rows,
+        #     self.cols,
+        #     self.offset_x,
+        #     self.offset_y,
+        #     delta_time,
+        # )
 
 
     def on_update(self, delta_time: float):
@@ -166,6 +327,10 @@ class GameWindow(arcade.View):
             self.offset_y,
             delta_time,
         )
+
+
+        self.ghosts_chase_player(delta_time)
+
 
         for coin in self.coins_lst:
             if not coin.is_eaten:
