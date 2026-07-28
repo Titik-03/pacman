@@ -8,8 +8,8 @@ import arcade
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
 BLINKY_PATH = SCRIPT_DIR / "assets" / "blinky.png"
 PINKY_PATH = SCRIPT_DIR / "assets" / "pinky.png"
-# INKY_PATH = SCRIPT_DIR / "assets" / "ghost.png"
-# CLYDE_PATH = SCRIPT_DIR / "assets" / "ghost.png"
+INKY_PATH = SCRIPT_DIR / "assets" / "inky.png"
+CLYDE_PATH = SCRIPT_DIR / "assets" / "clyde.png"
 
 
 class Ghost(arcade.Sprite):
@@ -268,29 +268,31 @@ class Pinky(Ghost):
 
 
 
-# class Inky(Ghost):
-#     def __init__(self, center_x, center_y):
-#         super().__init__(center_x, center_y)
+class Inky(Ghost):
+    def __init__(self, center_x, center_y):
+        super().__init__(center_x, center_y, texture_path=INKY_PATH)
 
 
-#     def get_target_tile(self, player_row, player_col):
+    def get_target_tile(self, player_row, player_col):
     
-#         return super().get_target_tile(
-#             player_row,
-#             player_col,
-#         )
-
-# class Clyde(Ghost):
-#     def __init__(self, center_x, center_y):
-#         super().__init__(center_x, center_y)
+        return super().get_target_tile(
+            player_row,
+            player_col,
+        )
 
 
-#     def get_target_tile(self, player_row, player_col):
+
+class Clyde(Ghost):
+    def __init__(self, center_x, center_y):
+        super().__init__(center_x, center_y, texture_path=CLYDE_PATH)
+
+
+    def get_target_tile(self, player_row, player_col):
     
-#         return super().get_target_tile(
-#             player_row,
-#             player_col,
-#         )
+        return super().get_target_tile(
+            player_row,
+            player_col,
+        )
 
 
 
