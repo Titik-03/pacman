@@ -14,7 +14,7 @@ class Particle:
         self.x = random.randint(0, width)  # Pick a random starting x position.
         self.y = random.randint(0, height)  # Pick a random starting y position.
 
-        self.radius = random.choice([1, 1, 1, 2, 2, 3, 4])  # Pick a small random radius.
+        self.radius = random.choice([1, 1, 7, 7, 2, 3, 4, 6, 6, 6])  # Pick a small random radius.
 
         self.speed = random.uniform(20, 60)  # Pick a random upward speed.
 

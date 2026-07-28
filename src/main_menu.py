@@ -3,6 +3,7 @@ from arcade import window_commands
 from arcade.gui import widgets
 import arcade
 import arcade.gui
+
 from src.instructions import Instuctions
 from src.score import HighScore, Score
 from src.game import GameWindow
@@ -12,28 +13,21 @@ from src.particle import Particle
 
 # Main menu view.
 class MainMenu(arcade.View):
-
     def __init__(self, window):
-
         super().__init__()
-
-        # self.x_center = window.width / 2
-        # self.y_center = window.height / 2
-
         arcade.load_font("src/assets/Handjet/static/Handjet-Regular.ttf")
         arcade.load_font("src/assets/Handjet/static/Handjet-Bold.ttf")
-
+        
         # Init the game view
         self.game_view = GameWindow(self, window)
         self.high_score_view = HighScore(self, window)
         self.instuctions_view = Instuctions(self, window)
         self.top_banner = Banner(window.width + 300, window.height + 300)
         self.bottom_banner = Banner(window.width + 300, -window.height - 500)
+        
         self.score_manager = Score()
         self.window = window
-
         self.scores = []
-
         self.background = arcade.load_texture("src/assets/Desktop - 1.png")
         self.instructions_image = arcade.load_texture("src/assets/Frame 1.png")
         self.title_text = arcade.Text(
@@ -44,37 +38,29 @@ class MainMenu(arcade.View):
             font_size=160,
             font_name="Handjet",
             bold=True,
-            # anchor_x="right"
         )
-
+        
         self.hovered = -1
         self.last_hovered = -1
+        self.show_instructions = False # NEW: Track whether the instructions panel is active
 
         self.menu_items = []
-
         labels = [
             "START GAME",
             "HIGH SCORE",
             "INSTRUCTIONS",
             "QUIT GAME"
         ]
-
         start_y = 650
-
         for i, label in enumerate(labels):
-
             self.menu_items.append(
-
                 MenuItem(
                     label,
                     120,
                     start_y - i * 90
                 )
-
             )
-
         self.particles = []
-
         for _ in range(35):
             self.particles.append(
                 Particle(
@@ -82,49 +68,55 @@ class MainMenu(arcade.View):
                     window.height
                 )
             )
-
         self.hover_sound = arcade.load_sound("src/assets/COMSE_00.VAG.wav")
 
-
-
     def on_update(self, delta_time):
-
         for particle in self.particles:
             particle.update(delta_time)
-
         for item in self.menu_items:
             item.update()
 
-        if self.hovered != self.last_hovered:
-            if self.hovered == 1:
-                self.top_banner.move_to(self.window.width - 920, self.window.height - 550)
-                self.bottom_banner.move_to(self.window.width + 300, -self.window.height - 500)
-            elif self.hovered == 2:
-                self.top_banner.move_to(self.window.width + 300, self.window.height + 300)
-                self.bottom_banner.move_to(570, -600)
-            elif self.hovered == 3:
-                self.top_banner.move_to(self.window.width - 920, self.window.height - 550)
-                self.bottom_banner.move_to(570, -600)
-            else:
-                self.top_banner.move_to(self.window.width + 300, self.window.height + 300)
-                self.bottom_banner.move_to(self.window.width + 300, -self.window.height - 500)
+        # Handle banner expansion logic
+        if self.show_instructions:
+            self.bottom_banner.move_to(-400, -200)
+            self.bottom_banner.target_height = self.window.height + 400
+            self.top_banner.move_to(self.window.width + 300, self.window.height + 300)
+        else:
+            self.bottom_banner.target_height = 1000
+            if self.hovered != self.last_hovered:
+                if self.hovered == 1:
+                    self.top_banner.move_to(self.window.width - 920, self.window.height - 550)
+                    self.bottom_banner.move_to(self.window.width + 300, -self.window.height - 500)
+                elif self.hovered == 2:
+                    self.top_banner.move_to(self.window.width + 300, self.window.height + 300)
+                    self.bottom_banner.move_to(570, -600)
+                elif self.hovered == 3:
+                    self.top_banner.move_to(self.window.width - 920, self.window.height - 550)
+                    self.bottom_banner.move_to(570, -600)
+                else:
+                    self.top_banner.move_to(self.window.width + 300, self.window.height + 300)
+                    self.bottom_banner.move_to(self.window.width + 300, -self.window.height - 500)
 
-            if self.hovered != -1:
-                arcade.play_sound(self.hover_sound)
-
-            self.last_hovered = self.hovered
+                if self.hovered != -1:
+                    arcade.play_sound(self.hover_sound)
+                self.last_hovered = self.hovered
 
         self.top_banner.update()
         self.bottom_banner.update()
 
-
     def on_key_press(self, key, modifiers):
-
+        # Escape from instructions overlay
+        if self.show_instructions:
+            if key == arcade.key.ESCAPE:
+                self.show_instructions = False
+                self.last_hovered = -1 # Force UI to pull the banner back down
+            return
+        if key == arcade.key.F11:
+            self.window.set_fullscreen(not self.window.fullscreen)
         if key == arcade.key.UP:
             self.menu_items[self.last_hovered].hovered = False
             if self.hovered == -1:
                 self.hovered = 0
-
             else:
                 self.hovered -= 1
                 self.hovered %= len(self.menu_items)
@@ -136,78 +128,67 @@ class MainMenu(arcade.View):
             self.hovered %= len(self.menu_items)
             self.menu_items[self.hovered].hovered = True
 
-
         if key == arcade.key.ENTER:
             if self.hovered == 0:
                 self.game_view = GameWindow(self, self.window)
                 self.window.show_view(self.game_view)
-
             elif self.hovered == 1:
-                self.window.show_view(self.high_score_view)
-    
+                self.window.show_view(self.high_score_view) 
             elif self.hovered == 2:
-                self.window.show_view(self.instuctions_view)
-    
+                # Trigger instructions banner expansion instead of showing view
+                self.show_instructions = True
+                self.last_hovered = -1 
             elif self.hovered == 3:
                 arcade.exit()
 
-
     def on_mouse_motion(self, x, y, dx, dy):
+        if self.show_instructions:
+            return # Ignore hover changes while reading instructions
 
         self.hovered = -1
-
         for index, item in enumerate(self.menu_items):
-
             item.hovered = item.contains(x, y)
-
             if item.hovered:
                 self.hovered = index
                 break
-        
 
     def on_mouse_press(self, x, y, button, modifiers):
+        # Click anywhere to close instructions
+        if self.show_instructions:
+            self.show_instructions = False
+            self.last_hovered = -1
+            return
 
         if self.hovered == -1:
             return
-
         if self.hovered == 0:
             self.game_view = GameWindow(self, self.window)
             self.window.show_view(self.game_view)
-
         elif self.hovered == 1:
             self.window.show_view(self.high_score_view)
-
         elif self.hovered == 2:
-            self.window.show_view(self.instuctions_view)
-
+            self.show_instructions = True
+            self.last_hovered = -1
         elif self.hovered == 3:
             arcade.exit()
 
-    # Update whenever resizing the screen. 
     def on_resize(self, width: int, height: int):
-
         super().on_resize(width, height)
         self.title_text.x = 5
         self.title_text.y = height * 0.8
 
-    # What will happen if the view is shown.
     def on_show_view(self):
-
-        # Setting background color.
         self.scores = self.score_manager.load_score()
 
     def draw_leaderboard(self):
-
         top_y = self.top_banner.y + 480
         margin_x = 130
         width = 700
         row_height = 50
 
         for i, item in enumerate(self.scores[:10]):
-
             name, score = list(item.items())[0]
             row_y = top_y - (i * row_height)
-
             edge_x = (self.top_banner.x - 200) + (row_y - self.top_banner.y) * 0.35
             row_x = edge_x + margin_x
 
@@ -229,7 +210,6 @@ class MainMenu(arcade.View):
                 font_name="Handjet",
                 bold=True,
             )
-
             arcade.draw_text(
                 str(name).upper(),
                 row_x + 65,
@@ -239,7 +219,6 @@ class MainMenu(arcade.View):
                 font_name="Handjet",
                 bold=True,
             )
-
             arcade.draw_text(
                 f"{score}",
                 row_x + width,
@@ -252,11 +231,30 @@ class MainMenu(arcade.View):
             )
 
     def draw_instructions(self):
-
-        left = self.bottom_banner.x + 190
-        bottom = self.bottom_banner.y + 600
         width = 1150
         height = 400
+
+        if self.show_instructions:
+            target_left = self.window.width / 2 - width / 2 + 200
+            target_bottom = self.window.height / 2 - height / 2
+            
+            progress = (self.bottom_banner.y - (-600)) / 400
+            progress = max(0, min(1, progress))
+            
+            left = (self.bottom_banner.x + 190) * (1 - progress) + target_left * progress
+            bottom = (self.bottom_banner.y + 600) * (1 - progress) + target_bottom * progress
+            
+            # Show "Close" prompt when expanded
+            arcade.draw_text("Press ESC or Click anywhere to return", 
+                             self.window.width / 2, 
+                             70, 
+                             arcade.color.WHITE, 
+                             28, 
+                             font_name="Handjet",
+                             anchor_x="center")
+        else:
+            left = self.bottom_banner.x + 190
+            bottom = self.bottom_banner.y + 600
 
         arcade.draw_texture_rect(
             self.instructions_image,
@@ -268,33 +266,9 @@ class MainMenu(arcade.View):
             )
         )
 
-
-    def draw_maze_background(self):
-
-        color = (0, 180, 255, 30)
-
-        self.wall_h(900, 1200, 800, color)
-        self.wall_v(1200, 600, 800, color)
-
-        self.wall_h(700, 950, 500, color)
-        self.wall_v(700, 300, 500, color)
-
-    def wall_h(self, x1, x2, y, color):
-        arcade.draw_line(x1, y, x2, y, color, 6)
-
-    def wall_v(self, x, y1, y2, color):
-        arcade.draw_line(x, y1, x, y2, color, 6)
-
-
-    # What will draw.
     def on_draw(self):
-
         self.clear()
-
-        w = self.window.width
-        h = self.window.height
-
-        # self.draw_maze_background()
+        
         arcade.draw_texture_rect(
             self.background,
             arcade.LBWH(
@@ -304,16 +278,16 @@ class MainMenu(arcade.View):
                 self.window.height,
             ),
         )
-
-        for particle in self.particles:
-            particle.draw()
-
+                 
         self.top_banner.draw()
         self.bottom_banner.draw()
 
         self.draw_leaderboard()
         self.draw_instructions()
 
+        for particle in self.particles:
+            particle.draw()
+            
         for item in self.menu_items:
             item.draw()
 
