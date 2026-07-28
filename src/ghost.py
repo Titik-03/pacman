@@ -132,7 +132,6 @@ class Ghost(arcade.Sprite):
     def next_direction_bfs(self, start, goal, maze, rows, cols):
         """BFS from start cell to goal cell. Returns the first-step direction."""
         if start == goal:
-            print(f"{type(self).__name__}: NO PATH from {start} to {goal}")
             return (0, 0)
 
         visited = {start}
@@ -192,12 +191,6 @@ class Ghost(arcade.Sprite):
 
             target_row, target_col = self.get_target_tile(player, player_row, player_col)
 
-            # print(
-            #     type(self).__name__,
-            #     "Target:",
-            #     target_row,
-            #     target_col,
-            # )
         
             target_row = max(0, min(rows - 1, target_row))
             target_col = max(0, min(cols - 1, target_col))
