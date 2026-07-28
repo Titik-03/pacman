@@ -273,11 +273,12 @@ class Inky(Ghost):
         super().__init__(center_x, center_y, texture_path=INKY_PATH)
 
 
-    def get_target_tile(self, player_row, player_col):
+    def get_target_tile(self, palyer, player_row, player_col):
     
         return super().get_target_tile(
+            palyer,
             player_row,
-            player_col,
+            player_col
         )
 
 
@@ -287,11 +288,12 @@ class Clyde(Ghost):
         super().__init__(center_x, center_y, texture_path=CLYDE_PATH)
 
 
-    def get_target_tile(self, player_row, player_col):
+    def get_target_tile(self, player, player_row, player_col):
     
         return super().get_target_tile(
+            player,
             player_row,
-            player_col,
+            player_col
         )
 
 
