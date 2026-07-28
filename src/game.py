@@ -41,7 +41,7 @@ class GameWindow(arcade.View):
             super().__init__(width or 900, height or 900, "Pac-Man", resizable=True)
         arcade.set_background_color((10, 10, 30))
 
-        self.m = MazeGenerator((25, 25))
+        self.m = MazeGenerator()
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
@@ -147,9 +147,9 @@ class GameWindow(arcade.View):
             self.cell_size
         )
 
-        self.inky.home_row, self.blinky.home_col = self.blinky.get_cell(
-            self.blinky.center_x,
-            self.blinky.center_y,
+        self.inky.home_row, self.inky.home_col = self.inky.get_cell(
+            self.inky.center_x,
+            self.inky.center_y,
             self.cell_size,
             self.rows,
             self.offset_x,
@@ -170,9 +170,9 @@ class GameWindow(arcade.View):
             self.cell_size
         )
 
-        self.clyde.home_row, self.blinky.home_col = self.blinky.get_cell(
-            self.blinky.center_x,
-            self.blinky.center_y,
+        self.clyde.home_row, self.clyde.home_col = self.clyde.get_cell(
+            self.clyde.center_x,
+            self.clyde.center_y,
             self.cell_size,
             self.rows,
             self.offset_x,

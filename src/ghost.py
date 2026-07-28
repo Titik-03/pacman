@@ -202,15 +202,6 @@ class Ghost(arcade.Sprite):
             target_row = max(0, min(rows - 1, target_row))
             target_col = max(0, min(cols - 1, target_col))
 
-            print(
-                f"{type(self).__name__}",
-                f"My cell: ({my_row}, {my_col})",
-                f"Target: ({target_row}, {target_col})",
-                f"Home: ({self.home_row}, {self.home_col})",
-            )
-
-            print("Start:", (my_row, my_col), "Goal:", (target_row, target_col))
-
             self.current_dir = self.next_direction_bfs(
                 (my_row, my_col),
                 (target_row, target_col),
