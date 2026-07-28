@@ -94,12 +94,12 @@ class GameWindow(arcade.View):
 
 
 
-        self.blinky.home_row, self.blinky.home_col = self.blinky.get_cell(
-            self.blinky.center_x,
-            self.blinky.center_y,
-            self.cell_size,
-            self.rows,
-        )
+        # self.blinky.home_row, self.blinky.home_col = self.blinky.get_cell(
+        #     self.blinky.center_x,
+        #     self.blinky.center_y,
+        #     self.cell_size,
+        #     self.rows,
+        # )
 
         self.wall_shapes = shapes.ShapeElementList()
         self.wall_list = arcade.SpriteList(use_spatial_hash=True)
