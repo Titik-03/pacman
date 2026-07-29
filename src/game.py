@@ -101,7 +101,8 @@ class GameWindow(arcade.View):
         self.blinky, self.blinky_list = Blinky.create_ghost(
             blinky_x,
             blinky_y,
-            self.cell_size
+            self.cell_size,
+            "blinky"
         )
 
         self.blinky.home_row, self.blinky.home_col = self.blinky.get_cell(
@@ -123,7 +124,8 @@ class GameWindow(arcade.View):
         self.pinky, self.pinky_list = Pinky.create_ghost(
             pinky_x,
             pinky_y,
-            self.cell_size
+            self.cell_size,
+            "pinky"
         )
 
         self.pinky.home_row, self.pinky.home_col = self.pinky.get_cell(
@@ -145,7 +147,8 @@ class GameWindow(arcade.View):
         self.inky, self.inky_list = Inky.create_ghost(
             inky_x,
             inky_y,
-            self.cell_size
+            self.cell_size,
+            "inky"
         )
 
         self.inky.home_row, self.inky.home_col = self.inky.get_cell(
@@ -168,7 +171,8 @@ class GameWindow(arcade.View):
         self.clyde, self.clyde_list = Clyde.create_ghost(
             clyde_x,
             clyde_y,
-            self.cell_size
+            self.cell_size,
+            "clyde"
         )
 
         self.clyde.home_row, self.clyde.home_col = self.clyde.get_cell(
