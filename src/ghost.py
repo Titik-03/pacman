@@ -10,10 +10,11 @@ BLINKY_PATH = SCRIPT_DIR / "assets" / "blinky.png"
 PINKY_PATH = SCRIPT_DIR / "assets" / "pinky.png"
 INKY_PATH = SCRIPT_DIR / "assets" / "inky.png"
 CLYDE_PATH = SCRIPT_DIR / "assets" / "clyde.png"
+SCARED_PATH = SCRIPT_DIR / "assets" / "scared.png"
 
 
 class Ghost(arcade.Sprite):
-    def __init__(self, center_x: float, center_y: float, texture_path) -> None:
+    def __init__(self, center_x: float, center_y: float, texture_path, name: str) -> None:
         super().__init__(path_or_texture=texture_path)
         self.center_x = center_x
         self.center_y = center_y
@@ -28,10 +29,12 @@ class Ghost(arcade.Sprite):
 
         # Ghost state
         self.state = "CHASE"
+        self.was_scared = False
 
         # Home corner
         self.home_row = None
         self.home_col = None
+        self.name = name
 
 
 
@@ -41,11 +44,12 @@ class Ghost(arcade.Sprite):
         center_x: float,
         center_y: float,
         cell_size: float,
+        name: str
     ) -> tuple["Ghost", arcade.SpriteList]:
 
         ghost_list: arcade.SpriteList = arcade.SpriteList()
 
-        ghost = cls(center_x, center_y)
+        ghost = cls(center_x, center_y, name)
 
         ghost.width = cell_size * 0.5
         ghost.height = cell_size * 0.5
@@ -168,10 +172,19 @@ class Ghost(arcade.Sprite):
 
         step = self.speed * delta_time
 
-        if player.is_powered_up:
+        if player.is_powered_up and self.state == "CHASE":
             self.state = "FRIGHTENED"
-        else:
+            self.texture = arcade.load_texture(SCARED_PATH)
+        elif not player.is_powered_up and self.state == "FRIGHTENED":
             self.state = "CHASE"
+            if self.name == "blinky":
+                self.texture = arcade.load_texture(BLINKY_PATH)
+            elif self.name == "pinky":
+                self.texture = arcade.load_texture(PINKY_PATH)
+            elif self.name == "inky":
+                self.texture = arcade.load_texture(INKY_PATH)
+            elif self.name == "clyde":
+                self.texture = arcade.load_texture(CLYDE_PATH)
 
         # Snap to target when close enough to avoid float jitter.
         if abs(self.center_x - self.target_x) <= step and abs(self.center_y - self.target_y) <= step:
@@ -220,8 +233,8 @@ class Ghost(arcade.Sprite):
 
 
 class Blinky(Ghost):
-    def __init__(self, center_x, center_y):
-        super().__init__(center_x, center_y, texture_path=BLINKY_PATH)
+    def __init__(self, center_x, center_y, name: str):
+        super().__init__(center_x, center_y, texture_path=BLINKY_PATH, name=name)
 
 
     # def get_target_tile(self, player_row, player_col):
@@ -233,8 +246,8 @@ class Blinky(Ghost):
 
 
 class Pinky(Ghost):
-    def __init__(self, center_x, center_y):
-        super().__init__(center_x, center_y, texture_path=PINKY_PATH)
+    def __init__(self, center_x, center_y, name: str):
+        super().__init__(center_x, center_y, texture_path=PINKY_PATH, name=name)
 
 
     def get_target_tile(self, player, player_row, player_col):
@@ -253,8 +266,8 @@ class Pinky(Ghost):
 
 
 class Inky(Ghost):
-    def __init__(self, center_x, center_y):
-        super().__init__(center_x, center_y, texture_path=INKY_PATH)
+    def __init__(self, center_x, center_y, name: str):
+        super().__init__(center_x, center_y, texture_path=INKY_PATH, name=name)
 
 
     def get_target_tile(self, palyer, player_row, player_col):
@@ -268,8 +281,8 @@ class Inky(Ghost):
 
 
 class Clyde(Ghost):
-    def __init__(self, center_x, center_y):
-        super().__init__(center_x, center_y, texture_path=CLYDE_PATH)
+    def __init__(self, center_x, center_y, name: str):
+        super().__init__(center_x, center_y, texture_path=CLYDE_PATH, name=name)
 
 
     def get_target_tile(self, player, player_row, player_col):
