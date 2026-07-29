@@ -126,7 +126,8 @@ class HighScore(arcade.View):
 
         for i, item in enumerate(self.score[:10]):
 
-            name, score = list(item.items())[0]
+            name = item.get("name", "???")
+            score = item.get("score", 0)
 
             if i == 0:
                 color = arcade.color.GOLD
@@ -208,7 +209,9 @@ class Score:
 
             # Filter out stray non-dict elements like empty lists [[]]
             if isinstance(data, list):
-                self.scores = [item for item in data if isinstance(item, dict)]
+                self.scores = [
+                    self._normalize_entry(item) for item in data if isinstance(item, dict)
+                ]
             else:
                 self.scores = []
 
@@ -217,6 +220,16 @@ class Score:
             self.scores = []
 
         return self.scores
+
+    @staticmethod
+    def _normalize_entry(item: Dict) -> Dict:
+        """Converts legacy {'PlayerName': 220} entries to {'name': 'PlayerName', 'score': 220}."""
+        if "name" in item and "score" in item:
+            return item
+        if len(item) == 1:
+            legacy_name, legacy_score = next(iter(item.items()))
+            return {"name": str(legacy_name), "score": legacy_score}
+        return {"name": item.get("name", "???"), "score": item.get("score", 0)}
 
     def write_score(self, name: str, score: int) -> List[Dict]:
         """Adds a new score, sorts the list descending, and saves to file."""

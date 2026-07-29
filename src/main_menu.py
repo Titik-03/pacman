@@ -226,7 +226,8 @@ class MainMenu(arcade.View):
 
         # Draw the actual scores
         for i, item in enumerate(self.scores[:10]):
-            name, score = list(item.items())[0]
+            name = item["name"]
+            score = item["score"]
             row_y = top_y - (i * row_height)
             row_x = left
 

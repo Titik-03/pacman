@@ -20,16 +20,21 @@ class Ghost(arcade.Sprite):
         self.center_y = center_y
         self.target_x = center_x
         self.target_y = center_y
-        self.speed = 100.0
+        self.speed = 130.0
         self.current_dir = (0, 0)
 
         # Power-Up System
         self.is_powered_up = False
         self.power_timer = 0.0
 
-        # Ghost state
+        # Ghost state: CHASE, FRIGHTENED, or EATEN
         self.state = "CHASE"
         self.was_scared = False
+
+        # Eaten / respawn system
+        self.respawn_timer = 0.0
+        self.respawn_delay = 5.0  # seconds before an eaten ghost comes back
+        self.normal_texture_path = texture_path
 
         # Home corner
         self.home_row = None
@@ -162,6 +167,31 @@ class Ghost(arcade.Sprite):
         return (0, 0)
 
 
+    #Eaten / respawn system
+
+    def get_hit(self) -> None:
+        """Called when Pac-Man eats this ghost while it's FRIGHTENED."""
+        self.state = "EATEN"
+        self.respawn_timer = self.respawn_delay
+        self.visible = False
+        self.current_dir = (0, 0)
+
+    def update_eaten(self,
+                      delta_time: float,
+                      cell_size: float,
+                      rows: int,
+                      offset_x: float = 0.0,
+                      offset_y: float = 0.0) -> None:
+        """Counts down while the ghost is eaten, then respawns it at home."""
+        self.respawn_timer -= delta_time
+        if self.respawn_timer <= 0:
+            x, y = self.get_cell_center(self.home_row, self.home_col, cell_size, rows, offset_x, offset_y)
+            self.center_x = self.target_x = x
+            self.center_y = self.target_y = y
+            self.state = "CHASE"
+            self.visible = True
+            self.texture = arcade.load_texture(self.normal_texture_path)
+
     #chase the player through the maze.
     def chase_player(self,
                      player: Player,
@@ -175,6 +205,10 @@ class Ghost(arcade.Sprite):
                      blinky: "Ghost" = None,
                      ) -> None:
 
+        if self.state == "EATEN":
+            self.update_eaten(delta_time, cell_size, rows, offset_x, offset_y)
+            return
+
         step = self.speed * delta_time
 
         if player.is_powered_up and self.state == "CHASE":
@@ -182,14 +216,7 @@ class Ghost(arcade.Sprite):
             self.texture = arcade.load_texture(SCARED_PATH)
         elif not player.is_powered_up and self.state == "FRIGHTENED":
             self.state = "CHASE"
-            if self.name == "blinky":
-                self.texture = arcade.load_texture(BLINKY_PATH)
-            elif self.name == "pinky":
-                self.texture = arcade.load_texture(PINKY_PATH)
-            elif self.name == "inky":
-                self.texture = arcade.load_texture(INKY_PATH)
-            elif self.name == "clyde":
-                self.texture = arcade.load_texture(CLYDE_PATH)
+            self.texture = arcade.load_texture(self.normal_texture_path)
 
         # Snap to target when close enough to avoid float jitter.
         if abs(self.center_x - self.target_x) <= step and abs(self.center_y - self.target_y) <= step:
@@ -281,6 +308,15 @@ class Pinky(Ghost):
         target_row = player_row - dy * 4
         target_col = player_col + dx * 4
 
+        my_row = kwargs.get("my_row")
+        my_col = kwargs.get("my_col")
+
+        distance = math.hypot(player_row - my_row, player_col - my_col)
+        
+        #in front if Pac-man: chase Blinky.
+        if distance < 2:
+            return player_row, player_col
+
         return target_row, target_col
 
 
@@ -345,3 +381,5 @@ class Clyde(Ghost):
         flee_col = my_col + (my_col - player_col)
 
         return flee_row, flee_col
+
+

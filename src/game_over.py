@@ -65,7 +65,7 @@ class GameOver(arcade.View):
         def on_click_submit(event):
             player_name = self.input_field.text.strip()
             if player_name:
-                self.score_class.write_score({f"{player_name}": self.score})
+                self.score_class.write_score(player_name, self.score)
                 self.window.show_view(self.main_menu)
 
         layout.add(box, anchor_x="center_x", anchor_y="center_y")
@@ -94,7 +94,7 @@ class GameOver(arcade.View):
         if key == arcade.key.ENTER:
             player_name = self.input_field.text.strip()
             if player_name:
-                self.score_class.write_score({f"{player_name}": self.score})
+                self.score_class.write_score(player_name, self.score)
                 self.window.show_view(self.main_menu)
 
 
