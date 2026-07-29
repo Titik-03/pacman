@@ -47,7 +47,7 @@ class GameWindow(arcade.View):
 
         self.rows = len(self.maze)
         self.cols = len(self.maze[0])
-        self.background = load_texture("src/assets/game.png")
+        self.background = load_texture("src/assets/gem.png")
         margin = 95
         available_w = self.width - margin * 2
         available_h = self.height - margin * 2
