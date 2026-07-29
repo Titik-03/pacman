@@ -12,13 +12,44 @@ class Player(arcade.Sprite):
         self.center_y = center_y
         self.target_x = center_x
         self.target_y = center_y
-        self.speed = 130.0
+        self.speed = 140.0
         self.queued_dir = (0, 0)
         self.current_dir = (0, 0)
-        
+
         #Power-Up System
         self.is_powered_up = False
         self.power_timer = 0.0
+
+        #Lives / damage system
+        self.lives = 3
+        self.invincible = False
+        self.invincible_timer = 0.0
+        self.INVINCIBILITY_DURATION = 2.0  # seconds of grace after respawning
+
+    def take_damage(self) -> bool:
+        """Removes one life, starts invincibility. Returns True if game over."""
+        if self.invincible:
+            return False
+        self.lives -= 1
+        self.invincible = True
+        self.invincible_timer = self.INVINCIBILITY_DURATION
+        return self.lives <= 0
+
+    def respawn_at(self, x: float, y: float) -> None:
+        """Resets position/movement state after losing a life."""
+        self.center_x = x
+        self.center_y = y
+        self.target_x = x
+        self.target_y = y
+        self.current_dir = (0, 0)
+        self.queued_dir = (0, 0)
+
+    def update_invincibility(self, delta_time: float) -> None:
+        if self.invincible:
+            self.invincible_timer -= delta_time
+            if self.invincible_timer <= 0:
+                self.invincible = False
+                self.invincible_timer = 0.0
 
     @staticmethod
     def create_player(
@@ -104,6 +135,9 @@ class Player(arcade.Sprite):
             if self.power_timer <= 0:
                 self.is_powered_up = False
                 self.power_timer = 0.0
+
+        #Tick down the invincibility timer (grace period after respawn)
+        self.update_invincibility(delta_time)
 
         #Calculate dynamic speed
         current_speed = self.speed * 2.0 if self.is_powered_up else self.speed

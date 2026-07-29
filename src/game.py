@@ -42,7 +42,7 @@ class GameWindow(arcade.View):
             super().__init__(width or 900, height or 900, "Pac-Man", resizable=True)
         arcade.set_background_color((10, 10, 30))
 
-        self.m = MazeGenerator((25, 25))
+        self.m = MazeGenerator((10, 10))
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
@@ -67,7 +67,8 @@ class GameWindow(arcade.View):
         start_y = self.offset_y + (self.rows - 1 - center_row + 0.5) * self.cell_size
 
         self.player, self.player_list = Player.create_player(start_x, start_y, self.cell_size)
-
+        self.player_spawn_x = start_x
+        self.player_spawn_y = start_y
 
         self.init_ghosts()
 
@@ -87,7 +88,13 @@ class GameWindow(arcade.View):
         self.window = window
         self.pause_menu = PauseMenu(self)
         self.pause = False
-        self.timer = 60
+        self.timer = 120
+
+        self.debug = False
+
+        self.game_over = GameOver(self.window, self.main_menu, self.score)
+        self.vectory = Vectory(self.window, self.main_menu, self.score)
+
 
     def init_ghosts(self):
 
@@ -237,6 +244,8 @@ class GameWindow(arcade.View):
                     w.center_x = x
                     w.center_y = y + cs / 2
                     self.wall_list.append(w)
+
+
     def draw_background_image(self):
         self.clear()
         arcade.draw_texture_rect(
@@ -248,6 +257,8 @@ class GameWindow(arcade.View):
             self.height
         )
     )
+
+
     def draw_maze_background(self):
         maze_width = self.cols * self.cell_size
         maze_height = self.rows * self.cell_size
@@ -272,6 +283,25 @@ class GameWindow(arcade.View):
         )
 
 
+    def draw_debug(self):
+
+        ghosts = [self.blinky, self.pinky, self.inky, self.clyde]
+
+        for ghost in ghosts:
+            cx, cy = ghost.target_x , ghost.target_y
+            size = 15
+            line_width = 3
+            color = arcade.color.RED
+
+            #(Bottom-Left to Top-Right)
+            arcade.draw_line(cx - size, cy - size, cx + size, cy + size, color, line_width)
+
+            #(Top-Left to Bottom-Right)
+            arcade.draw_line(cx - size, cy + size, cx + size, cy - size, color, line_width)
+
+            arcade.draw_line(ghost.center_x, ghost.center_y, cx, cy, arcade.color.BLUE, 3)
+
+
     def on_draw(self):
         self.clear()
         self.draw_background_image()
@@ -290,6 +320,18 @@ class GameWindow(arcade.View):
             self.manager.draw()
 
         arcade.draw_text(f"{int(self.timer)}", 1500, 1000)
+        arcade.draw_text(f"Score: {self.score}", 40, 1030, arcade.color.WHITE, 24)
+        arcade.draw_text(f"Lives: {self.player.lives}", 40, 995, arcade.color.WHITE, 24)
+
+
+    def go_to_game_over(self):
+        self.game_over = GameOver(self.window, self.main_menu, self.score)
+        self.window.show_view(self.game_over)
+
+
+    def go_to_vectory(self):
+        self.vectory = Vectory(self.window, self.main_menu, self.score)
+        self.window.show_view(self.vectory)
 
 
     def ghosts_chase_player(self, delta_time):
@@ -348,7 +390,8 @@ class GameWindow(arcade.View):
 
         self.timer -= delta_time
         if self.timer < 0.80:
-            self.window.show_view(self.game_over)
+            self.go_to_game_over()
+            return
 
         self.player.update_grid_movement(
             self.maze,
@@ -362,6 +405,7 @@ class GameWindow(arcade.View):
 
 
         self.ghosts_chase_player(delta_time)
+        self.check_ghost_collisions()
 
 
         for coin in self.coins_lst:
@@ -377,7 +421,53 @@ class GameWindow(arcade.View):
 
         if self.score == self.target_score:
             #change the view to vectory menu.
-            self.window.show_view(self.vectory)
+            self.go_to_vectory()
+
+
+    def check_ghost_collisions(self):
+        """Handles Pac-Man <-> ghost contact: taking damage or eating a scared ghost."""
+        for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
+            if ghost.state == "EATEN":
+                continue
+
+            distance = math.hypot(
+                self.player.center_x - ghost.center_x,
+                self.player.center_y - ghost.center_y,
+            )
+            if distance >= (self.player.width / 2 + ghost.width / 2):
+                continue
+
+            if ghost.state == "FRIGHTENED":
+                #Pac-Man eats the ghost.
+                self.score += 200
+                ghost.get_hit()
+            elif not self.player.invincible:
+                #Ghost eats Pac-Man.
+                self.handle_player_hit()
+                break  # one hit per frame is enough, even with several ghosts nearby
+
+
+    def handle_player_hit(self):
+        game_over = self.player.take_damage()
+
+        if game_over:
+            self.go_to_game_over()
+            return
+
+        #Respawn player at the maze center and send active ghosts back home.
+        self.player.respawn_at(self.player_spawn_x, self.player_spawn_y)
+
+        for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
+            if ghost.state == "EATEN":
+                continue
+            x, y = ghost.get_cell_center(
+                ghost.home_row, ghost.home_col, self.cell_size, self.rows, self.offset_x, self.offset_y
+            )
+            ghost.center_x = ghost.target_x = x
+            ghost.center_y = ghost.target_y = y
+            ghost.state = "CHASE"
+            ghost.texture = arcade.load_texture(ghost.normal_texture_path)
+
 
     def on_key_release(self, key, modifiers):
         self.player.on_key_release(key)
@@ -457,6 +547,7 @@ class GameWindow(arcade.View):
     def on_hide_view(self):
             self.manager.disable()
 
+
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ESCAPE:
             self.pause = not self.pause
@@ -467,10 +558,10 @@ class GameWindow(arcade.View):
 
         self.player.on_key_press(key)
 
-        if key == arcade.key.F1:     #this is just for testing. Has to be changed!!!!
-            self.game_over = GameOver(self.window, self.main_menu, self.score)
-            self.window.show_view(self.game_over)
+        if key == arcade.key.F1:
+            if self.debug:
+                self.debug = False
+            else:
+                self.debug = True
 
-        if key == arcade.key.F2:
-            self.vectory = Vectory(self.window, self.main_menu, self.score)
-            self.window.show_view(self.vectory)
+
