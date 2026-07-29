@@ -1,3 +1,4 @@
+from arcade import load_texture
 import math
 import pathlib
 import arcade
@@ -46,7 +47,7 @@ class GameWindow(arcade.View):
 
         self.rows = len(self.maze)
         self.cols = len(self.maze[0])
-
+        self.background = load_texture("src/assets/backg.jpg")
         margin = 40
         available_w = self.width - margin * 2
         available_h = self.height - margin * 2
@@ -232,10 +233,45 @@ class GameWindow(arcade.View):
                     w.center_x = x
                     w.center_y = y + cs / 2
                     self.wall_list.append(w)
+    def draw_background_image(self):
+        self.clear()
+        arcade.draw_texture_rect(
+        self.background,
+        arcade.LBWH(
+            0,
+            0,
+            self.width,
+            self.height
+        )
+    )
+    def draw_maze_background(self):
+        maze_width = self.cols * self.cell_size
+        maze_height = self.rows * self.cell_size
+        
+        arcade.draw_rect_filled(
+            arcade.LBWH(
+                self.offset_x,       # Left edge of the maze
+                self.offset_y,       # Bottom edge of the maze
+                maze_width,          # Total maze width
+                maze_height          # Total maze height
+            ),
+            color=(15, 15, 35, 230))
+        arcade.draw_rect_outline(
+            arcade.LBWH(
+                self.offset_x,
+                self.offset_y,
+                maze_width + 1,
+                maze_height + 1
+            ),
+            color=(0, 255, 255),  # Cyan neon border
+            border_width=2
+        )
 
 
     def on_draw(self):
         self.clear()
+        self.draw_background_image()
+        self.draw_maze_background()
         self.wall_shapes.draw()
         self.player_list.draw()
         self.blinky_list.draw()
