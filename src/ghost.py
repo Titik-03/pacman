@@ -1,5 +1,5 @@
-
 from src.player import Player
+import math
 import pathlib
 from collections import deque
 
@@ -20,7 +20,7 @@ class Ghost(arcade.Sprite):
         self.center_y = center_y
         self.target_x = center_x
         self.target_y = center_y
-        self.speed = 160.0
+        self.speed = 100.0
         self.current_dir = (0, 0)
 
         # Power-Up System
@@ -64,11 +64,15 @@ class Ghost(arcade.Sprite):
             self,
             player,
             player_row,
-            player_col
+            player_col,
+            **kwargs
             ):
         """
         Returns the row and column this ghost wants
         to chase.
+
+        Extra context (my_row/my_col, blinky_row/blinky_col) is passed
+        via kwargs so each ghost subclass can use only what it needs.
         """
 
         if self.state == "FRIGHTENED":
@@ -167,7 +171,8 @@ class Ghost(arcade.Sprite):
                      cols: int,
                      offset_x: float = 0.0,
                      offset_y: float = 0.0,
-                     delta_time: float = 1 / 60
+                     delta_time: float = 1 / 60,
+                     blinky: "Ghost" = None,
                      ) -> None:
 
         step = self.speed * delta_time
@@ -202,7 +207,23 @@ class Ghost(arcade.Sprite):
             player_row = max(0, min(rows - 1, player_row))
             player_col = max(0, min(cols - 1, player_col))
 
-            target_row, target_col = self.get_target_tile(player, player_row, player_col)
+            blinky_row = blinky_col = None
+            if blinky is not None:
+                blinky_row, blinky_col = self.get_cell(
+                    blinky.center_x, blinky.center_y, cell_size, rows, offset_x, offset_y
+                )
+                blinky_row = max(0, min(rows - 1, blinky_row))
+                blinky_col = max(0, min(cols - 1, blinky_col))
+
+            target_row, target_col = self.get_target_tile(
+                player,
+                player_row,
+                player_col,
+                my_row=my_row,
+                my_col=my_col,
+                blinky_row=blinky_row,
+                blinky_col=blinky_col,
+            )
 
         
             target_row = max(0, min(rows - 1, target_row))
@@ -250,8 +271,7 @@ class Pinky(Ghost):
         super().__init__(center_x, center_y, texture_path=PINKY_PATH, name=name)
 
 
-    def get_target_tile(self, player, player_row, player_col):
-
+    def get_target_tile(self, player, player_row, player_col, **kwargs):
 
         if self.state == "FRIGHTENED":
             return self.home_row, self.home_col
@@ -270,13 +290,29 @@ class Inky(Ghost):
         super().__init__(center_x, center_y, texture_path=INKY_PATH, name=name)
 
 
-    def get_target_tile(self, palyer, player_row, player_col):
-    
-        return super().get_target_tile(
-            palyer,
-            player_row,
-            player_col
-        )
+    def get_target_tile(self, player, player_row, player_col, **kwargs):
+
+        if self.state == "FRIGHTENED":
+            return self.home_row, self.home_col
+
+        blinky_row = kwargs.get("blinky_row")
+        blinky_col = kwargs.get("blinky_col")
+
+        #if blinky was not provided.
+        if blinky_row is None or blinky_col is None:
+            return player_row, player_col
+
+        dx, dy = player.current_dir
+
+        #Point 2 tiles ahead of Pac-Man.
+        ahead_row = player_row - dy * 2
+        ahead_col = player_col + dx * 2
+
+        #Vector from Blinky to that point, doubled.
+        target_row = blinky_row + 2 * (ahead_row - blinky_row)
+        target_col = blinky_col + 2 * (ahead_col - blinky_col)
+
+        return target_row, target_col
 
 
 
@@ -284,14 +320,28 @@ class Clyde(Ghost):
     def __init__(self, center_x, center_y, name: str):
         super().__init__(center_x, center_y, texture_path=CLYDE_PATH, name=name)
 
+    SHY_DISTANCE = 8
 
-    def get_target_tile(self, player, player_row, player_col):
-    
-        return super().get_target_tile(
-            player,
-            player_row,
-            player_col
-        )
+    def get_target_tile(self, player, player_row, player_col, **kwargs):
 
+        if self.state == "FRIGHTENED":
+            return self.home_row, self.home_col
 
+        my_row = kwargs.get("my_row")
+        my_col = kwargs.get("my_col")
 
+        if my_row is None or my_col is None:
+            return player_row, player_col
+
+        #sqrt(a² + b²) to mesure the distance between player and clyde.
+        distance = math.hypot(player_row - my_row, player_col - my_col)
+
+        # Far from Pac-Man: chase directly, just like Blinky.
+        if distance > self.SHY_DISTANCE:
+            return player_row, player_col
+
+        #run if too close.
+        flee_row = my_row + (my_row - player_row)
+        flee_col = my_col + (my_col - player_col)
+
+        return flee_row, flee_col

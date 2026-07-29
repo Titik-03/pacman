@@ -42,7 +42,7 @@ class GameWindow(arcade.View):
             super().__init__(width or 900, height or 900, "Pac-Man", resizable=True)
         arcade.set_background_color((10, 10, 30))
 
-        self.m = MazeGenerator()
+        self.m = MazeGenerator((25, 25))
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
@@ -326,6 +326,7 @@ class GameWindow(arcade.View):
             self.offset_x,
             self.offset_y,
             delta_time,
+            blinky=self.blinky
         )
 
         self.clyde.chase_player(
@@ -336,7 +337,7 @@ class GameWindow(arcade.View):
             self.cols,
             self.offset_x,
             self.offset_y,
-            delta_time,
+            delta_time
         )
 
 
@@ -473,4 +474,3 @@ class GameWindow(arcade.View):
         if key == arcade.key.F2:
             self.vectory = Vectory(self.window, self.main_menu, self.score)
             self.window.show_view(self.vectory)
-
