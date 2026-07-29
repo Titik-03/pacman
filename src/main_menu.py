@@ -28,7 +28,7 @@ class MainMenu(arcade.View):
         self.score_manager = Score()
         self.window = window
         self.scores = []
-        self.background = arcade.load_texture("src/assets/Desktop - 1.png")
+        self.background = arcade.load_texture("src/assets/menu.png")
         self.instructions_image = arcade.load_texture("src/assets/Frame 1.png")
         self.title_text = arcade.Text(
             text="PAC-MAN",

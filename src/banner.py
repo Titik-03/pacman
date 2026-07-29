@@ -9,7 +9,7 @@ class Banner:
         self.width = 0   # Start with no visible width.
         self.target_x = start_x  # Store the target horizontal position.
         self.target_y = start_y  # Store the target vertical position.
-        self.color = (37, 37, 37)  # Set the banner fill color.
+        self.color = (13, 60, 119)  # Set the banner fill color.
 
     def move_to(self, x, y):
         self.target_x = x  # Update the destination x position.
