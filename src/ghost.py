@@ -12,6 +12,8 @@ PINKY_PATH = SCRIPT_DIR / "assets" / "pinky.png"
 INKY_PATH = SCRIPT_DIR / "assets" / "inky.png"
 CLYDE_PATH = SCRIPT_DIR / "assets" / "clyde.png"
 SCARED_PATH = SCRIPT_DIR / "assets" / "scared.png"
+EYES_PATH = SCRIPT_DIR / "assets" / "eyes.png"
+
 
 
 class Ghost(arcade.Sprite):
@@ -22,15 +24,18 @@ class Ghost(arcade.Sprite):
         self.target_x = center_x
         self.target_y = center_y
         self.speed = 130.0
+        self.og_speed = 130.0
         self.current_dir = (0, 0)
 
         # Power-Up System
         self.is_powered_up = False
-        self.power_timer = 0.0
+        # self.power_timer = 0.0
 
         # Ghost state: CHASE, FRIGHTENED, or EATEN
         self.state = "CHASE"
         self.was_scared = False
+        self.was_eaten = False
+        self.can_damage = True
 
         # Eaten / respawn system
         self.respawn_timer = 0.0
@@ -41,6 +46,7 @@ class Ghost(arcade.Sprite):
         self.home_row = None
         self.home_col = None
         self.name = name
+
 
 
 
@@ -168,30 +174,28 @@ class Ghost(arcade.Sprite):
         return (0, 0)
 
 
-    #Eaten / respawn system
-
     def get_hit(self) -> None:
         """Called when Pac-Man eats this ghost while it's FRIGHTENED."""
         self.state = "EATEN"
-        self.respawn_timer = self.RESPAWN_DELAY
-        self.visible = False
-        self.current_dir = (0, 0)
+        self.can_damage = True
+        self.texture = arcade.load_texture(EYES_PATH)
 
-    def update_eaten(self,
-                      delta_time: float,
-                      cell_size: float,
-                      rows: int,
-                      offset_x: float = 0.0,
-                      offset_y: float = 0.0) -> None:
-        """Counts down while the ghost is eaten, then respawns it at home."""
-        self.respawn_timer -= delta_time
-        if self.respawn_timer <= 0:
-            x, y = self.get_cell_center(self.home_row, self.home_col, cell_size, rows, offset_x, offset_y)
-            self.center_x = self.target_x = x
-            self.center_y = self.target_y = y
-            self.state = "CHASE"
-            self.visible = True
-            self.texture = arcade.load_texture(self.normal_texture_path)
+
+    def update_texrture(self, player:Player):
+
+        if self.state == "EATEN":
+            return
+
+        if not self.was_eaten:
+            if player.is_powered_up and self.state == "CHASE":
+                self.state = "FRIGHTENED"
+                self.texture = arcade.load_texture(SCARED_PATH)
+            elif not player.is_powered_up and self.state == "FRIGHTENED":
+                self.state = "CHASE"
+                self.texture = arcade.load_texture(self.normal_texture_path)
+                
+        if player.power_timer == 0:
+            self.was_eaten = False
 
     #chase the player through the maze.
     def chase_player(self,
@@ -206,18 +210,24 @@ class Ghost(arcade.Sprite):
                      blinky: "Ghost" = None
                      ) -> None:
 
-        if self.state == "EATEN":
-            self.update_eaten(delta_time, cell_size, rows, offset_x, offset_y)
+        if player.power_timer == 0:
+            self.was_eaten = False
+            self.can_damage = True
+            self.visible = True
+
+        my_row, my_col = self.get_cell(self.center_x, self.center_y, cell_size, rows, offset_x, offset_y)
+
+        if self.was_eaten and my_row == self.home_row and my_col == self.home_col:
+            self.texture = arcade.load_texture(EYES_PATH)
+
+        if self.was_eaten and player.power_timer != 0:
             return
 
-        step = self.speed * delta_time
+        # Let the ghost move twice as fast when returning as eyes
+        current_speed = self.speed * 2.0 if self.state == "EATEN" else self.speed
+        step = current_speed * delta_time
 
-        if player.is_powered_up and self.state == "CHASE":
-            self.state = "FRIGHTENED"
-            self.texture = arcade.load_texture(SCARED_PATH)
-        elif not player.is_powered_up and self.state == "FRIGHTENED":
-            self.state = "CHASE"
-            self.texture = arcade.load_texture(self.normal_texture_path)
+        self.update_texrture(player)
 
         # Snap to target when close enough to avoid float jitter.
         if abs(self.center_x - self.target_x) <= step and abs(self.center_y - self.target_y) <= step:
@@ -227,6 +237,13 @@ class Ghost(arcade.Sprite):
         # Arrived at a cell center -> pick next direction via BFS.
         if self.center_x == self.target_x and self.center_y == self.target_y:
             my_row, my_col = self.get_cell(self.center_x, self.center_y, cell_size, rows, offset_x, offset_y)
+
+            # If we are eaten and have arrived at our home cell, turn back into a normal ghost
+            if player.power_timer == 0:
+                if self.state == "EATEN" and my_row == self.home_row and my_col == self.home_col:
+                    self.state = "CHASE"
+                    self.texture = arcade.load_texture(self.normal_texture_path)
+                    self.was_eaten = True
 
             player_row, player_col = self.get_cell(player.center_x, player.center_y, cell_size, rows, offset_x, offset_y)
 
@@ -243,19 +260,23 @@ class Ghost(arcade.Sprite):
                 blinky_row = max(0, min(rows - 1, blinky_row))
                 blinky_col = max(0, min(cols - 1, blinky_col))
 
-            target_row, target_col = self.get_target_tile(
-                player,
-                player_row,
-                player_col,
-                my_row=my_row,
-                my_col=my_col,
-                blinky_row=blinky_row,
-                blinky_col=blinky_col,
-                maze=maze,
-                rows=rows,
-                cols=cols,
-            )
-
+            #choose where to go.
+            if self.state == "EATEN":
+                target_row = self.home_row
+                target_col = self.home_col
+            else:
+                target_row, target_col = self.get_target_tile(
+                    player,
+                    player_row,
+                    player_col,
+                    my_row=my_row,
+                    my_col=my_col,
+                    blinky_row=blinky_row,
+                    blinky_col=blinky_col,
+                    maze=maze,
+                    rows=rows,
+                    cols=cols,
+                )
         
             target_row = max(0, min(rows - 1, target_row))
             target_col = max(0, min(cols - 1, target_col))
@@ -366,7 +387,5 @@ class Clyde(Ghost):
             return player_row, player_col
 
         return random.randrange(rows), random.randrange(cols)
-
-
 
 

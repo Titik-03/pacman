@@ -353,7 +353,7 @@ class GameWindow(arcade.View):
         ghosts = [self.blinky, self.pinky, self.inky, self.clyde]
 
         for ghost in ghosts:
-            cx, cy = ghost.target_x , ghost.target_y
+            cx, cy = ghost.last_x , ghost.last_y
             size = 15
             line_width = 3
             color = arcade.color.RED
@@ -533,10 +533,10 @@ class GameWindow(arcade.View):
                 #Pac-Man eats the ghost.
                 self.score += 200
                 ghost.get_hit()
-            elif not self.player.invincible:
+            elif not self.player.invincible and ghost.can_damage:
                 #Ghost eats Pac-Man.
                 self.handle_player_hit()
-                break  # one hit per frame is enough, even with several ghosts nearby
+                break
 
 
     def handle_player_hit(self):

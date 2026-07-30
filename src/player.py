@@ -32,6 +32,8 @@ class Player(arcade.Sprite):
             return False
         self.lives -= 1
         self.invincible = True
+        self.is_powered_up = False
+        self.power_timer = 0.0
         self.invincible_timer = self.INVINCIBILITY_DURATION
         return self.lives <= 0
 
