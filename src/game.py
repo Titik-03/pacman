@@ -658,5 +658,10 @@ class GameWindow(arcade.View):
         if key == arcade.key.F2:
             self.player.invincible = True
 
+        if key == arcade.key.F3:
+
+            self.player.is_powered_up = (not self.player.is_powered_up)
+            self.player.power_timer = 9999999999
+
 
 

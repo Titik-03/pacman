@@ -179,6 +179,7 @@ class Ghost(arcade.Sprite):
         self.state = "EATEN"
         self.can_damage = True
         self.texture = arcade.load_texture(EYES_PATH)
+        self.scale = 0.1
 
 
     def update_texrture(self, player:Player):
