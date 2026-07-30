@@ -1,6 +1,7 @@
 from src.player import Player
 import math
 import random
+import random
 import pathlib
 from collections import deque
 
@@ -14,6 +15,8 @@ CLYDE_PATH = SCRIPT_DIR / "assets" / "clyde.png"
 SCARED_PATH = SCRIPT_DIR / "assets" / "scared.png"
 EYES_PATH = SCRIPT_DIR / "assets" / "eyes.png"
 
+EYES_PATH = SCRIPT_DIR / "assets" / "eyes.png"
+
 
 
 class Ghost(arcade.Sprite):
@@ -25,15 +28,18 @@ class Ghost(arcade.Sprite):
         self.target_y = center_y
         self.speed = 130.0
         self.og_speed = 130.0
+        self.og_speed = 130.0
         self.current_dir = (0, 0)
 
         # Power-Up System
         self.is_powered_up = False
-        # self.power_timer = 0.0
+        # # self.power_timer = 0.0
 
         # Ghost state: CHASE, FRIGHTENED, or EATEN
         self.state = "CHASE"
         self.was_scared = False
+        self.was_eaten = False
+        self.can_damage = True
         self.was_eaten = False
         self.can_damage = True
 
@@ -46,6 +52,7 @@ class Ghost(arcade.Sprite):
         self.home_row = None
         self.home_col = None
         self.name = name
+
 
 
 
@@ -179,6 +186,7 @@ class Ghost(arcade.Sprite):
         self.state = "EATEN"
         self.can_damage = True
         self.texture = arcade.load_texture(EYES_PATH)
+        self.scale = 0.1
 
 
     def update_texrture(self, player:Player):

@@ -54,7 +54,7 @@ class GameWindow(arcade.View):
             super().__init__(width or 900, height or 900, "Pac-Man", resizable=True)
         arcade.set_background_color((10, 10, 30))
 
-        self.m = MazeGenerator(seed=555)
+        self.m = MazeGenerator(seed=555seed=555)
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
@@ -354,6 +354,7 @@ class GameWindow(arcade.View):
 
         for ghost in ghosts:
             cx, cy = ghost.last_x , ghost.last_y
+            cx, cy = ghost.last_x , ghost.last_y
             size = 15
             line_width = 3
             color = arcade.color.RED
@@ -397,6 +398,9 @@ class GameWindow(arcade.View):
 
         for i in self.coins_lst:
             i.draw()
+
+        if self.debug:
+            self.draw_debug()
 
         if self.debug:
             self.draw_debug()
@@ -533,9 +537,10 @@ class GameWindow(arcade.View):
                 #Pac-Man eats the ghost.
                 self.score += 200
                 ghost.get_hit()
-            elif not self.player.invincible and ghost.can_damage:
+            elif not self.player.invincible and ghost.can_damage and ghost.can_damage:
                 #Ghost eats Pac-Man.
                 self.handle_player_hit()
+                break
                 break
 
 
@@ -655,6 +660,14 @@ class GameWindow(arcade.View):
                 self.debug = False
             else:
                 self.debug = True
+        if key == arcade.key.F2:
+            self.player.invincible = True
+
+        if key == arcade.key.F3:
+
+            self.player.is_powered_up = (not self.player.is_powered_up)
+            self.player.power_timer = 9999999999
+
         if key == arcade.key.F2:
             self.player.invincible = True
 

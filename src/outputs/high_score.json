@@ -1,5 +1,9 @@
 [
     {
+        "name": "titik f pc hsen",
+        "score": 3440
+    },
+    {
         "name": "sedikl",
         "score": 2770
     },
@@ -8,36 +12,20 @@
         "score": 2180
     },
     {
-        "name": "test",
-        "score": 1250
-    },
-    {
-        "name": "Titik",
-        "score": 350
-    },
-    {
-        "name": "Alice Johnson",
-        "score": 250
-    },
-    {
-        "name": "Alice Johnson",
-        "score": 250
-    },
-    {
-        "name": "John Doe",
-        "score": 220
-    },
-    {
-        "name": "John Doe",
-        "score": 220
-    },
-    {
         "name": "bogido",
         "score": 1940
     },
     {
+        "name": "test",
+        "score": 1250
+    },
+    {
         "name": "gg",
         "score": 400
+    },
+    {
+        "name": "Titik",
+        "score": 350
     },
     {
         "name": "lose",
@@ -46,6 +34,22 @@
     {
         "name": "ss",
         "score": 310
+    },
+    {
+        "name": "Alice Johnson",
+        "score": 250
+    },
+    {
+        "name": "Alice Johnson",
+        "score": 250
+    },
+    {
+        "name": "John Doe",
+        "score": 220
+    },
+    {
+        "name": "John Doe",
+        "score": 220
     },
     {
         "name": "r",
