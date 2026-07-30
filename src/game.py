@@ -42,7 +42,7 @@ class GameWindow(arcade.View):
             super().__init__(width or 900, height or 900, "Pac-Man", resizable=True)
         arcade.set_background_color((10, 10, 30))
 
-        self.m = MazeGenerator((10, 10))
+        self.m = MazeGenerator()
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
@@ -315,6 +315,9 @@ class GameWindow(arcade.View):
 
         for i in self.coins_lst:
             i.draw()
+
+        if self.debug:
+            self.draw_debug()
 
         if self.pause:
             self.manager.draw()

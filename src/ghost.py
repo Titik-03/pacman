@@ -20,7 +20,7 @@ class Ghost(arcade.Sprite):
         self.center_y = center_y
         self.target_x = center_x
         self.target_y = center_y
-        self.speed = 130.0
+        self.speed = 150.0
         self.current_dir = (0, 0)
 
         # Power-Up System
@@ -305,7 +305,7 @@ class Pinky(Ghost):
 
         dx, dy = player.current_dir
 
-        target_row = player_row - dy * 4
+        target_row = player_row + dy * 4
         target_col = player_col + dx * 4
 
         my_row = kwargs.get("my_row")
@@ -348,6 +348,9 @@ class Inky(Ghost):
         target_row = blinky_row + 2 * (ahead_row - blinky_row)
         target_col = blinky_col + 2 * (ahead_col - blinky_col)
 
+        target_row = player_row + dy * 2
+        target_col = player_col - dx * 2
+
         return target_row, target_col
 
 
@@ -363,23 +366,28 @@ class Clyde(Ghost):
         if self.state == "FRIGHTENED":
             return self.home_row, self.home_col
 
-        my_row = kwargs.get("my_row")
-        my_col = kwargs.get("my_col")
+        # my_row = kwargs.get("my_row")
+        # my_col = kwargs.get("my_col")
 
-        if my_row is None or my_col is None:
-            return player_row, player_col
+        # if my_row is None or my_col is None:
+        #     return player_row, player_col
 
-        #sqrt(a² + b²) to mesure the distance between player and clyde.
-        distance = math.hypot(player_row - my_row, player_col - my_col)
+        # #sqrt(a² + b²) to mesure the distance between player and clyde.
+        # distance = math.hypot(player_row - my_row, player_col - my_col)
 
-        # Far from Pac-Man: chase directly, just like Blinky.
-        if distance > self.SHY_DISTANCE:
-            return player_row, player_col
+        # # Far from Pac-Man: chase directly, just like Blinky.
+        # if distance > self.SHY_DISTANCE:
+        #     return player_row, player_col
 
-        #run if too close.
-        flee_row = my_row + (my_row - player_row)
-        flee_col = my_col + (my_col - player_col)
+        # #run if too close.
+        # flee_row = my_row + (my_row - player_row)
+        # flee_col = my_col + (my_col - player_col)
 
-        return flee_row, flee_col
+        dx, dy = player.current_dir
+
+        target_row = player_row - dy * 4
+        target_col = player_col - dx * 4
+
+        return target_row, target_col
 
 

@@ -12,7 +12,7 @@ class Player(arcade.Sprite):
         self.center_y = center_y
         self.target_x = center_x
         self.target_y = center_y
-        self.speed = 140.0
+        self.speed = 160.0
         self.queued_dir = (0, 0)
         self.current_dir = (0, 0)
 

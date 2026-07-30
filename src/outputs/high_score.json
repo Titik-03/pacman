@@ -1,78 +1,18 @@
 [
     {
-        "name": "test",
-        "score": 1250
+        "name": "lahcen",
+        "score": 2600
     },
     {
-        "name": "Alice Johnson",
-        "score": 250
+        "name": "bogido",
+        "score": 1940
     },
     {
-        "name": "Alice Johnson",
-        "score": 250
+        "name": "lose",
+        "score": 330
     },
     {
-        "name": "John Doe",
-        "score": 220
-    },
-    {
-        "name": "John Doe",
-        "score": 220
-    },
-    {
-        "name": "Jane Smith",
-        "score": 180
-    },
-    {
-        "name": "Jane Smith",
-        "score": 180
-    },
-    {
-        "name": "fail",
-        "score": 11
-    },
-    {
-        "name": "win",
-        "score": 11
-    },
-    {
-        "name": "hhh",
-        "score": 11
-    },
-    {
-        "name": "hhh pp",
-        "score": 11
-    },
-    {
-        "name": "gg gg",
-        "score": 11
-    },
-    {
-        "name": "h",
-        "score": 11
-    },
-    {
-        "name": "fail",
-        "score": 11
-    },
-    {
-        "name": "win",
-        "score": 11
-    },
-    {
-        "name": "hhh",
-        "score": 11
-    },
-    {
-        "name": "hhh pp",
-        "score": 11
-    },
-    {
-        "name": "gg gg",
-        "score": 11
-    },
-    {
-        "name": "h",
-        "score": 11
+        "name": "gg",
+        "score": 70
     }
 ]
