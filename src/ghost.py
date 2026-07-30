@@ -55,8 +55,6 @@ class Ghost(arcade.Sprite):
 
 
 
-
-
     @classmethod
     def create_ghost(
         cls,
@@ -194,6 +192,9 @@ class Ghost(arcade.Sprite):
         if self.state == "EATEN":
             return
 
+        self.scale = 0.2
+
+
         if not self.was_eaten:
             if player.is_powered_up and self.state == "CHASE":
                 self.state = "FRIGHTENED"
@@ -230,6 +231,7 @@ class Ghost(arcade.Sprite):
 
         if self.was_eaten and player.power_timer != 0:
             return
+
 
         # Let the ghost move twice as fast when returning as eyes
         current_speed = self.speed * 2.0 if self.state == "EATEN" else self.speed
