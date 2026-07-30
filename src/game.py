@@ -23,8 +23,20 @@ EAST = 2
 SOUTH = 4
 WEST = 8
 
-NEON = (0, 255, 255)
-GLOW = (0, 100, 200, 100)
+# Catppuccin Mocha Palette
+MOCHA_BASE = (30, 30, 46)        # #1e1e2e
+MOCHA_TEXT = (205, 214, 244)     # #cdd6f4
+MOCHA_MAUVE = (203, 166, 247)    # #cba6f7
+MOCHA_LAVENDER = (180, 190, 254) # #b4befe
+MOCHA_CRUST = (17, 17, 27)       # #11111b
+MOCHA_RED = (243, 139, 168)      # #f38ba8
+MOCHA_SURFACE0 = (49, 50, 68)    # #313244
+MOCHA_SURFACE1 = (69, 71, 90)    # #45475a
+MOCHA_MANTLE = (24, 24, 37)      # #181825
+
+NEON = MOCHA_MAUVE
+GLOW = (203, 166, 247, 80)
+
 
 
 class GameWindow(arcade.View):
@@ -47,17 +59,68 @@ class GameWindow(arcade.View):
 
         self.rows = len(self.maze)
         self.cols = len(self.maze[0])
-        self.background = load_texture("src/assets/game.png")
-        margin = 95
-        available_w = self.width - margin * 2
-        available_h = self.height - margin * 2
+        self.background = load_texture("src/assets/Dek.png")
+
+        # Position maze within the dark left area of Dek.png
+        left_area_width = self.width * 0.52
+        margin_x = 80
+        margin_y = 100
+        available_w = left_area_width - margin_x
+        available_h = self.height - margin_y
         self.cell_size = min(available_w // self.cols, available_h // self.rows)
 
-        self.offset_x = (self.width - self.cols * self.cell_size) / 2
+        self.offset_x = (left_area_width - self.cols * self.cell_size) / 2
         self.offset_y = (self.height - self.rows * self.cell_size) / 2
 
         self.coin = Coin(10, 10)
         self.score = 0
+        self.level = 1
+
+        # Load Handjet font
+        font_path = SCRIPT_DIR / "assets" / "Handjet" / "static" / "Handjet-Bold.ttf"
+        if font_path.exists():
+            arcade.load_font(str(font_path))
+
+        # Text UI objects positioned next to labels in Dek.png
+        font_sz = int(32 * (self.height / 1080.0))
+        self.score_text = arcade.Text(
+            text=f"{self.score}",
+            x=self.width * 0.77,
+            y=self.height * 0.97,
+            color=MOCHA_CRUST,
+            font_size=font_sz,
+            font_name="Handjet",
+            bold=True,
+            anchor_y="center"
+        )
+
+        self.lives_x = self.width * 0.81
+        self.lives_y = self.height * 0.875
+
+        self.level_text = arcade.Text(
+
+            text=f"{self.level}",
+            x=self.width * 0.84,
+            y=self.height * 0.784,
+            color=MOCHA_CRUST,
+            font_size=font_sz,
+            font_name="Handjet",
+            bold=True,
+            anchor_y="center"
+        )
+
+        self.time_text = arcade.Text(
+            text=f"{int(120)}s",
+            x=self.width * 0.87,
+            y=self.height * 0.698,
+            color=MOCHA_CRUST,
+            font_size=font_sz,
+            font_name="Handjet",
+            bold=True,
+            anchor_y="center"
+        )
+
+
 
 
         #player coords.
@@ -270,7 +333,7 @@ class GameWindow(arcade.View):
                 maze_width,          # Total maze width
                 maze_height          # Total maze height
             ),
-            color=(15, 15, 35, 230))
+            color=(30, 30, 46, 220))
         arcade.draw_rect_outline(
             arcade.LBWH(
                 self.offset_x,
@@ -278,7 +341,7 @@ class GameWindow(arcade.View):
                 maze_width + 1,
                 maze_height + 1
             ),
-            color=(0, 255, 255),  # Cyan neon border
+            color=MOCHA_MAUVE,  # Mauve neon border
             border_width=2
         )
 
@@ -302,6 +365,23 @@ class GameWindow(arcade.View):
             arcade.draw_line(ghost.center_x, ghost.center_y, cx, cy, arcade.color.BLUE, 3)
 
 
+    def draw_hearts(self):
+        # Draw red hearts for lives next to LIVES: label in Dek.png
+        size = 14 * (self.height / 1080.0)
+        spacing = 38 * (self.width / 1920.0)
+        color = MOCHA_RED
+        for i in range(max(0, self.player.lives)):
+            cx = self.lives_x + i * spacing
+            cy = self.lives_y
+            arcade.draw_circle_filled(cx - size * 0.35, cy + size * 0.15, size * 0.4, color)
+            arcade.draw_circle_filled(cx + size * 0.35, cy + size * 0.15, size * 0.4, color)
+            arcade.draw_triangle_filled(
+                cx - size * 0.72, cy + size * 0.15,
+                cx + size * 0.72, cy + size * 0.15,
+                cx, cy - size * 0.7,
+                color
+            )
+
     def on_draw(self):
         self.clear()
         self.draw_background_image()
@@ -322,9 +402,16 @@ class GameWindow(arcade.View):
         if self.pause:
             self.manager.draw()
 
-        arcade.draw_text(f"{int(self.timer)}", 1500, 1000)
-        arcade.draw_text(f"Score: {self.score}", 40, 1030, arcade.color.WHITE, 24)
-        arcade.draw_text(f"Lives: {self.player.lives}", 40, 995, arcade.color.WHITE, 24)
+        self.score_text.text = f"{self.score}"
+        self.level_text.text = f"{self.level}"
+        self.time_text.text = f"{int(self.timer)}s"
+
+        self.score_text.draw()
+        self.draw_hearts()
+        self.level_text.draw()
+        self.time_text.draw()
+
+
 
 
     def go_to_game_over(self):
@@ -486,33 +573,33 @@ class GameWindow(arcade.View):
         button_style = {
             "normal": arcade.gui.UIFlatButton.UIStyle(
                 font_size=20,
-                font_name=("georgia", "times new roman", "serif"),
-                font_color=(234, 236, 250),
-                bg=(20, 12, 48),
-                border=(90, 72, 160),
+                font_name="Handjet",
+                font_color=MOCHA_TEXT,
+                bg=MOCHA_SURFACE0,
+                border=MOCHA_MAUVE,
                 border_width=2,
             ),
             "hover": arcade.gui.UIFlatButton.UIStyle(
                 font_size=20,
-                font_name=("georgia", "times new roman", "serif"),
-                font_color=(250, 250, 255),
-                bg=(64, 32, 120),
-                border=(180, 170, 255),
+                font_name="Handjet",
+                font_color=MOCHA_TEXT,
+                bg=MOCHA_SURFACE1,
+                border=MOCHA_LAVENDER,
                 border_width=2,
             ),
             "press": arcade.gui.UIFlatButton.UIStyle(
                 font_size=20,
-                font_name=("georgia", "times new roman", "serif"),
-                font_color=(252, 244, 255),
-                bg=(8, 6, 26),
-                border=(110, 78, 190),
+                font_name="Handjet",
+                font_color=MOCHA_TEXT,
+                bg=MOCHA_MANTLE,
+                border=MOCHA_MAUVE,
                 border_width=3,
             ),
             "disabled": arcade.gui.UIFlatButton.UIStyle(
                 font_size=20,
-                font_name=("georgia", "times new roman", "serif"),
+                font_name="Handjet",
                 font_color=(120, 118, 136),
-                bg=(18, 18, 36),
+                bg=MOCHA_CRUST,
                 border=(56, 64, 96),
                 border_width=1,
             )
