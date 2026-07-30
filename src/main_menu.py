@@ -293,6 +293,10 @@ class MainMenu(arcade.View):
             )
         )
 
+    def new_game(self):
+        loading_view = LoadingView(self.window, self, level=1)
+        self.window.show_view(loading_view)
+
     def on_draw(self):
         self.clear()
         
@@ -319,3 +323,4 @@ class MainMenu(arcade.View):
             item.draw()
 
         self.title_text.draw()
+
