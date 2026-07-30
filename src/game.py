@@ -54,7 +54,7 @@ class GameWindow(arcade.View):
             super().__init__(width or 900, height or 900, "Pac-Man", resizable=True)
         arcade.set_background_color((10, 10, 30))
 
-        self.m = MazeGenerator()
+        self.m = MazeGenerator(seed=555)
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
@@ -653,5 +653,8 @@ class GameWindow(arcade.View):
                 self.debug = False
             else:
                 self.debug = True
+        if key == arcade.key.F2:
+            self.player.invincible = True
+
 
 

@@ -57,14 +57,14 @@ class LoadingView(arcade.View):
     def on_show_view(self):
         arcade.set_background_color(self.MOCHA_BASE)
         # Instantiate GameWindow immediately so game assets/maze are ready
-        self.game_view = GameWindow(self.main_menu, self.window)
+        # self.game_view = GameWindow(self.main_menu, self.window)
 
     def on_update(self, delta_time: float):
         self.elapsed += delta_time
         self.progress = min(1.0, self.elapsed / self.loading_duration)
 
-        if self.elapsed >= self.loading_duration and self.game_view:
-            self.window.show_view(self.game_view)
+        if self.elapsed >= self.loading_duration:
+            self.window.show_view(GameWindow(self.main_menu, self.window))
 
     def on_draw(self):
         self.clear()
@@ -118,3 +118,4 @@ class LoadingView(arcade.View):
             mouth_angle,
             360 - mouth_angle
         )
+
