@@ -6,13 +6,13 @@ ASSETS_PATH = SCRIPT_DIR / "assets" / "Group.png"
 
 
 class Player(arcade.Sprite):
-    def __init__(self, center_x: float, center_y: float) -> None:
+    def __init__(self, center_x: float, center_y: float, speed: float) -> None:
         super().__init__(str(ASSETS_PATH))
         self.center_x = center_x
         self.center_y = center_y
         self.target_x = center_x
         self.target_y = center_y
-        self.speed = 160.0
+        self.speed = speed
         self.queued_dir = (0, 0)
         self.current_dir = (0, 0)
 
@@ -53,11 +53,11 @@ class Player(arcade.Sprite):
 
     @staticmethod
     def create_player(
-        center_x: float, center_y: float, cell_size: float
+        center_x: float, center_y: float, cell_size: float, speed: float = 170.0
     ) -> tuple["Player", arcade.SpriteList]:
         player_list: arcade.SpriteList = arcade.SpriteList()
 
-        player = Player(center_x, center_y)
+        player = Player(center_x, center_y, speed)
         player.width = cell_size * 0.5
         player.height = cell_size * 0.5
         player_list.append(player)
@@ -129,21 +129,19 @@ class Player(arcade.Sprite):
                              delta_time: float = 1 / 60
                              ) -> None:
 
-        #Tick down the power-up timer
         if self.is_powered_up:
             self.power_timer -= delta_time
             if self.power_timer <= 0:
                 self.is_powered_up = False
                 self.power_timer = 0.0
 
-        #Tick down the invincibility timer (grace period after respawn)
         self.update_invincibility(delta_time)
 
-        #Calculate dynamic speed
+
         current_speed = self.speed * 2.0 if self.is_powered_up else self.speed
         step = current_speed * delta_time
 
-        # Snap to the target when we are close enough to avoid float jitter.
+
         if abs(self.center_x - self.target_x) <= step and abs(self.center_y - self.target_y) <= step:
             self.center_x = self.target_x
             self.center_y = self.target_y
