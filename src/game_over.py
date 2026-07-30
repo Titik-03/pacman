@@ -58,7 +58,11 @@ class GameOver(arcade.View):
         
         #Submit Button
         submit_btn = arcade.gui.UIFlatButton(text="Confirm", width=200)
+        restart_btn = arcade.gui.UIFlatButton(text="Restart", width=200)
+
         box.add(submit_btn)
+        box.add(restart_btn)
+
 
         #Bind button click event
         @submit_btn.event("on_click")
@@ -67,6 +71,10 @@ class GameOver(arcade.View):
             if player_name:
                 self.score_class.write_score(player_name, self.score)
                 self.window.show_view(self.main_menu)
+
+        @restart_btn.event("on_click")
+        def on_click_submit(event):
+            self.main_menu.new_game()
 
         layout.add(box, anchor_x="center_x", anchor_y="center_y")
         self.manager.add(layout)
@@ -90,12 +98,13 @@ class GameOver(arcade.View):
         self.manager.draw()
 
 
+
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ENTER:
             player_name = self.input_field.text.strip()
             if player_name:
                 self.score_class.write_score(player_name, self.score)
                 self.window.show_view(self.main_menu)
-
-
+        if key == arcade.key.ESCAPE:
+            self.main_menu.new_game()
 
