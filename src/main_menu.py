@@ -7,9 +7,11 @@ import arcade.gui
 from src.instructions import Instuctions
 from src.score import HighScore, Score
 from src.game import GameWindow
+from src.loading import LoadingView
 from src.banner import Banner
 from src.menu_item import MenuItem
 from src.particle import Particle
+
 
 # Main menu view.
 class MainMenu(arcade.View):
@@ -135,8 +137,9 @@ class MainMenu(arcade.View):
 
         if key == arcade.key.ENTER:
             if self.hovered == 0:
-                self.game_view = GameWindow(self, self.window)
-                self.window.show_view(self.game_view)
+                loading_view = LoadingView(self.window, self, level=1)
+                self.window.show_view(loading_view)
+
             elif self.hovered == 1:
                 self.scores = self.score_manager.load_score() 
                 self.show_highscore = True
@@ -170,8 +173,9 @@ class MainMenu(arcade.View):
         if self.hovered == -1:
             return
         if self.hovered == 0:
-            self.game_view = GameWindow(self, self.window)
-            self.window.show_view(self.game_view)
+            loading_view = LoadingView(self.window, self, level=1)
+            self.window.show_view(loading_view)
+
         elif self.hovered == 1:
             self.scores = self.score_manager.load_score() 
             self.show_highscore = True
