@@ -2,7 +2,7 @@ import pathlib
 import arcade
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
-ASSETS_PATH = SCRIPT_DIR / "assets" / "Group.png"
+ASSETS_PATH = "src/assets/Untitled/5.png"
 
 
 class Player(arcade.Sprite):
@@ -15,12 +15,21 @@ class Player(arcade.Sprite):
         self.speed = speed
         self.queued_dir = (0, 0)
         self.current_dir = (0, 0)
-
-        #Power-Up System
+        self.textures_open = arcade.load_texture("src/assets/Untitled/6.png")
+        self.textures_half = arcade.load_texture("src/assets/Untitled/4.png")
+        self.textures_closed = arcade.load_texture("src/assets/Untitled/5.png")
+        self.animation_frames = [
+            self.textures_open,
+            self.textures_half,
+            self.textures_closed,
+            self.textures_half
+        ]
+        self.cur_frame_index = 0
+        self.time_counter = 0.0 
+        self.frame_duration = 0.08
         self.is_powered_up = False
         self.power_timer = 0.0
 
-        #Lives / damage system
         self.lives = 3
         self.invincible = False
         self.invincible_timer = 0.0
@@ -108,7 +117,7 @@ class Player(arcade.Sprite):
             return False
 
         elif dx == -1:
-            self.angle = 180
+            self.angle = 0
         if dx == -1 and (cell_val & WEST):
             return False
 
@@ -118,7 +127,18 @@ class Player(arcade.Sprite):
         """Triggers the power-up state and resets/starts the duration clock."""
         self.is_powered_up = True
         self.power_timer = duration
-
+    def update_animation(self, delta_time: float = 1 / 60, *args, **kwargs) -> None:
+        if self.current_dir != (0, 0):
+            self.time_counter += delta_time
+            if self.time_counter >= self.frame_duration:
+                self.time_counter = 0.0
+                self.cur_frame_index = (self.cur_frame_index + 1) % len(self.animation_frames)
+                frame_tex = self.animation_frames[self.cur_frame_index]
+                self.texture = frame_tex.flip_left_right() if self.current_dir[0] < 0 else frame_tex
+        else:
+            base_tex = self.animation_frames[0]
+            self.texture = base_tex.flip_left_right() if self.queued_dir[0] < 0 else base_tex
+    
     def update_grid_movement(self,
                              maze,
                              cell_size: float,
