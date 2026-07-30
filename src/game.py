@@ -54,7 +54,7 @@ class GameWindow(arcade.View):
             super().__init__(width or 900, height or 900, "Pac-Man", resizable=True)
         arcade.set_background_color((10, 10, 30))
 
-        self.m = MazeGenerator((10, 10))
+        self.m = MazeGenerator()
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
@@ -276,6 +276,8 @@ class GameWindow(arcade.View):
                     self.coins_lst.append(Coin(x + cs / 2, y + cs / 2, is_powerup=True))
                 elif cell & 0b1111 != 0b1111:
                     self.coins_lst.append(Coin(x + cs / 2, y + cs / 2, is_powerup=False))
+                elif cell & 0b1111 == 0b1111:
+                    self.wall_shapes.append(shapes.create_rectangle(x + cs / 2, y + cs / 2, cs - 3, cs - 3, MOCHA_RED))
                 if cell & NORTH:
                     self.wall_shapes.append(shapes.create_line(x, y + cs, x + cs, y + cs, GLOW, 6))
                     self.wall_shapes.append(shapes.create_line(x, y + cs, x + cs, y + cs, NEON, 2))
