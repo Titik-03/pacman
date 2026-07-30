@@ -494,7 +494,7 @@ class GameWindow(arcade.View):
             self.offset_y,
             delta_time,
         )
-
+        self.player_list.update_animation(delta_time)
 
         self.ghosts_chase_player(delta_time)
         self.check_ghost_collisions()
