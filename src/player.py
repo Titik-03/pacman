@@ -15,12 +15,21 @@ class Player(arcade.Sprite):
         self.speed = 140.0
         self.queued_dir = (0, 0)
         self.current_dir = (0, 0)
-
-        #Power-Up System
+        self.textures_open = arcade.load_texture("src/assets/pacman-art/pacman-right/1.png")
+        self.textures_half = arcade.load_texture("src/assets/pacman-art/pacman-right/2.png")
+        self.textures_closed = arcade.load_texture("src/assets/pacman-art/pacman-right/3.png")
+        self.animation_frames = [
+            self.textures_open,
+            self.textures_half,
+            self.textures_closed,
+            self.textures_half
+        ]
+        self.cur_frame_index = 0
+        self.time_counter = 0.0 
+        self.frame_duration = 0.08
         self.is_powered_up = False
         self.power_timer = 0.0
 
-        #Lives / damage system
         self.lives = 3
         self.invincible = False
         self.invincible_timer = 0.0
@@ -118,7 +127,19 @@ class Player(arcade.Sprite):
         """Triggers the power-up state and resets/starts the duration clock."""
         self.is_powered_up = True
         self.power_timer = duration
+    def update_animation(self, delta_time: float = 1 / 60, *args, **kwargs) -> None:
 
+        if self.current_dir != (0, 0):
+            self.time_counter += delta_time
+            if self.time_counter >= self.frame_duration:
+                self.time_counter = 0.0
+                # Cycle index: 0 -> 1 -> 2 -> 3 -> 0 ...
+                self.cur_frame_index = (self.cur_frame_index + 1) % len(self.animation_frames)
+                self.texture = self.animation_frames[self.cur_frame_index]
+        else:
+            # Reset to mouth fully open when stopped
+            self.cur_frame_index = 0
+            self.texture = self.animation_frames[0]
     def update_grid_movement(self,
                              maze,
                              cell_size: float,
