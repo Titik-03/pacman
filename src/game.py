@@ -353,8 +353,7 @@ class GameWindow(arcade.View):
         ghosts = [self.blinky, self.pinky, self.inky, self.clyde]
 
         for ghost in ghosts:
-            cx, cy = ghost.last_x , ghost.last_y
-            cx, cy = ghost.last_x , ghost.last_y
+            cx, cy = ghost.target_x , ghost.target_y
             size = 15
             line_width = 3
             color = arcade.color.RED
@@ -420,8 +419,6 @@ class GameWindow(arcade.View):
         self.time_text.draw()
 
 
-
-
     def go_to_game_over(self):
         self.game_over = GameOver(self.window, self.main_menu, self.score)
         self.window.show_view(self.game_over)
@@ -433,7 +430,6 @@ class GameWindow(arcade.View):
 
 
     def ghosts_chase_player(self, delta_time):
-
 
         self.blinky.chase_player(
             self.player,
@@ -536,13 +532,11 @@ class GameWindow(arcade.View):
                 continue
 
             if ghost.state == "FRIGHTENED":
-                #Pac-Man eats the ghost.
                 self.score += 200
                 ghost.get_hit()
-            elif not self.player.invincible and ghost.can_damage and ghost.can_damage:
-                #Ghost eats Pac-Man.
+
+            elif (not self.player.invincible) and ghost.can_damage and ghost.can_damage:
                 self.handle_player_hit()
-                break
                 break
 
 
@@ -663,7 +657,8 @@ class GameWindow(arcade.View):
             else:
                 self.debug = True
         if key == arcade.key.F2:
-            self.player.invincible = True
+            self.player.invincible = (not self.player.invincible)
+            self.player.invincible_timer = 9999999999 if self.player.invincible else 0
 
         if key == arcade.key.F3:
 
