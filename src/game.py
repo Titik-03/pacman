@@ -390,14 +390,16 @@ class GameWindow(arcade.View):
         self.draw_background_image()
         self.draw_maze_background()
         self.wall_shapes.draw()
+
+        for i in self.coins_lst:
+            i.draw()
+
         self.player_list.draw()
         self.blinky_list.draw()
         self.pinky_list.draw()
         self.inky_list.draw()
         self.clyde_list.draw()
 
-        for i in self.coins_lst:
-            i.draw()
 
         if self.debug:
             self.draw_debug()
