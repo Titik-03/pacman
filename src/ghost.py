@@ -293,7 +293,7 @@ class Ghost(arcade.Sprite):
                 valid_moves = self.neighbors(my_row, my_col, maze, rows, cols)
                 reverse_dir = (-self.current_dir[0], -self.current_dir[1])
                 
-                #no valid paths do U turn.
+                #dont go to the same way you came from.
                 if len(valid_moves) > 1:
                     forward_moves = [m for m in valid_moves if m[1] != reverse_dir]
                     if forward_moves:
