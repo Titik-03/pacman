@@ -355,22 +355,10 @@ class GameWindow(arcade.View):
 
     def draw_debug(self):
 
-        ghosts = [self.blinky, self.pinky, self.inky, self.clyde]
-
-        for ghost in ghosts:
-            cx, cy = ghost.target_x , ghost.target_y
-            size = 15
-            line_width = 3
-            color = arcade.color.RED
-
-            #(Bottom-Left to Top-Right)
-            arcade.draw_line(cx - size, cy - size, cx + size, cy + size, color, line_width)
-
-            #(Top-Left to Bottom-Right)
-            arcade.draw_line(cx - size, cy + size, cx + size, cy - size, color, line_width)
-
-            arcade.draw_line(ghost.center_x, ghost.center_y, cx, cy, arcade.color.BLUE, 3)
-
+        self.blinky.draw_target_x(self.cell_size, self.offset_x, self.offset_y, rows=self.rows, color=arcade.color.RED)
+        self.pinky.draw_target_x(self.cell_size, self.offset_x, self.offset_y, rows=self.rows, color=arcade.color.PINK)
+        self.inky.draw_target_x(self.cell_size, self.offset_x, self.offset_y, rows=self.rows, color=arcade.color.CYAN)
+        self.clyde.draw_target_x(self.cell_size, self.offset_x, self.offset_y, rows=self.rows, color=arcade.color.ORANGE)
 
     def draw_hearts(self):
         # Draw red hearts for lives next to LIVES: label in Dek.png
@@ -391,6 +379,7 @@ class GameWindow(arcade.View):
                 color
             )
 
+    #-----------------------------------viiiiiiiiiiibe code have to be changed!-----------------------------------#
     def draw_cheat_menu(self):
         #background blur.
         arcade.draw_rect_filled(
@@ -516,6 +505,9 @@ class GameWindow(arcade.View):
                 anchor_y="center",
                 bold=True
             )
+
+    #-----------------------------------viiiiiiiiiiibe code have to be changed!-----------------------------------#
+
 
     def on_draw(self):
         self.clear()

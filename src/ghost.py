@@ -52,6 +52,7 @@ class Ghost(arcade.Sprite):
         self.home_row = None
         self.home_col = None
         self.name = name
+        self.target_tile = None
 
 
 
@@ -224,7 +225,37 @@ class Ghost(arcade.Sprite):
         if player.power_timer == 0:
             self.was_eaten = False
 
-    #chase the player through the maze.
+
+    def draw_target_x(self, cell_size, offset_x, offset_y, rows, color=arcade.color.RED, size=10, line_width=3):
+
+            if hasattr(self, "target_tile") and self.target_tile:
+                target_row, target_col = self.target_tile
+
+                #Convert (row, col) to Screen (x, y) center position
+                target_x = offset_x + (target_col + 0.5) * cell_size
+                target_y = offset_y + (rows - 1 - target_row + 0.5) * cell_size
+
+                if self.state == "FRIGHTENED":
+                    color = arcade.color.BLUE
+
+                arcade.draw_line(
+                    self.center_x, self.center_y,
+                    target_x, target_y,
+                    color, line_width=2
+                )
+
+                arcade.draw_line(
+                    target_x - size, target_y - size, 
+                    target_x + size, target_y + size, 
+                    color, line_width
+                )
+                arcade.draw_line(
+                    target_x - size, target_y + size, 
+                    target_x + size, target_y - size, 
+                    color, line_width
+                )
+
+    #chase the player.
     def chase_player(self,
                      player: Player,
                      maze,
@@ -292,6 +323,7 @@ class Ghost(arcade.Sprite):
             if self.state == "FRIGHTENED":
                 valid_moves = self.neighbors(my_row, my_col, maze, rows, cols)
                 reverse_dir = (-self.current_dir[0], -self.current_dir[1])
+
                 
                 #dont go to the same way you came from.
                 if len(valid_moves) > 1:
@@ -308,8 +340,10 @@ class Ghost(arcade.Sprite):
                     if dist > max_dist:
                         max_dist = dist
                         best_dir = d
+                        best_tile = (nrow, ncol)
 
                 self.current_dir = best_dir
+                self.target_tile = best_tile
 
             else:
                 if self.state == "EATEN":
@@ -339,6 +373,8 @@ class Ghost(arcade.Sprite):
                     rows,
                     cols,
                 )
+
+                self.target_tile = (target_row, target_col)
 
                 # Prevent the ghost from stopping on the player when chasing
                 if self.current_dir == (0, 0) and self.state == "CHASE":
