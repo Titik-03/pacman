@@ -171,7 +171,7 @@ class MainMenu(arcade.View):
         if self.hovered == -1:
             return
         if self.hovered == 0:
-            loading_view = LoadingView(self.window, self, level=1)
+            loading_view = LoadingView(self.window, self, seed=555, level=1)
             self.window.show_view(loading_view)
 
         elif self.hovered == 1:

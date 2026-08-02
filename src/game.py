@@ -11,6 +11,7 @@ from src.pause_menu import PauseMenu
 from src.game_over import GameOver
 from src.vectory import Vectory
 from src.ghost import Blinky, Pinky, Inky, Clyde
+from src.cheat_menu import CheatMenu
 
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
@@ -50,6 +51,7 @@ class GameWindow(arcade.View):
                  height=None,
                  fullscreen=True
                  ) -> None:
+
         if fullscreen:
             super().__init__()
         else:
@@ -149,9 +151,11 @@ class GameWindow(arcade.View):
         self.main_menu = menu
         self.window = window
         self.pause_menu = PauseMenu(self)
+        self.cheat_menu = CheatMenu(self)
         self.pause = False
         self.timer = 120
         self.cheat_menu = False
+        self.cheat_menu_timer = 0.0
 
         self.debug = False
         self.freeze_ghosts = False
@@ -387,6 +391,132 @@ class GameWindow(arcade.View):
                 color
             )
 
+    def draw_cheat_menu(self):
+        #background blur.
+        arcade.draw_rect_filled(
+            arcade.rect.XYWH(self.width / 2, self.height / 2, self.width, self.height),
+            color=(10, 8, 18, 215)
+        )
+
+        cx, cy = self.width / 2, self.height / 2
+        menu_w, menu_h = 520, 420
+
+        border_color = (180, 80, 255, 100)
+
+        #inside.
+        arcade.draw_rect_filled(
+            arcade.rect.XYWH(cx, cy, menu_w, menu_h),
+            color=(25, 25, 35, 240)
+        )
+        #outside.
+        arcade.draw_rect_outline(
+            arcade.rect.XYWH(cx, cy, menu_w, menu_h),
+            color=(180, 149, 200, 100),
+            border_width=3
+        )
+
+        #
+        arcade.draw_rect_filled(
+            arcade.rect.XYWH(cx, cy + 165, menu_w - 4, 3),
+            color=(255, 215, 0, 220)
+        )
+
+        arcade.draw_text(
+            "CHEAT MENU",
+            x=cx,
+            y=cy + 175,
+            color=arcade.color.YELLOW,
+            font_size=22,
+            anchor_x="center",
+            anchor_y="center",
+            bold=True
+        )
+
+        cheats = [
+            ("F1 / ESC", "Close Menu", None),
+            ("F2", "Invincibility", self.player.invincible),
+            ("F3", "Trigger Power Pellet", "TRIGGER"),
+            ("F4", "Freeze all ghosts", self.freeze_ghosts),
+            ("F5", "Add +1 Life", "ACTION"),
+            ("F6", "Skip the level", "ACTION"),
+            ("F7", "Debug ghosts path", self.debug),
+        ]
+
+        start_y = cy + 110
+        row_height = 40
+
+        for i, (key_label, description, state) in enumerate(cheats):
+            row_y = start_y - (i * row_height)
+
+            # Alternating background row highlight
+            if i % 2 == 0:
+                arcade.draw_rect_filled(
+                    arcade.rect.XYWH(cx, row_y, menu_w - 30, 32),
+                    color=(35, 30, 50, 150)
+                )
+
+            # Hotkey Tag Box
+            key_box_x = cx - 180
+            arcade.draw_rect_filled(
+                arcade.rect.XYWH(key_box_x, row_y, 90, 24),
+                color=(50, 45, 70, 220)
+            )
+            arcade.draw_rect_outline(
+                arcade.rect.XYWH(key_box_x, row_y, 90, 24),
+                color=(120, 100, 160, 180),
+                border_width=1
+            )
+            arcade.draw_text(
+                f"[{key_label}]",
+                x=key_box_x,
+                y=row_y,
+                color=arcade.color.CYAN,
+                font_size=12,
+                anchor_x="center",
+                anchor_y="center",
+                bold=True
+            )
+
+            # Description
+            arcade.draw_text(
+                description,
+                x=cx - 120,
+                y=row_y,
+                color=arcade.color.WHITE,
+                font_size=13,
+                anchor_x="left",
+                anchor_y="center"
+            )
+
+            # Dynamic Colored Status Badges
+            status_x = cx + 180
+            if state is True:
+                badge_color = (46, 204, 113)  # Green
+                badge_text = "● ON"
+            elif state is False:
+                badge_color = (231, 76, 60)   # Red
+                badge_text = "○ OFF"
+            elif state == "TRIGGER":
+                badge_color = (241, 196, 15)  # Gold
+                badge_text = "▶ RUN"
+            elif state == "ACTION":
+                badge_color = (52, 152, 219)  # Blue
+                badge_text = "+ USE"
+            else:
+                badge_color = (140, 140, 160)
+                badge_text = "EXIT"
+
+            arcade.draw_text(
+                badge_text,
+                x=status_x,
+                y=row_y,
+                color=badge_color,
+                font_size=12,
+                anchor_x="center",
+                anchor_y="center",
+                bold=True
+            )
+
     def on_draw(self):
         self.clear()
         self.draw_background_image()
@@ -403,15 +533,6 @@ class GameWindow(arcade.View):
         self.clyde_list.draw()
 
 
-        if self.debug:
-            self.draw_debug()
-
-        if self.debug:
-            self.draw_debug()
-
-        if self.pause:
-            self.manager.draw()
-
         self.score_text.text = f"{self.score}"
         self.level_text.text = f"{self.level}"
         self.time_text.text = f"{int(self.timer)}s"
@@ -421,6 +542,23 @@ class GameWindow(arcade.View):
         self.level_text.draw()
         self.time_text.draw()
 
+        if self.debug:
+            self.draw_debug()
+
+        if self.cheat_menu:
+            self.draw_cheat_menu()
+
+        if self.pause:
+            arcade.draw_rect_filled(
+                arcade.rect.XYWH(
+                    self.width / 2, 
+                    self.height / 2, 
+                    self.width, 
+                    self.height
+                ),
+                color=(10, 10, 20, 200)
+            )
+            self.manager.draw()
 
     def go_to_game_over(self):
         self.game_over = GameOver(self.window, self.main_menu, self.score)
@@ -482,7 +620,11 @@ class GameWindow(arcade.View):
 
     def on_update(self, delta_time: float):
 
-        if self.pause:
+        if self.pause or self.cheat_menu:
+            return
+
+        if self.cheat_menu:
+            self.cheat_menu_timer += delta_time
             return
 
         self.timer -= delta_time
@@ -647,7 +789,10 @@ class GameWindow(arcade.View):
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ESCAPE:
-            self.pause = not self.pause
+            if self.cheat_menu:
+                self.cheat_menu = False
+            elif self.pause or not self.pause:
+                self.pause = (not self.pause)
             return
 
         if self.pause:
@@ -656,6 +801,9 @@ class GameWindow(arcade.View):
         self.player.on_key_press(key)
 
         if key == arcade.key.F1:
+            self.cheat_menu = (not self.cheat_menu)
+
+        if key == arcade.key.F7:
             if self.cheat_menu:
                 if self.debug:
                     self.debug = False
@@ -683,6 +831,4 @@ class GameWindow(arcade.View):
         if key == arcade.key.F6:
             if self.cheat_menu:
                 self.main_menu.new_game(random.random())
-
-
 
