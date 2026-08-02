@@ -6,7 +6,7 @@ SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
 
 
 class LoadingView(arcade.View):
-    def __init__(self, window: arcade.Window, main_menu: arcade.View, level: int = 1):
+    def __init__(self, window: arcade.Window, main_menu: arcade.View, seed: int, level: int = 1):
         super().__init__()
         self.window = window
         self.main_menu = main_menu
@@ -15,6 +15,7 @@ class LoadingView(arcade.View):
         self.loading_duration = 1.3  # duration in seconds for loading screen
         self.elapsed = 0.0
         self.game_view = None
+        self.seed = seed
 
         # Catppuccin Mocha Color Palette
         self.MOCHA_BASE = (30, 30, 46)        # #1e1e2e
@@ -63,7 +64,7 @@ class LoadingView(arcade.View):
         self.progress = min(1.0, self.elapsed / self.loading_duration)
 
         if self.elapsed >= self.loading_duration:
-            self.window.show_view(GameWindow(self.main_menu, self.window))
+            self.window.show_view(GameWindow(self.main_menu, self.window, self.seed))
 
     def on_draw(self):
         self.clear()

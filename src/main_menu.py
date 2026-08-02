@@ -6,7 +6,6 @@ import arcade.gui
 
 from src.instructions import Instuctions
 from src.score import HighScore, Score
-from src.game import GameWindow
 from src.loading import LoadingView
 from src.banner import Banner
 from src.menu_item import MenuItem
@@ -19,9 +18,7 @@ class MainMenu(arcade.View):
         super().__init__()
         arcade.load_font("src/assets/Handjet/static/Handjet-Regular.ttf")
         arcade.load_font("src/assets/Handjet/static/Handjet-Bold.ttf")
-        
-        # Init the game view
-        self.game_view = GameWindow(self, window)
+
         self.high_score_view = HighScore(self, window)
         self.instuctions_view = Instuctions(self, window)
         self.top_banner = Banner(window.width + 300, window.height + 300)
@@ -46,6 +43,7 @@ class MainMenu(arcade.View):
         self.last_hovered = -1
         self.show_instructions = False
         self.show_highscore = False
+        self.seed = 555
 
         self.menu_items = []
         labels = [
@@ -137,7 +135,7 @@ class MainMenu(arcade.View):
 
         if key == arcade.key.ENTER:
             if self.hovered == 0:
-                loading_view = LoadingView(self.window, self, level=1)
+                loading_view = LoadingView(self.window, self, self.seed, level=1)
                 self.window.show_view(loading_view)
 
             elif self.hovered == 1:
@@ -293,8 +291,8 @@ class MainMenu(arcade.View):
             )
         )
 
-    def new_game(self):
-        loading_view = LoadingView(self.window, self, level=1)
+    def new_game(self, seed: int):
+        loading_view = LoadingView(self.window, self, seed, level=1)
         self.window.show_view(loading_view)
 
     def on_draw(self):

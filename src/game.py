@@ -1,4 +1,5 @@
 from arcade import load_texture
+import random
 import math
 import pathlib
 import arcade
@@ -44,6 +45,7 @@ class GameWindow(arcade.View):
     def __init__(self,
                  menu: arcade.View,
                  window: arcade.Window,
+                 seed: int,
                  width=None,
                  height=None,
                  fullscreen=True
@@ -54,7 +56,7 @@ class GameWindow(arcade.View):
             super().__init__(width or 900, height or 900, "Pac-Man", resizable=True)
         arcade.set_background_color((10, 10, 30))
 
-        self.m = MazeGenerator(seed=555)
+        self.m = MazeGenerator(seed=seed)
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
@@ -120,9 +122,6 @@ class GameWindow(arcade.View):
             anchor_y="center"
         )
 
-
-
-
         #player coords.
         center_col = self.cols // 2
         center_row = self.rows // 2
@@ -152,8 +151,10 @@ class GameWindow(arcade.View):
         self.pause_menu = PauseMenu(self)
         self.pause = False
         self.timer = 120
+        self.cheat_menu = False
 
         self.debug = False
+        self.freeze_ghosts = False
 
         self.game_over = GameOver(self.window, self.main_menu, self.score)
         self.vectory = Vectory(self.window, self.main_menu, self.score)
@@ -372,6 +373,8 @@ class GameWindow(arcade.View):
         size = 14 * (self.height / 1080.0)
         spacing = 38 * (self.width / 1920.0)
         color = MOCHA_RED
+
+
         for i in range(max(0, self.player.lives)):
             cx = self.lives_x + i * spacing
             cy = self.lives_y
@@ -498,7 +501,8 @@ class GameWindow(arcade.View):
         )
         self.player_list.update_animation(delta_time)
 
-        self.ghosts_chase_player(delta_time)
+        if not self.freeze_ghosts:
+            self.ghosts_chase_player(delta_time)
         self.check_ghost_collisions()
 
 
@@ -652,21 +656,33 @@ class GameWindow(arcade.View):
         self.player.on_key_press(key)
 
         if key == arcade.key.F1:
-            if self.debug:
-                self.debug = False
-            else:
-                self.debug = True
+            if self.cheat_menu:
+                if self.debug:
+                    self.debug = False
+                else:
+                    self.debug = True
+
         if key == arcade.key.F2:
-            self.player.invincible = (not self.player.invincible)
-            self.player.invincible_timer = 9999999999 if self.player.invincible else 0
+            if self.cheat_menu:
+                self.player.invincible = (not self.player.invincible)
+                self.player.invincible_timer = 9999999999 if self.player.invincible else 0
 
         if key == arcade.key.F3:
+            if self.cheat_menu:
+                self.player.is_powered_up = (not self.player.is_powered_up)
+                self.player.power_timer = 9999999999 if self.player.is_powered_up else 0
 
-            self.player.is_powered_up = (not self.player.is_powered_up)
-            self.player.power_timer = 9999999999 if self.player.is_powered_up else 0
+        if key == arcade.key.F4:
+            if self.cheat_menu:
+                self.freeze_ghosts = (not self.freeze_ghosts)
 
-        if key == arcade.key.F2:
-            self.player.invincible = True
+        if key == arcade.key.F5:
+            if self.cheat_menu:
+                self.player.lives += 1
+
+        if key == arcade.key.F6:
+            if self.cheat_menu:
+                self.main_menu.new_game(random.random())
 
 
 
