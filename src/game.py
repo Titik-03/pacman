@@ -134,6 +134,8 @@ class GameWindow(arcade.View):
         self.player_spawn_x = start_x
         self.player_spawn_y = start_y
 
+        self.player_speed = self.player.speed
+
         self.init_ghosts()
 
         self.wall_shapes = shapes.ShapeElementList()
@@ -423,7 +425,7 @@ class GameWindow(arcade.View):
             "->[F4] Freeze all ghosts",
             "->[F5] Add +1 Life",
             "->[F6] Skip the level",
-            "->[F7] Speed"
+            "->[F7] Speed up the player"
         ]
 
         start_y = cy + 150
@@ -476,9 +478,9 @@ class GameWindow(arcade.View):
         if self.pause:
             arcade.draw_rect_filled(
                 arcade.rect.XYWH(
-                    self.width / 2, 
-                    self.height / 2, 
-                    self.width, 
+                    self.width / 2,
+                    self.height / 2,
+                    self.width,
                     self.height
                 ),
                 color=(10, 10, 20, 200)
@@ -756,4 +758,12 @@ class GameWindow(arcade.View):
         if key == arcade.key.F6:
             if self.cheat_menu:
                 self.main_menu.new_game(random.random())
+
+        if key == arcade.key.F7:
+            if self.cheat_menu:
+                if self.player.speed != self.player_speed:
+                    self.player.speed = self.player_speed
+                else:
+                    self.player.speed = self.player_speed * 2
+            
 
