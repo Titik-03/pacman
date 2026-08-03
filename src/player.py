@@ -76,13 +76,13 @@ class Player(arcade.Sprite):
         return player, player_list
 
     def on_key_press(self, key: int):
-        if key == arcade.key.UP:
+        if key == arcade.key.UP or key == arcade.key.W:
             self.queued_dir = (0, 1)
-        elif key == arcade.key.DOWN:
+        elif key == arcade.key.DOWN or key == arcade.key.S:
             self.queued_dir = (0, -1)
-        elif key == arcade.key.LEFT:
+        elif key == arcade.key.LEFT or key == arcade.key.A:
             self.queued_dir = (-1, 0)
-        elif key == arcade.key.RIGHT:
+        elif key == arcade.key.RIGHT or key == arcade.key.D:
             self.queued_dir = (1, 0)
 
     def on_key_release(self, key: int):

@@ -400,7 +400,7 @@ class GameWindow(arcade.View):
         )
         arcade.draw_rect_outline(
             arcade.rect.XYWH(cx, cy, menu_w, menu_h),
-            color=arcade.color.PURPLE,
+            color=MOCHA_LAVENDER,
             border_width=3
         )
 
@@ -408,7 +408,7 @@ class GameWindow(arcade.View):
             "CHEAT MENU",
             x=cx,
             y=cy + 270,
-            color=arcade.color.YELLOW,
+            color=MOCHA_MAUVE,
             font_size=55,
             anchor_x="center",
             anchor_y="center",
@@ -420,9 +420,9 @@ class GameWindow(arcade.View):
             "->[F1 / ESC] TO Close Menu",
             f"->[F2] Invincibility: {'ON' if self.player.invincible else 'OFF'}",
             "->[F3] Trigger Power Pellet",
-            "->[F4]", "Freeze all ghosts",
+            "->[F4] Freeze all ghosts",
             "->[F5] Add +1 Life",
-            "->[F6]", "Skip the level",
+            "->[F6] Skip the level",
             "->[F7] Speed"
         ]
 
