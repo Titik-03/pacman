@@ -391,7 +391,7 @@ class GameWindow(arcade.View):
             color=(10, 10, 20, 200)
         )
 
-        menu_w, menu_h = 900, 690
+        menu_w, menu_h = 900, 780
         cx, cy = self.width / 2, self.height / 2
 
         arcade.draw_rect_filled(
@@ -407,7 +407,7 @@ class GameWindow(arcade.View):
         arcade.draw_text(
             "CHEAT MENU",
             x=cx,
-            y=cy + 270,
+            y=cy + 350,
             color=arcade.color.YELLOW,
             font_size=55,
             anchor_x="center",
@@ -426,7 +426,7 @@ class GameWindow(arcade.View):
             "->[F7] Speed"
         ]
 
-        start_y = cy + 150
+        start_y = cy + 220
         for i, line in enumerate(cheats):
             arcade.draw_text(
                 line,
