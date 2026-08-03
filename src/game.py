@@ -391,7 +391,7 @@ class GameWindow(arcade.View):
             color=(10, 10, 20, 200)
         )
 
-        menu_w, menu_h = 900, 780
+        menu_w, menu_h = 900, 650
         cx, cy = self.width / 2, self.height / 2
 
         arcade.draw_rect_filled(
@@ -407,7 +407,7 @@ class GameWindow(arcade.View):
         arcade.draw_text(
             "CHEAT MENU",
             x=cx,
-            y=cy + 350,
+            y=cy + 270,
             color=arcade.color.YELLOW,
             font_size=55,
             anchor_x="center",
@@ -420,13 +420,13 @@ class GameWindow(arcade.View):
             "->[F1 / ESC] TO Close Menu",
             f"->[F2] Invincibility: {'ON' if self.player.invincible else 'OFF'}",
             "->[F3] Trigger Power Pellet",
-            "->[F4]", "Freeze all ghosts",
+            "->[F4] Freeze all ghosts",
             "->[F5] Add +1 Life",
-            "->[F6]", "Skip the level",
+            "->[F6] Skip the level",
             "->[F7] Speed"
         ]
 
-        start_y = cy + 220
+        start_y = cy + 150
         for i, line in enumerate(cheats):
             arcade.draw_text(
                 line,
