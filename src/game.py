@@ -135,6 +135,7 @@ class GameWindow(arcade.View):
         self.player_spawn_y = start_y
 
         self.player_speed = self.player.speed
+        self.speed_up = False
 
         self.init_ghosts()
 
@@ -393,7 +394,7 @@ class GameWindow(arcade.View):
             color=(10, 10, 20, 200)
         )
 
-        menu_w, menu_h = 900, 650
+        menu_w, menu_h = 550, 670
         cx, cy = self.width / 2, self.height / 2
 
         arcade.draw_rect_filled(
@@ -409,7 +410,7 @@ class GameWindow(arcade.View):
         arcade.draw_text(
             "CHEAT MENU",
             x=cx,
-            y=cy + 270,
+            y=cy + 290,
             color=MOCHA_MAUVE,
             font_size=55,
             anchor_x="center",
@@ -419,25 +420,26 @@ class GameWindow(arcade.View):
         )
 
         cheats = [
-            "->[F1 / ESC] TO Close Menu",
-            f"->[F2] Invincibility: {'ON' if self.player.invincible else 'OFF'}",
-            "->[F3] Trigger Power Pellet",
-            "->[F4] Freeze all ghosts",
-            "->[F5] Add +1 Life",
-            "->[F6] Skip the level",
-            "->[F7] Speed up the player"
+            "[F1 / ESC] TO Close Menu",
+            f"[F2] Toggle Invincibility: {'ON' if self.player.invincible else 'OFF'}",
+            f"[F3] Trigger Power Pellet: {'ON' if self.player.is_powered_up else 'OFF'}",
+            f"[F4] Toggle Freeze all ghosts: {'ON' if self.freeze_ghosts else 'OFF'}",
+            f"[F5] Toggle paths Debug: {'ON' if self.debug else 'OFF'}",
+            f"[F6] Toggle Speed: {'ON' if self.speed_up else 'OFF'}",
+            "[F7] Add +1 Life",
+            "[F8] Skip the level",
         ]
 
-        start_y = cy + 150
+        start_y = cy + 200
         for i, line in enumerate(cheats):
             arcade.draw_text(
                 line,
-                x=cx - 400,
+                x=cx,
                 y=start_y - (i * 70),
                 #(i * 40) is how far from each other.
                 color=arcade.color.WHITE,
                 font_size=25,
-                # anchor_x="center",
+                anchor_x="center",
                 anchor_y="center",
                 font_name="Handjet",
                 bold=True
@@ -730,13 +732,6 @@ class GameWindow(arcade.View):
         if key == arcade.key.F1:
             self.cheat_menu = (not self.cheat_menu)
 
-        if key == arcade.key.F7:
-            if self.cheat_menu:
-                if self.debug:
-                    self.debug = False
-                else:
-                    self.debug = True
-
         if key == arcade.key.F2:
             if self.cheat_menu:
                 self.player.invincible = (not self.player.invincible)
@@ -753,17 +748,24 @@ class GameWindow(arcade.View):
 
         if key == arcade.key.F5:
             if self.cheat_menu:
-                self.player.lives += 1
+                if self.debug:
+                    self.debug = False
+                else:
+                    self.debug = True
 
         if key == arcade.key.F6:
             if self.cheat_menu:
-                self.main_menu.new_game(random.random())
+                self.speed_up = (not self.speed_up)
+                self.player.speed = self.player_speed * 2 if self.speed_up else self.player_speed
 
         if key == arcade.key.F7:
             if self.cheat_menu:
-                if self.player.speed != self.player_speed:
-                    self.player.speed = self.player_speed
-                else:
-                    self.player.speed = self.player_speed * 2
+                self.player.lives += 1
+
+        if key == arcade.key.F8:
+            if self.cheat_menu:
+                self.main_menu.new_game(random.random())
+
+
             
 
