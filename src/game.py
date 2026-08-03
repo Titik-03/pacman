@@ -391,7 +391,7 @@ class GameWindow(arcade.View):
             color=(10, 10, 20, 200)
         )
 
-        menu_w, menu_h = 900, 690
+        menu_w, menu_h = 900, 650
         cx, cy = self.width / 2, self.height / 2
 
         arcade.draw_rect_filled(
