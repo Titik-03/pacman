@@ -110,6 +110,8 @@ class MainMenu(arcade.View):
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ESCAPE:
+            for item in self.menu_items:
+                item.hovered = False
             if self.show_instructions or self.show_highscore:
                 self.show_instructions = False
                 self.show_highscore = False
@@ -119,6 +121,8 @@ class MainMenu(arcade.View):
         if key == arcade.key.F11:
             self.window.set_fullscreen(not self.window.fullscreen)
         if key == arcade.key.UP:
+            for item in self.menu_items:
+                item.hovered = False
             self.menu_items[self.last_hovered].hovered = False
             if self.hovered == -1:
                 self.hovered = 0
@@ -128,6 +132,8 @@ class MainMenu(arcade.View):
             self.menu_items[self.hovered].hovered = True
 
         if key == arcade.key.DOWN:
+            for item in self.menu_items:
+                item.hovered = False
             self.menu_items[self.last_hovered].hovered = False
             self.hovered += 1
             self.hovered %= len(self.menu_items)
@@ -163,6 +169,8 @@ class MainMenu(arcade.View):
     def on_mouse_press(self, x, y, button, modifiers):
         # Click anywhere to close instructions
         if self.show_instructions or self.show_highscore:
+            for item in self.menu_items:
+                item.hovered = False
             self.show_instructions = False
             self.show_highscore = False
             self.hovered = -1

@@ -571,6 +571,10 @@ class GameWindow(arcade.View):
             delta_time,
         )
         self.player_list.update_animation(delta_time)
+        self.blinky_list.update_animation(delta_time)
+        self.pinky_list.update_animation(delta_time)
+        self.inky_list.update_animation(delta_time)
+        self.clyde_list.update_animation(delta_time)
 
         if not self.freeze_ghosts:
             self.ghosts_chase_player(delta_time)
