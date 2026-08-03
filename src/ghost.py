@@ -1,6 +1,6 @@
-from PIL import Image
 from src.player import Player
 import math
+import random
 import random
 import pathlib
 from collections import deque
@@ -15,131 +15,8 @@ CLYDE_PATH = SCRIPT_DIR / "assets" / "clyde.png"
 SCARED_PATH = SCRIPT_DIR / "assets" / "scared.png"
 EYES_PATH = SCRIPT_DIR / "assets" / "eyes.png"
 
+EYES_PATH = SCRIPT_DIR / "assets" / "eyes.png"
 
-class GhostAnimationCache:
-    _instance = None
-
-    @classmethod
-    def get_cache(cls):
-        if cls._instance is None:
-            cls._instance = cls()
-        return cls._instance
-
-    def __init__(self):
-        self.normal_frames = {}
-        self.scared_frames = []
-        self.scared_flash_frames = []
-        self.eyes_frames = {}
-        self.load_all()
-
-    def load_all(self):
-        paths = {
-            "blinky": BLINKY_PATH,
-            "pinky": PINKY_PATH,
-            "inky": INKY_PATH,
-            "clyde": CLYDE_PATH,
-        }
-        for name, path in paths.items():
-            if path.exists():
-                try:
-                    img = Image.open(path).convert('RGBA')
-                    right_frames_pil = self.generate_skirt_frames_pil(img, num_frames=4, max_shift=8)
-                    right_textures = [arcade.Texture(image=f) for f in right_frames_pil]
-                    left_textures = [t.flip_left_right() for t in right_textures]
-                    self.normal_frames[name] = {
-                        "right": right_textures,
-                        "left": left_textures,
-                    }
-                except Exception:
-                    tex = arcade.load_texture(path)
-                    self.normal_frames[name] = {
-                        "right": [tex] * 4,
-                        "left": [tex.flip_left_right()] * 4,
-                    }
-
-        if SCARED_PATH.exists():
-            try:
-                scared_img = Image.open(SCARED_PATH).convert('RGBA')
-                scared_pil = self.generate_skirt_frames_pil(scared_img, num_frames=4, max_shift=8)
-                self.scared_frames = [arcade.Texture(image=f) for f in scared_pil]
-
-                flash_pil = [self.generate_flash_frame_pil(f) for f in scared_pil]
-                self.scared_flash_frames = [arcade.Texture(image=f) for f in flash_pil]
-            except Exception:
-                tex = arcade.load_texture(SCARED_PATH)
-                self.scared_frames = [tex] * 4
-                self.scared_flash_frames = [tex] * 4
-
-        if EYES_PATH.exists():
-            try:
-                eyes_pil_dict = self.generate_eyes_directional_pil(EYES_PATH)
-                self.eyes_frames = {
-                    (1, 0): arcade.Texture(image=eyes_pil_dict['right']),
-                    (-1, 0): arcade.Texture(image=eyes_pil_dict['left']),
-                    (0, 1): arcade.Texture(image=eyes_pil_dict['up']),
-                    (0, -1): arcade.Texture(image=eyes_pil_dict['down']),
-                    (0, 0): arcade.Texture(image=eyes_pil_dict['right']),
-                }
-            except Exception:
-                tex = arcade.load_texture(EYES_PATH)
-                self.eyes_frames = {
-                    (1, 0): tex, (-1, 0): tex, (0, 1): tex, (0, -1): tex, (0, 0): tex
-                }
-
-    @staticmethod
-    def generate_skirt_frames_pil(img, num_frames=4, max_shift=8):
-        w, h = img.size
-        frames = []
-        skirt_top = int(h * 0.55)
-        for i in range(num_frames):
-            phase = (i / num_frames) * 2 * math.pi
-            frame = img.copy()
-            px_orig = img.load()
-            px_new = frame.load()
-            for y in range(skirt_top, h):
-                factor = (y - skirt_top) / (h - skirt_top)
-                shift = int(round(math.sin(phase + (y / h) * math.pi * 3.5) * max_shift * factor))
-                if shift > 0:
-                    for x in range(w - 1, shift - 1, -1):
-                        px_new[x, y] = px_orig[x - shift, y]
-                    for x in range(shift):
-                        px_new[x, y] = (0, 0, 0, 0)
-                elif shift < 0:
-                    abs_s = abs(shift)
-                    for x in range(0, w - abs_s):
-                        px_new[x, y] = px_orig[x + abs_s, y]
-                    for x in range(w - abs_s, w):
-                        px_new[x, y] = (0, 0, 0, 0)
-            frames.append(frame)
-        return frames
-
-    @staticmethod
-    def generate_flash_frame_pil(img):
-        frame = img.copy()
-        px = frame.load()
-        w, h = frame.size
-        for y in range(h):
-            for x in range(w):
-                r, g, b, a = px[x, y]
-                if a > 15:
-                    px[x, y] = (min(255, r + 160), min(255, g + 180), min(255, b + 200), a)
-        return frame
-
-    @staticmethod
-    def generate_eyes_directional_pil(eyes_path):
-        img = Image.open(eyes_path).convert('RGBA')
-        w, h = img.size
-        right_img = img
-        left_img = img.transpose(Image.FLIP_LEFT_RIGHT)
-
-        up_img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-        shift_y = max(2, int(h * 0.12))
-        up_img.paste(img.crop((0, shift_y, w, h)), (0, 0))
-
-        down_img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-        down_img.paste(img.crop((0, 0, w, h - shift_y)), (0, shift_y))
-
-        return {'right': right_img, 'left': left_img, 'up': up_img, 'down': down_img}
 
 
 class Ghost(arcade.Sprite):
@@ -151,14 +28,18 @@ class Ghost(arcade.Sprite):
         self.target_y = center_y
         self.speed = 130.0
         self.og_speed = 130.0
+        self.og_speed = 130.0
         self.current_dir = (0, 0)
 
         # Power-Up System
         self.is_powered_up = False
+        # # self.power_timer = 0.0
 
         # Ghost state: CHASE, FRIGHTENED, or EATEN
         self.state = "CHASE"
         self.was_scared = False
+        self.was_eaten = False
+        self.can_damage = True
         self.was_eaten = False
         self.can_damage = True
 
@@ -173,18 +54,7 @@ class Ghost(arcade.Sprite):
         self.name = name
         self.target_tile = None
 
-        # Animation system
-        self.cur_frame_index = 0
-        self.anim_time = 0.0
-        self.frame_timer = 0.0
-        self.frame_duration = 0.10
-        self.facing = "right"
-        self.base_width = None
-        self.base_height = None
-        self.respawn_pop_timer = 0.0
-        self.is_respawning = False
-        self.player_ref = None
-        self.cache = GhostAnimationCache.get_cache()
+
 
     @classmethod
     def create_ghost(
@@ -201,13 +71,10 @@ class Ghost(arcade.Sprite):
 
         ghost.width = cell_size * 0.65
         ghost.height = cell_size * 0.65
-        ghost.base_width = ghost.width
-        ghost.base_height = ghost.height
 
         ghost_list.append(ghost)
 
         return ghost, ghost_list
-
 
     #Coordinate helpers
 
@@ -335,82 +202,26 @@ class Ghost(arcade.Sprite):
         """Called when Pac-Man eats this ghost while it's FRIGHTENED."""
         self.state = "EATEN"
         self.can_damage = True
-        if self.cache and self.cache.eyes_frames:
-            self.texture = self.cache.eyes_frames.get(self.current_dir, self.cache.eyes_frames[(1, 0)])
+        self.texture = arcade.load_texture(EYES_PATH)
 
-    def update_animation(self, delta_time: float = 1 / 60, player: Player = None, *args, **kwargs) -> None:
-        if player is not None:
-            self.player_ref = player
 
-        self.anim_time += delta_time
-        self.frame_timer += delta_time
+    def update_texrture(self, player:Player):
 
-        if self.frame_timer >= self.frame_duration:
-            self.frame_timer = 0.0
-            self.cur_frame_index = (self.cur_frame_index + 1) % 4
-
-        # Update facing direction
-        if self.current_dir[0] < 0:
-            self.facing = "left"
-        elif self.current_dir[0] > 0:
-            self.facing = "right"
-
-        p = player or self.player_ref
-
-        # Select animation texture frame
-        if self.state == "EATEN":
-            if self.cache and self.cache.eyes_frames:
-                self.texture = self.cache.eyes_frames.get(self.current_dir, self.cache.eyes_frames[(1, 0)])
-        elif self.state == "FRIGHTENED":
-            if self.cache and self.cache.scared_frames:
-                if p and p.is_powered_up and 0 < p.power_timer < 3.0:
-                    # Flashing warning when power pellet duration is running out
-                    if int(self.anim_time * 12) % 2 == 0:
-                        self.texture = self.cache.scared_flash_frames[self.cur_frame_index]
-                    else:
-                        self.texture = self.cache.scared_frames[self.cur_frame_index]
-                else:
-                    self.texture = self.cache.scared_frames[self.cur_frame_index]
-        else:
-            if self.cache and self.cache.normal_frames:
-                ghost_data = self.cache.normal_frames.get(self.name.lower(), self.cache.normal_frames.get("blinky"))
-                if ghost_data:
-                    facing_frames = ghost_data.get(self.facing, ghost_data["right"])
-                    self.texture = facing_frames[self.cur_frame_index]
-
-        # Respawn scale pop animation
-        respawn_scale = 1.0
-        if self.is_respawning:
-            self.respawn_pop_timer -= delta_time
-            if self.respawn_pop_timer <= 0:
-                self.is_respawning = False
-                self.respawn_pop_timer = 0.0
-                respawn_scale = 1.0
-            else:
-                progress = 1.0 - (self.respawn_pop_timer / 0.25)
-                respawn_scale = 0.4 + 0.6 * progress
-
-        # Bouncy floating squish & stretch breathing
-        if self.base_width and self.base_height:
-            h = hash(self.name) % 7
-            squish = 1.0 + math.sin(self.anim_time * 8.0 + h) * 0.035
-            stretch = 1.0 - math.sin(self.anim_time * 8.0 + h) * 0.035
-            self.width = self.base_width * squish * respawn_scale
-            self.height = self.base_height * stretch * respawn_scale
-
-    def update_texrture(self, player: Player):
-        self.player_ref = player
         if self.state == "EATEN":
             return
+
 
         if not self.was_eaten:
             if player.is_powered_up and self.state == "CHASE":
                 self.state = "FRIGHTENED"
+                self.texture = arcade.load_texture(SCARED_PATH)
             elif not player.is_powered_up and self.state == "FRIGHTENED":
                 self.state = "CHASE"
-
+                self.texture = arcade.load_texture(self.normal_texture_path)
+                
         if player.power_timer == 0:
             self.was_eaten = False
+
 
     def draw_target_x(self, cell_size, offset_x, offset_y, rows, color=arcade.color.RED, size=10, line_width=3):
 
@@ -454,8 +265,6 @@ class Ghost(arcade.Sprite):
                      blinky: "Ghost" = None
                      ) -> None:
 
-        self.player_ref = player
-
         if player.power_timer == 0:
             self.was_eaten = False
             self.can_damage = True
@@ -463,8 +272,12 @@ class Ghost(arcade.Sprite):
 
         my_row, my_col = self.get_cell(self.center_x, self.center_y, cell_size, rows, offset_x, offset_y)
 
+        if self.was_eaten and my_row == self.home_row and my_col == self.home_col:
+            self.texture = arcade.load_texture(EYES_PATH)
+
         if self.was_eaten and player.power_timer != 0:
             return
+
 
         # Let the ghost move twice as fast when returning as eyes
         current_speed = self.speed * 2.0 if self.state == "EATEN" else self.speed
@@ -482,12 +295,11 @@ class Ghost(arcade.Sprite):
             my_row, my_col = self.get_cell(self.center_x, self.center_y, cell_size, rows, offset_x, offset_y)
 
             # If we are eaten and have arrived at our home cell, turn back into a normal ghost
-            if player.power_timer == 0 or True:
+            if player.power_timer == 0:
                 if self.state == "EATEN" and my_row == self.home_row and my_col == self.home_col:
                     self.state = "CHASE"
+                    self.texture = arcade.load_texture(self.normal_texture_path)
                     self.was_eaten = True
-                    self.is_respawning = True
-                    self.respawn_pop_timer = 0.25
 
             player_row, player_col = self.get_cell(player.center_x, player.center_y, cell_size, rows, offset_x, offset_y)
 
