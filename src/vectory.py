@@ -88,7 +88,7 @@ class Vectory(arcade.View):
                          self.y_center + 400,
                          arcade.color.RED,
                          font_size=100,
-                         anchor_x="center",
+                         anchor_x="left",
                          anchor_y="center")
 
         self.manager.draw()
