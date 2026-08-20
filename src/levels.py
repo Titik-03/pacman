@@ -193,11 +193,15 @@ class BaseLevel:
 
 
 class Level1(BaseLevel):
-    
-    pass
+
+    def __init__(self, config: dict[str, Any]) -> None:
+        super().__init__(config)
 
 
 class Level2(BaseLevel):
+
+    def __init__(self, config: dict[str, Any]) -> None:
+        super().__init__(config)
 
     def draw_effects(self, game: Any) -> None:
         pass
@@ -205,17 +209,26 @@ class Level2(BaseLevel):
 
 class Level3(BaseLevel):
 
+    def __init__(self, config: dict[str, Any]) -> None:
+        super().__init__(config)
+
     def draw_effects(self, game: Any) -> None:
         pass
 
 
 class Level4(BaseLevel):
 
+    def __init__(self, config: dict[str, Any]) -> None:
+        super().__init__(config)
+
     def draw_effects(self, game: Any) -> None:
         pass
 
 
 class Level5(BaseLevel):
+
+    def __init__(self, config: dict[str, Any]) -> None:
+        super().__init__(config)
 
     def update(self, game: Any, delta_time: float) -> None:
         pass
@@ -226,17 +239,26 @@ class Level5(BaseLevel):
 
 class Level6(BaseLevel):
 
+    def __init__(self, config: dict[str, Any]) -> None:
+        super().__init__(config)
+
     def draw_effects(self, game: Any) -> None:
         pass
 
 
 class Level7(BaseLevel):
 
+    def __init__(self, config: dict[str, Any]) -> None:
+        super().__init__(config)
+
     def draw_effects(self, game: Any) -> None:
         pass
 
 
 class Level8(BaseLevel):
+
+    def __init__(self, config: dict[str, Any]) -> None:
+        super().__init__(config)
 
     def update(self, game: Any, delta_time: float) -> None:
         pass
@@ -247,7 +269,7 @@ class Level8(BaseLevel):
 class Level9(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
-        pass
+        super().__init__(config)
 
     def update(self, game: Any, delta_time: float) -> None:
         pass
@@ -257,6 +279,9 @@ class Level9(BaseLevel):
 
 
 class Level10(BaseLevel):
+    
+    def __init__(self, config: dict[str, Any]) -> None:
+        super().__init__(config)
 
     def update(self, game: Any, delta_time: float) -> None:
         pass
