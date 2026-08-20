@@ -43,7 +43,7 @@ class MainMenu(arcade.View):
         self.last_hovered = -1
         self.show_instructions = False
         self.show_highscore = False
-        self.seed = 555
+        # self.seed = 42
 
         self.menu_items = []
         labels = [
@@ -141,7 +141,7 @@ class MainMenu(arcade.View):
 
         if key == arcade.key.ENTER:
             if self.hovered == 0:
-                loading_view = LoadingView(self.window, self, self.seed, level=1)
+                loading_view = LoadingView(self.window, self, level=1)
                 self.window.show_view(loading_view)
 
             elif self.hovered == 1:
@@ -179,7 +179,7 @@ class MainMenu(arcade.View):
         if self.hovered == -1:
             return
         if self.hovered == 0:
-            loading_view = LoadingView(self.window, self, seed=555, level=1)
+            loading_view = LoadingView(self.window, self, level=1)
             self.window.show_view(loading_view)
 
         elif self.hovered == 1:
@@ -206,6 +206,8 @@ class MainMenu(arcade.View):
         
         # Interpolation Logic
         if self.show_highscore:
+            for item in self.menu_items:
+                item.hovered = False
             # Final destination for the expanded leaderboard
             target_left = (self.window.width / 2 - width / 2) + 150
             target_top = self.window.height / 2 + 200
@@ -299,9 +301,9 @@ class MainMenu(arcade.View):
             )
         )
 
-    def new_game(self, seed: int):
-        loading_view = LoadingView(self.window, self, seed, level=1)
-        self.window.show_view(loading_view)
+    # def new_game(self, seed: int):
+    #     loading_view = LoadingView(self.window, self, seed, level=1)
+    #     self.window.show_view(loading_view)
 
     def on_draw(self):
         self.clear()

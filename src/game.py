@@ -12,6 +12,7 @@ from src.game_over import GameOver
 from src.vectory import Vectory
 from src.ghost import Blinky, Pinky, Inky, Clyde
 from src.cheat_menu import CheatMenu
+from src.levels import ConfigParser, LevelFactory
 
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
@@ -46,19 +47,32 @@ class GameWindow(arcade.View):
     def __init__(self,
                  menu: arcade.View,
                  window: arcade.Window,
-                 seed: int,
+                 seed: int = 42,
+                 level: int = 1,
+                 score: int = 0,
+                 lives: int = None,
                  width=None,
                  height=None,
                  fullscreen=True
                  ) -> None:
 
-        if fullscreen:
-            super().__init__()
-        else:
-            super().__init__(width or 900, height or 900, "Pac-Man", resizable=True)
+        super().__init__()
         arcade.set_background_color((10, 10, 30))
 
-        self.m = MazeGenerator((3,3))
+        self.config_parser = ConfigParser()
+        self.level_factory = LevelFactory()
+        self.level = level
+        self.score = score
+        # self.seed = seed
+
+        # try:
+        level_config = self.config_parser.get_level(self.level)
+        # except Exception:
+        #     level_config = self.config_parser.get_level(1)
+
+        self.level_obj = self.level_factory.create_level(self.level, level_config)
+
+        self.m = MazeGenerator((10, 10), seed=self.level_obj.seed)
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
@@ -77,8 +91,8 @@ class GameWindow(arcade.View):
         self.offset_y = (self.height - self.rows * self.cell_size) / 2
 
         self.coin = Coin(10, 10)
-        self.score = 0
-        self.level = 1
+        self.target_coins = 0
+        self.collected_coins = 0
 
         # Load Handjet font
         font_path = SCRIPT_DIR / "assets" / "Handjet" / "static" / "Handjet-Bold.ttf"
@@ -102,7 +116,6 @@ class GameWindow(arcade.View):
         self.lives_y = self.height * 0.875
 
         self.level_text = arcade.Text(
-
             text=f"{self.level}",
             x=self.width * 0.84,
             y=self.height * 0.784,
@@ -113,8 +126,10 @@ class GameWindow(arcade.View):
             anchor_y="center"
         )
 
+        self.timer = float(self.level_obj.level_max_time)
+
         self.time_text = arcade.Text(
-            text=f"{int(120)}s",
+            text=f"{int(self.timer)}s",
             x=self.width * 0.87,
             y=self.height * 0.698,
             color=MOCHA_CRUST,
@@ -131,6 +146,11 @@ class GameWindow(arcade.View):
         start_y = self.offset_y + (self.rows - 1 - center_row + 0.5) * self.cell_size
 
         self.player, self.player_list = Player.create_player(start_x, start_y, self.cell_size)
+        if lives is not None:
+            self.player.lives = lives
+        else:
+            self.player.lives = self.level_obj.lives
+
         self.player_spawn_x = start_x
         self.player_spawn_y = start_y
 
@@ -156,15 +176,18 @@ class GameWindow(arcade.View):
         # self.pause_menu = PauseMenu(self)
         self.cheat_menu = CheatMenu(self)
         self.pause = False
-        self.timer = 120
         self.cheat_menu = False
         self.cheat_menu_timer = 0.0
 
         self.debug = False
         self.freeze_ghosts = False
 
-        self.game_over = GameOver(self.window, self.main_menu, self.score)
-        self.vectory = Vectory(self.window, self.main_menu, self.score)
+        self.game_over = None
+        self.vectory = None
+
+    # @property
+    # def ghosts(self):
+    #     return (self.blinky, self.pinky, self.inky, self.clyde)
 
 
     def init_ghosts(self):
@@ -318,6 +341,8 @@ class GameWindow(arcade.View):
                     w.center_y = y + cs / 2
                     self.wall_list.append(w)
 
+        self.target_coins = len(self.coins_lst)
+
 
     def draw_background_image(self):
         self.clear()
@@ -461,6 +486,8 @@ class GameWindow(arcade.View):
         self.inky_list.draw()
         self.clyde_list.draw()
 
+        self.level_obj.draw_effects(self)
+
 
         self.score_text.text = f"{self.score}"
         self.level_text.text = f"{self.level}"
@@ -495,7 +522,7 @@ class GameWindow(arcade.View):
 
 
     def go_to_vectory(self):
-        self.vectory = Vectory(self.window, self.main_menu, self.score)
+        self.vectory = Vectory(self.window, self.main_menu, self.score, (self.level + 1), lives=self.player.lives, seed=self.level_obj.seed)
         self.window.show_view(self.vectory)
 
 
@@ -555,6 +582,12 @@ class GameWindow(arcade.View):
         if self.cheat_menu:
             self.cheat_menu_timer += delta_time
             return
+        
+        self.level_obj.update(self, delta_time)
+
+        if self.collected_coins == self.target_coins:
+            #change the view to vectory menu.
+            self.go_to_vectory()
 
         self.timer -= delta_time
         if self.timer < 0.80:
@@ -583,14 +616,12 @@ class GameWindow(arcade.View):
                 if distance < (self.player.width / 2 + coin.radius):
                     coin.is_eaten = True
                     if coin.is_powerup:
-                        self.score += 50
+                        self.score += getattr(self.level_obj, "points_per_super_pacgum", 50)
                         self.player.activate_power_up(10) #power up.
                     else:
-                        self.score += 10
+                        self.score += getattr(self.level_obj, "points_per_pacgum", 10)
 
-        if self.score == self.target_score:
-            #change the view to vectory menu.
-            self.go_to_vectory()
+                    self.collected_coins += 1
 
 
     def check_ghost_collisions(self):
@@ -607,7 +638,7 @@ class GameWindow(arcade.View):
                 continue
 
             if ghost.state == "FRIGHTENED":
-                self.score += 200
+                self.score += getattr(self.level_obj, "points_per_ghost", 200)
                 ghost.get_hit()
 
             elif (not self.player.invincible) and ghost.can_damage and ghost.can_damage:
@@ -727,6 +758,7 @@ class GameWindow(arcade.View):
         if self.pause:
             return
 
+        key = self.level_obj.handle_key(key)
         self.player.on_key_press(key)
 
         if key == arcade.key.F1:
@@ -764,7 +796,7 @@ class GameWindow(arcade.View):
 
         if key == arcade.key.F8:
             if self.cheat_menu:
-                self.main_menu.new_game(random.random())
+                self.go_to_vectory()
 
 
             

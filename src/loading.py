@@ -1,16 +1,17 @@
 import pathlib
 import arcade
-from src.game import GameWindow
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
 
 
 class LoadingView(arcade.View):
-    def __init__(self, window: arcade.Window, main_menu: arcade.View, seed: int, level: int = 1):
+    def __init__(self, window: arcade.Window, main_menu: arcade.View, seed: int = 42, level: int = 1, score: int = 0, lives: int = None):
         super().__init__()
         self.window = window
         self.main_menu = main_menu
         self.level = level
+        self.score = score
+        self.lives = lives
         self.progress = 0.0
         self.loading_duration = 1.3  # duration in seconds for loading screen
         self.elapsed = 0.0
@@ -64,7 +65,8 @@ class LoadingView(arcade.View):
         self.progress = min(1.0, self.elapsed / self.loading_duration)
 
         if self.elapsed >= self.loading_duration:
-            self.window.show_view(GameWindow(self.main_menu, self.window, self.seed))
+            from src.game import GameWindow
+            self.window.show_view(GameWindow(self.main_menu, self.window, seed=self.seed, level=self.level, score=self.score, lives=self.lives))
 
     def on_draw(self):
         self.clear()

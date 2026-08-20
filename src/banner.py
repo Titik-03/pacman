@@ -29,3 +29,5 @@ class Banner:
             (self.x + 150, self.y + self.height),  # Define the bottom-left slanted corner.
         ]
         arcade.draw_polygon_filled(points, self.color)  # Fill the banner shape with its main color.
+
+
