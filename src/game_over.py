@@ -26,15 +26,6 @@ class GameOver(arcade.View):
         arcade.load_font(str(font_path))
         self.selected_option = 0
 
-
-
-        self.mouse_x = 0.0
-        self.mouse_y = 0.0
-
-    def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
-        self.mouse_x = x
-        self.mouse_y = y
-    
     def on_draw(self):
 
         self.clear()
@@ -68,56 +59,31 @@ class GameOver(arcade.View):
             anchor_x="left",
             anchor_y="center",
         )
-        arcade.draw_text(
-            f"Mouse: X={int(self.mouse_x)}, Y={int(self.mouse_y)}",
-            10,
-            10,
-            arcade.color.YELLOW,
-            font_size=18,
-            bold=True
-        )
 
     def on_key_press(self, key, modifiers):
         if key in (arcade.key.UP, arcade.key.DOWN, arcade.key.TAB):
-            self.selected_option = 1 - self.selected_option
-            return
+            self.selected_option ^= 1
 
-        if key == arcade.key.ENTER:
-            player_name = self.player_name.strip()
-            if player_name:
-                self.score_class.write_score(player_name, self.score)
-            
-            if self.selected_option == 0:
-                self.main_menu.new_game(seed=42)
-            else:
-                self.window.show_view(self.main_menu)
-            return
+        elif key == arcade.key.ENTER:
+            if name := self.player_name.strip():
+                self.score_class.write_score(name, self.score)
+            self.main_menu.new_game(seed=42) if self.selected_option == 0 else self.window.show_view(self.main_menu)
 
-        if key == arcade.key.ESCAPE:
+        elif key == arcade.key.ESCAPE:
             self.main_menu.new_game(seed=42)
-            return
 
-        if key == arcade.key.BACKSPACE:
+        elif key == arcade.key.BACKSPACE:
             self.player_name = self.player_name[:-1]
-        elif len(self.player_name) < 10:
-            if arcade.key.A <= key <= arcade.key.Z:
-                self.player_name += chr(key).upper()
-            elif arcade.key.KEY_0 <= key <= arcade.key.KEY_9:
-                self.player_name += chr(key)
-            elif key == arcade.key.SPACE:
-                self.player_name += " "
+
+        elif len(self.player_name) < 10 and (chr(key).isalnum() or key == arcade.key.SPACE):
+            self.player_name += chr(key).upper()
 
     def on_mouse_press(self, x, y, button, modifiers):
-        # Top-right button (RETRY LEVEL)
-        if abs(x - (self.x_center + 420)) < 120 and abs(y - (self.y_center + 30)) < 30:
-            player_name = self.player_name.strip()
-            if player_name:
-                self.score_class.write_score(player_name, self.score)
-            self.main_menu.new_game(seed=42)
+        if x >= 1481:
+            if name := self.player_name.strip():
+                self.score_class.write_score(name, self.score)
 
-        # Bottom-right button (MAIN MENU)
-        elif abs(x - (self.x_center + 420)) < 120 and abs(y - (self.y_center - 65)) < 30:
-            player_name = self.player_name.strip()
-            if player_name:
-                self.score_class.write_score(player_name, self.score)
-            self.window.show_view(self.main_menu)
+            if 700 <= y <= 791:
+                self.main_menu.new_game(seed=42)
+            elif 400 <= y <= 492:
+                self.window.show_view(self.main_menu)
