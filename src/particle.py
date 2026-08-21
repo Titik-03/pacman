@@ -54,3 +54,75 @@ class Particle:
             self.radius,  # Use the chosen radius.
             (*self.color, alpha)  # Combine RGB color with the computed alpha.
         )
+
+
+class ShatterParticle:
+    """Undertale-style soul shatter shard particle."""
+
+    def __init__(self, x: float, y: float):
+        self.x = x + random.uniform(-4, 4)
+        self.y = y + random.uniform(-4, 4)
+        speed = random.uniform(140, 360)
+        angle = random.uniform(0, 2 * math.pi)
+        # Upward bias + outward explosion velocity
+        self.vx = math.cos(angle) * speed
+        self.vy = math.sin(angle) * speed * 0.7 + random.uniform(100, 240)
+        self.gravity = 600.0
+        self.w = random.uniform(6, 11)
+        self.h = random.uniform(4, 9)
+        self.angle = random.uniform(0, 360)
+        self.spin = random.uniform(-360, 360)
+        self.lifetime = random.uniform(0.6, 1.0)
+        self.max_lifetime = self.lifetime
+        self.color = random.choice([
+            (255, 230, 40),   # Pac-Man bright yellow
+            (255, 255, 120),  # Light electric yellow
+            (255, 255, 255),  # Pure white shard
+            (255, 170, 50),   # Amber orange shard
+            (255, 210, 30),   # Golden yellow
+        ])
+
+    def update(self, delta_time: float) -> bool:
+        self.lifetime -= delta_time
+        if self.lifetime <= 0:
+            return False
+        self.vy -= self.gravity * delta_time
+        self.x += self.vx * delta_time
+        self.y += self.vy * delta_time
+        self.angle += self.spin * delta_time
+        return True
+
+    def draw(self):
+        alpha = int(255 * max(0.0, self.lifetime / self.max_lifetime))
+        arcade.draw_rect_filled(
+            arcade.rect.XYWH(self.x, self.y, self.w, self.h),
+            color=(*self.color, alpha),
+            tilt_angle=self.angle
+        )
+
+class Floating_score:
+    def __init__(self, x, y, text, color) -> None:
+        self.x = x
+        self.y = y
+        self.text = text
+        self.color = color
+        self.time = 0.8
+        self.floating_speed = 50.0
+    def update(self, delta_time):
+        self.time -= delta_time
+        self.y += self.floating_speed*delta_time
+        return self.time>0
+    def draw(self):
+        alpha = int(255 * self.time / 0.8)
+        r,g,b = self.color
+        arcade.draw_text(
+            self.text,
+            self.x,
+            self.y,
+            color=(r,g,b,alpha),
+            font_size=18,
+            font_name="Handjet",
+            bold=True,
+            anchor_x="center",
+            anchor_y="center"
+        )
