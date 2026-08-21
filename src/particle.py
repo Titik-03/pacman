@@ -126,3 +126,4 @@ class Floating_score:
             anchor_x="center",
             anchor_y="center"
         )
+
