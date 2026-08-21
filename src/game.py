@@ -659,11 +659,9 @@ class GameWindow(arcade.View):
                 self.score += 200
                 ghost.get_hit()
                 self.floating_scores.append(
-                    Floating_score(ghost.center_x, ghost.center_y, "+200", MOCHA_MAUVE)
+                    Floating_score(ghost.center_x, ghost.center_y, "+200", MOCHA_RED)
                 )
                 self.trigger_shake(0.3, 8)
-                self.power_left -= 0.3
-                self.trigger_shake(self.power_left, 2)
             elif (not self.player.invincible) and ghost.can_damage:
                 self.handle_player_hit()
                 break
@@ -679,7 +677,6 @@ class GameWindow(arcade.View):
 
 
     def respawn_after_death(self):
-        # Respawn player at the maze center and send active ghosts back home.
         self.shatter_particles.clear()
         self.player.visible = True
         self.player.respawn_at(self.player_spawn_x, self.player_spawn_y)
