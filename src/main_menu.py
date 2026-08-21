@@ -301,9 +301,9 @@ class MainMenu(arcade.View):
             )
         )
 
-    # def new_game(self, seed: int):
-    #     loading_view = LoadingView(self.window, self, seed, level=1)
-    #     self.window.show_view(loading_view)
+    def new_game(self, seed: int=42):
+        loading_view = LoadingView(self.window, self, seed, level=1)
+        self.window.show_view(loading_view)
 
     def on_draw(self):
         self.clear()

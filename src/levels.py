@@ -206,22 +206,17 @@ class Level2(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
-        self.visible_duration = 2.0
-        self.hidden_duration = 3.0
-        self.cycle_duration = self.visible_duration + self.hidden_duration
 
 
     def update(self, game: Any, delta_time: float) -> None:
         """Accumulates elapsed time for animations and state updates."""
         super().update(game, delta_time)
-        cycle_time = self.time_elapsed % self.cycle_duration
-        game.walls_hidden = cycle_time >= self.visible_duration
 
 
-    def draw_effects(self, game: Any) -> None:
+    # def draw_effects(self, game: Any) -> None:
 
-        if not game.walls_hidden:
-            game.wall_shapes.draw()
+    #     if not game.walls_hidden:
+    #         game.wall_shapes.draw()
         
 
 class Level3(BaseLevel):

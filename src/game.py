@@ -15,6 +15,7 @@ from src.cheat_menu import CheatMenu
 from src.particle import ShatterParticle, Floating_score
 from src.levels import ConfigParser, LevelFactory
 
+
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
 BLINKY_PATH = SCRIPT_DIR / "assets" / "blinky.png"
 PINKY_PATH = SCRIPT_DIR / "assets" / "pinky.png"
@@ -58,6 +59,7 @@ class GameWindow(arcade.View):
 
         super().__init__()
         arcade.set_background_color((10, 10, 30))
+
 
         self.config_parser = ConfigParser()
         self.level_factory = LevelFactory()
@@ -183,8 +185,8 @@ class GameWindow(arcade.View):
         self.debug = False
         self.freeze_ghosts = False
 
-        self.game_over = GameOver(self.window, self.main_menu, self.score)
-        self.vectory = Vectory(self.window, self.main_menu, self.score)
+        self.game_over = None
+        self.vectory = None
         self.shatter_particles: list[ShatterParticle] = []
         self.camera = arcade.Camera2D()
         self.floating_scores = []
@@ -196,9 +198,16 @@ class GameWindow(arcade.View):
         self.power_time = 10
         self.power_left = 10
 
+        self.mouse_x = 0.0
+        self.mouse_y = 0.0
+
     def trigger_shake(self, duration, intensity):
         self.shake_time = duration
         self.shake_intensity = intensity
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        self.mouse_x = x
+        self.mouse_y = y
 
     def init_ghosts(self):
 
@@ -398,6 +407,11 @@ class GameWindow(arcade.View):
         self.inky.draw_target_x(self.cell_size, self.offset_x, self.offset_y, rows=self.rows, color=arcade.color.CYAN)
         self.clyde.draw_target_x(self.cell_size, self.offset_x, self.offset_y, rows=self.rows, color=arcade.color.ORANGE)
 
+        arcade.draw_text(
+            f"Mouse coords: {self.mouse_x, self.mouse_y}",
+            10,10
+        )
+
     def draw_hearts(self):
         # Draw red hearts for lives next to LIVES: label in Dek.png
         size = 14 * (self.height / 1080.0)
@@ -459,7 +473,7 @@ class GameWindow(arcade.View):
             f"[F2] Toggle Invincibility: {'ON' if self.player.invincible else 'OFF'}",
             f"[F3] Trigger Power Pellet: {'ON' if self.player.is_powered_up else 'OFF'}",
             f"[F4] Toggle Freeze all ghosts: {'ON' if self.freeze_ghosts else 'OFF'}",
-            f"[F5] Toggle paths Debug: {'ON' if self.debug else 'OFF'}",
+            f"[F5] Toggle Debug: {'ON' if self.debug else 'OFF'}",
             f"[F6] Toggle Speed: {'ON' if self.speed_up else 'OFF'}",
             "[F7] Add +1 Life",
             "[F8] Skip the level",
@@ -489,7 +503,6 @@ class GameWindow(arcade.View):
         self.draw_maze_background()
 
         self.level_obj.draw_effects(self)
-
 
         for i in self.coins_lst:
             i.draw()
@@ -593,10 +606,12 @@ class GameWindow(arcade.View):
         )
 
 
-    def on_update(self, delta_time: float):
+    def on_update(self, delta_time=10):
 
         if self.pause or self.cheat_menu:
             return
+
+        # self.darkness.update(delta_time)
 
         self.floating_scores = [f for f in self.floating_scores if f.update(delta_time)]
         if self.shake_time>0:
@@ -614,6 +629,7 @@ class GameWindow(arcade.View):
                 else:
                     self.respawn_after_death()
             return
+
 
         if self.player.is_dying:
             self.player.update_animation(delta_time)
