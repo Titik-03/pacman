@@ -27,8 +27,8 @@ class Player(arcade.Sprite):
         self.death_crack = arcade.load_texture("src/assets/death/8.png")
         self.death_start = arcade.load_texture("src/assets/death/Group 13.png")
         self.death_middle = arcade.load_texture("src/assets/death/Group 14.png")
-        self.death_end = arcade.load_texture("src/assets/death/Group_15.png")
-        self.death_shatter = arcade.load_texture("src/assets/death/Group_16.png")
+        self.death_end = arcade.load_texture("src/assets/death/Group 15.png")
+        self.death_shatter = arcade.load_texture("src/assets/death/Group 16.png")
         self.death_animation = [self.death_crack, self.death_start, self.death_middle, self.death_end, self.death_shatter]
         self.is_dying = True
         self.death_timer = 0.1
@@ -168,7 +168,7 @@ class Player(arcade.Sprite):
         self.update_invincibility(delta_time)
 
 
-        current_speed = self.speed * 2.0 if self.is_powered_up else self.speed
+        current_speed = self.speed * 1.6 if self.is_powered_up else self.speed
         step = current_speed * delta_time
 
 

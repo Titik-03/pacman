@@ -58,7 +58,7 @@ class GameWindow(arcade.View):
             super().__init__(width or 900, height or 900, "Pac-Man", resizable=True)
         arcade.set_background_color((10, 10, 30))
 
-        self.m = MazeGenerator((3,3))
+        self.m = MazeGenerator()
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
@@ -570,7 +570,7 @@ class GameWindow(arcade.View):
             self.offset_y,
             delta_time,
         )
-        self.player_list.update_animation(delta_time)
+        self.player.update_animation(delta_time)
 
         if not self.freeze_ghosts:
             self.ghosts_chase_player(delta_time)
