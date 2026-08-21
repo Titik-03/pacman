@@ -159,14 +159,15 @@ class BaseLevel:
         self.points_per_ghost = config["points_per_ghost"]
         self.seed = config["seed"]
         self.level_max_time = config["level_max_time"]
-        self.elapsed = 0.0
+        self.time_elapsed: float = 0.0
 
     def update(self, game: Any, delta_time: float) -> None:
         """Update level-specific behaviour."""
-        self.elapsed += delta_time
+        self.time_elapsed += delta_time
 
     def draw_effects(self, game: Any) -> None:
         """Draw level-specific visual effects."""
+        game.wall_shapes.draw()
 
     def handle_key(self, key: int) -> int:
         """Allow a level to modify player input."""
@@ -197,23 +198,36 @@ class Level1(BaseLevel):
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
 
+    # def draw_effects(self, game: Any) -> None:
+    #     game.wall_shapes.draw()
+
 
 class Level2(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
+        self.visible_duration = 2.0
+        self.hidden_duration = 3.0
+        self.cycle_duration = self.visible_duration + self.hidden_duration
+
+
+    def update(self, game: Any, delta_time: float) -> None:
+        """Accumulates elapsed time for animations and state updates."""
+        super().update(game, delta_time)
+        cycle_time = self.time_elapsed % self.cycle_duration
+        game.walls_hidden = cycle_time >= self.visible_duration
+
 
     def draw_effects(self, game: Any) -> None:
-        pass
 
+        if not game.walls_hidden:
+            game.wall_shapes.draw()
+        
 
 class Level3(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
-
-    def draw_effects(self, game: Any) -> None:
-        pass
 
 
 class Level4(BaseLevel):
@@ -221,8 +235,8 @@ class Level4(BaseLevel):
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
 
-    def draw_effects(self, game: Any) -> None:
-        pass
+    # def draw_effects(self, game: Any) -> None:
+    #     pass
 
 
 class Level5(BaseLevel):
@@ -230,11 +244,9 @@ class Level5(BaseLevel):
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
 
-    def update(self, game: Any, delta_time: float) -> None:
-        pass
 
-    def draw_effects(self, game: Any) -> None:
-        pass
+    # def draw_effects(self, game: Any) -> None:
+    #     pass
 
 
 class Level6(BaseLevel):
@@ -242,8 +254,8 @@ class Level6(BaseLevel):
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
 
-    def draw_effects(self, game: Any) -> None:
-        pass
+    # def draw_effects(self, game: Any) -> None:
+    #     pass
 
 
 class Level7(BaseLevel):
@@ -251,8 +263,8 @@ class Level7(BaseLevel):
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
 
-    def draw_effects(self, game: Any) -> None:
-        pass
+    # def draw_effects(self, game: Any) -> None:
+    #     pass
 
 
 class Level8(BaseLevel):
@@ -263,8 +275,8 @@ class Level8(BaseLevel):
     def update(self, game: Any, delta_time: float) -> None:
         pass
 
-    def draw_effects(self, game: Any) -> None:
-        pass
+    # def draw_effects(self, game: Any) -> None:
+    #     pass
 
 class Level9(BaseLevel):
 
@@ -274,8 +286,8 @@ class Level9(BaseLevel):
     def update(self, game: Any, delta_time: float) -> None:
         pass
 
-    def draw_effects(self, game: Any) -> None:
-        pass
+    # def draw_effects(self, game: Any) -> None:
+    #     pass
 
 
 class Level10(BaseLevel):
@@ -286,8 +298,8 @@ class Level10(BaseLevel):
     def update(self, game: Any, delta_time: float) -> None:
         pass
 
-    def draw_effects(self, game: Any) -> None:
-        pass
+    # def draw_effects(self, game: Any) -> None:
+    #     pass
 
 
 class LevelFactory:

@@ -64,6 +64,7 @@ class GameWindow(arcade.View):
         self.level = level
         self.score = score
         # self.seed = seed
+        self.walls_hidden = False
 
         # try:
         level_config = self.config_parser.get_level(self.level)
@@ -72,7 +73,7 @@ class GameWindow(arcade.View):
 
         self.level_obj = self.level_factory.create_level(self.level, level_config)
 
-        self.m = MazeGenerator((10, 10), seed=self.level_obj.seed)
+        self.m = MazeGenerator((15, 15), seed=self.level_obj.seed)
         self.maze = self.m.maze
 
         self.rows = len(self.maze)
