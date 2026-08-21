@@ -100,3 +100,29 @@ class ShatterParticle:
             tilt_angle=self.angle
         )
 
+class Floating_score:
+    def __init__(self, x, y, text, color) -> None:
+        self.x = x
+        self.y = y
+        self.text = text
+        self.color = color
+        self.time = 0.8
+        self.floating_speed = 50.0
+    def update(self, delta_time):
+        self.time -= delta_time
+        self.y += self.floating_speed*delta_time
+        return self.time>0
+    def draw(self):
+        alpha = int(255 * self.time / 0.8)
+        r,g,b = self.color
+        arcade.draw_text(
+            self.text,
+            self.x,
+            self.y,
+            color=(r,g,b,alpha),
+            font_size=18,
+            font_name="Handjet",
+            bold=True,
+            anchor_x="center",
+            anchor_y="center"
+        )

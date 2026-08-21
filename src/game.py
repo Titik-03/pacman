@@ -12,7 +12,7 @@ from src.game_over import GameOver
 from src.vectory import Vectory
 from src.ghost import Blinky, Pinky, Inky, Clyde
 from src.cheat_menu import CheatMenu
-from src.particle import ShatterParticle
+from src.particle import ShatterParticle, Floating_score
 
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
@@ -167,7 +167,19 @@ class GameWindow(arcade.View):
         self.game_over = GameOver(self.window, self.main_menu, self.score)
         self.vectory = Vectory(self.window, self.main_menu, self.score)
         self.shatter_particles: list[ShatterParticle] = []
+        self.camera = arcade.Camera2D()
+        self.floating_scores = []
 
+        self.shake_time = 0.0
+        self.shake_intensity = 0.0
+        self.shake_x = 0.0
+        self.shake_y = 0.0
+        self.power_time = 10
+        self.power_left = 10
+
+    def trigger_shake(self, duration, intensity):
+        self.shake_time = duration
+        self.shake_intensity = intensity
 
     def init_ghosts(self):
 
@@ -450,6 +462,8 @@ class GameWindow(arcade.View):
 
     def on_draw(self):
         self.clear()
+        self.camera.position = (self.width/2 + self.shake_x, self.height/2 + self.shake_y)
+        self.camera.use()
         self.draw_background_image()
         self.draw_maze_background()
         self.wall_shapes.draw()
@@ -465,7 +479,8 @@ class GameWindow(arcade.View):
 
         for particle in self.shatter_particles:
             particle.draw()
-
+        for f in self.floating_scores:
+            f.draw()
 
         self.score_text.text = f"{self.score}"
         self.level_text.text = f"{self.level}"
@@ -559,6 +574,14 @@ class GameWindow(arcade.View):
         if self.pause or self.cheat_menu:
             return
 
+        self.floating_scores = [f for f in self.floating_scores if f.update(delta_time)]
+        if self.shake_time>0:
+            self.shake_time -= delta_time
+            self.shake_x = random.uniform(-self.shake_intensity, self.shake_intensity)
+            self.shake_y = random.uniform(-self.shake_intensity, self.shake_intensity)
+        else:
+            self.shake_x = 0
+            self.shake_y = 0
         if self.shatter_particles:
             self.shatter_particles = [p for p in self.shatter_particles if p.update(delta_time)]
             if not self.shatter_particles:
@@ -606,7 +629,8 @@ class GameWindow(arcade.View):
                     coin.is_eaten = True
                     if coin.is_powerup:
                         self.score += 50
-                        self.player.activate_power_up(10) #power up.
+                        self.player.activate_power_up(self.power_time) #power up.
+                        self.trigger_shake(self.power_time, 2)
                     else:
                         self.score += 10
 
@@ -630,19 +654,26 @@ class GameWindow(arcade.View):
             )
             if distance >= (self.player.width / 2 + ghost.width / 2):
                 continue
-
+            
             if ghost.state == "FRIGHTENED":
                 self.score += 200
                 ghost.get_hit()
-
+                self.floating_scores.append(
+                    Floating_score(ghost.center_x, ghost.center_y, "+200", MOCHA_MAUVE)
+                )
+                self.trigger_shake(0.3, 8)
+                self.power_left -= 0.3
+                self.trigger_shake(self.power_left, 2)
             elif (not self.player.invincible) and ghost.can_damage:
                 self.handle_player_hit()
                 break
+            
 
 
     def handle_player_hit(self):
         if self.player.is_dying or self.shatter_particles:
             return
+        self.trigger_shake(0.3, 8)
         self.player.take_damage()
         self.player.start_death_animation()
 
