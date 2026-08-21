@@ -12,6 +12,7 @@ from src.game_over import GameOver
 from src.vectory import Vectory
 from src.ghost import Blinky, Pinky, Inky, Clyde
 from src.cheat_menu import CheatMenu
+from src.particle import ShatterParticle
 
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
@@ -165,6 +166,7 @@ class GameWindow(arcade.View):
 
         self.game_over = GameOver(self.window, self.main_menu, self.score)
         self.vectory = Vectory(self.window, self.main_menu, self.score)
+        self.shatter_particles: list[ShatterParticle] = []
 
 
     def init_ghosts(self):
@@ -461,6 +463,9 @@ class GameWindow(arcade.View):
         self.inky_list.draw()
         self.clyde_list.draw()
 
+        for particle in self.shatter_particles:
+            particle.draw()
+
 
         self.score_text.text = f"{self.score}"
         self.level_text.text = f"{self.level}"
@@ -490,6 +495,8 @@ class GameWindow(arcade.View):
             self.manager.draw()
 
     def go_to_game_over(self):
+        self.shatter_particles.clear()
+        self.player.visible = True
         self.game_over = GameOver(self.window, self.main_menu, self.score)
         self.window.show_view(self.game_over)
 
@@ -552,8 +559,23 @@ class GameWindow(arcade.View):
         if self.pause or self.cheat_menu:
             return
 
-        if self.cheat_menu:
-            self.cheat_menu_timer += delta_time
+        if self.shatter_particles:
+            self.shatter_particles = [p for p in self.shatter_particles if p.update(delta_time)]
+            if not self.shatter_particles:
+                if self.player.lives <= 0:
+                    self.go_to_game_over()
+                else:
+                    self.respawn_after_death()
+            return
+
+        if self.player.is_dying:
+            self.player.update_animation(delta_time)
+            if not self.player.is_dying:
+                self.player.visible = False
+                self.shatter_particles = [
+                    ShatterParticle(self.player.center_x, self.player.center_y)
+                    for _ in range(16)
+                ]
             return
 
         self.timer -= delta_time
@@ -595,6 +617,9 @@ class GameWindow(arcade.View):
 
     def check_ghost_collisions(self):
         """Handles Pac-Man <-> ghost contact: taking damage or eating a scared ghost."""
+        if self.player.is_dying or self.shatter_particles:
+            return
+
         for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
             if ghost.state == "EATEN":
                 continue
@@ -610,20 +635,25 @@ class GameWindow(arcade.View):
                 self.score += 200
                 ghost.get_hit()
 
-            elif (not self.player.invincible) and ghost.can_damage and ghost.can_damage:
+            elif (not self.player.invincible) and ghost.can_damage:
                 self.handle_player_hit()
                 break
 
 
     def handle_player_hit(self):
-        game_over = self.player.take_damage()
-
-        if game_over:
-            self.go_to_game_over()
+        if self.player.is_dying or self.shatter_particles:
             return
+        self.player.take_damage()
+        self.player.start_death_animation()
 
-        #Respawn player at the maze center and send active ghosts back home.
+
+    def respawn_after_death(self):
+        # Respawn player at the maze center and send active ghosts back home.
+        self.shatter_particles.clear()
+        self.player.visible = True
         self.player.respawn_at(self.player_spawn_x, self.player_spawn_y)
+        self.player.invincible = True
+        self.player.invincible_timer = self.player.INVINCIBILITY_DURATION
 
         for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
             if ghost.state == "EATEN":
@@ -724,7 +754,7 @@ class GameWindow(arcade.View):
                 self.pause = (not self.pause)
             return
 
-        if self.pause:
+        if self.pause or self.player.is_dying or self.shatter_particles:
             return
 
         self.player.on_key_press(key)

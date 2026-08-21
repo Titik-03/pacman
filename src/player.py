@@ -30,8 +30,10 @@ class Player(arcade.Sprite):
         self.death_end = arcade.load_texture("src/assets/death/Group 15.png")
         self.death_shatter = arcade.load_texture("src/assets/death/Group 16.png")
         self.death_animation = [self.death_crack, self.death_start, self.death_middle, self.death_end, self.death_shatter]
-        self.is_dying = True
-        self.death_timer = 0.1
+        self.is_dying = False
+        self.death_frame_index = 0
+        self.death_timer = 0.0
+        self.death_frame_duration = 0.15
         self.cur_frame_index = 0
         self.time_counter = 0.0 
         self.frame_duration = 0.08
@@ -42,6 +44,14 @@ class Player(arcade.Sprite):
         self.invincible = False
         self.invincible_timer = 0.0
         self.INVINCIBILITY_DURATION = 2.0 
+
+    def start_death_animation(self) -> None:
+        """Starts the death animation sequence."""
+        self.is_dying = True
+        self.death_frame_index = 0
+        self.death_timer = 0.0
+        self.texture = self.death_animation[0]
+        self.angle = 0
 
     def take_damage(self) -> bool:
         """Removes one life, starts invincibility. Returns True if game over."""
@@ -62,6 +72,12 @@ class Player(arcade.Sprite):
         self.target_y = y
         self.current_dir = (0, 0)
         self.queued_dir = (0, 0)
+        self.is_dying = False
+        self.death_frame_index = 0
+        self.death_timer = 0.0
+        self.texture = self.animation_frames[0]
+        self.angle = 0
+        self.visible = True
 
     def update_invincibility(self, delta_time: float) -> None:
         if self.invincible:
@@ -84,6 +100,8 @@ class Player(arcade.Sprite):
         return player, player_list
 
     def on_key_press(self, key: int):
+        if self.is_dying:
+            return
         if key == arcade.key.UP or key == arcade.key.W:
             self.queued_dir = (0, 1)
         elif key == arcade.key.DOWN or key == arcade.key.S:
@@ -137,7 +155,19 @@ class Player(arcade.Sprite):
         """Triggers the power-up state and resets/starts the duration clock."""
         self.is_powered_up = True
         self.power_timer = duration
+
     def update_animation(self, delta_time: float = 1 / 60, *args, **kwargs) -> None:
+        if self.is_dying:
+            self.death_timer += delta_time
+            if self.death_timer >= self.death_frame_duration:
+                self.death_timer = 0.0
+                self.death_frame_index += 1
+                if self.death_frame_index < len(self.death_animation):
+                    self.texture = self.death_animation[self.death_frame_index]
+                else:
+                    self.is_dying = False
+            return
+
         if self.current_dir != (0, 0):
             self.time_counter += delta_time
             if self.time_counter >= self.frame_duration:
