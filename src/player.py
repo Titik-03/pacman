@@ -43,7 +43,8 @@ class Player(arcade.Sprite):
         self.lives = 3
         self.invincible = False
         self.invincible_timer = 0.0
-        self.INVINCIBILITY_DURATION = 2.0 
+        self.INVINCIBILITY_DURATION = 2.0
+        self.current_speed = self.speed
 
     def start_death_animation(self) -> None:
         """Starts the death animation sequence."""
@@ -194,13 +195,13 @@ class Player(arcade.Sprite):
             if self.power_timer <= 0:
                 self.is_powered_up = False
                 self.power_timer = 0.0
-            
+
 
         self.update_invincibility(delta_time)
 
 
-        current_speed = self.speed * 1.6 if self.is_powered_up else self.speed
-        step = current_speed * delta_time
+        self.current_speed = self.speed * 1.6 if self.is_powered_up else self.speed
+        step = self.current_speed * delta_time
 
 
         if abs(self.center_x - self.target_x) <= step and abs(self.center_y - self.target_y) <= step:

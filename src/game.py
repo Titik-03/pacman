@@ -516,10 +516,10 @@ class GameWindow(arcade.View):
         self.draw_maze_background()
 
         self.level_obj.draw_effects(self)
-
         for i in self.coins_lst:
             i.draw()
-        if self.player.speed > self.player_speed:
+        if self.player.speed + self.player.current_speed > self.player_speed * 2:
+
             for trail in self.trail_particles:
                 trail.draw()
 
