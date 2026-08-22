@@ -510,18 +510,15 @@ class GameWindow(arcade.View):
 
     def on_draw(self):
         self.clear()
-        self.camera.position = (self.width/2 + self.shake_x, self.height/2 + self.shake_y)
+        self.camera.position = (self.width / 2 + self.shake_x, self.height / 2 + self.shake_y)
         self.camera.use()
+
         self.draw_background_image()
         self.draw_maze_background()
-
         self.level_obj.draw_effects(self)
+        
         for i in self.coins_lst:
             i.draw()
-        if self.player.speed + self.player.current_speed > self.player_speed * 2:
-
-            for trail in self.trail_particles:
-                trail.draw()
 
         self.player_list.draw()
         self.blinky_list.draw()
@@ -529,11 +526,16 @@ class GameWindow(arcade.View):
         self.inky_list.draw()
         self.clyde_list.draw()
 
+        self.level_obj.draw_top_effects(self)
+
+        if self.player.speed + self.player.current_speed > self.player_speed * 2:
+            for trail in self.trail_particles:
+                trail.draw()
+                
         for particle in self.shatter_particles:
             particle.draw()
         for f in self.floating_scores:
             f.draw()
-        
 
         self.score_text.text = f"{self.score}"
         self.level_text.text = f"{self.level}"
@@ -551,15 +553,7 @@ class GameWindow(arcade.View):
             self.draw_cheat_menu()
 
         if self.pause:
-            arcade.draw_rect_filled(
-                arcade.rect.XYWH(
-                    self.width / 2,
-                    self.height / 2,
-                    self.width,
-                    self.height
-                ),
-                color=(10, 10, 20, 200)
-            )
+            arcade.draw_rect_filled(arcade.rect.XYWH(self.width / 2, self.height / 2, self.width, self.height), color=(10, 10, 20, 200))
             self.manager.draw()
 
     def go_to_game_over(self):

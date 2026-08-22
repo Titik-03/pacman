@@ -3,6 +3,8 @@ import math
 import random
 from pathlib import Path
 from typing import Any
+import PIL.Image
+import PIL.ImageDraw
 
 import arcade
 
@@ -166,8 +168,12 @@ class BaseLevel:
         self.time_elapsed += delta_time
 
     def draw_effects(self, game: Any) -> None:
-        """Draw level-specific visual effects."""
+        """Draw level-specific visual effects (walls)."""
         game.wall_shapes.draw()
+
+    def draw_top_effects(self, game: Any) -> None:
+        """Draw effects that must go over ghosts/coins (e.g., Darkness)."""
+        pass
 
     def handle_key(self, key: int) -> int:
         """Allow a level to modify player input."""
@@ -198,26 +204,75 @@ class Level1(BaseLevel):
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
 
-    # def draw_effects(self, game: Any) -> None:
-    #     game.wall_shapes.draw()
-
 
 class Level2(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
+        self.fog_texture = None
+        self.light_timer = 0.0
+        self.is_dark = False
 
+    def create_fog_mask(self, size: int, vision_radius: int, inner_radius: int):
+        bg_r, bg_g, bg_b = 30, 30, 46
+        
+        dark_color = (bg_r, bg_g, bg_b, 255)
+        img = PIL.Image.new("RGBA", (size, size), dark_color)
+        draw = PIL.ImageDraw.Draw(img)
+        center = size // 2
+
+        steps = 40
+        for i in range(steps, 0, -1):
+            r = inner_radius + (vision_radius - inner_radius) * (i / steps)
+            alpha = int(255 * (i / steps))
+            fill_color = (bg_r, bg_g, bg_b, alpha)
+            draw.ellipse([center - r, center - r, center + r, center + r], fill=fill_color)
+
+        draw.ellipse([center - inner_radius, center - inner_radius, center + inner_radius, center + inner_radius], fill=(0, 0, 0, 0))
+        return arcade.Texture(img)
 
     def update(self, game: Any, delta_time: float) -> None:
-        """Accumulates elapsed time for animations and state updates."""
         super().update(game, delta_time)
 
-
-    # def draw_effects(self, game: Any) -> None:
-
-    #     if not game.walls_hidden:
-    #         game.wall_shapes.draw()
+        self.light_timer += delta_time
         
+        if self.is_dark:
+            if self.light_timer >= 4.0:
+                self.is_dark = False
+                self.light_timer = 0.0
+        else:
+            if self.light_timer >= 2.5:
+                self.is_dark = True
+                self.light_timer = 0.0
+
+        #Create the Fog.
+        if self.fog_texture is None:
+            vision_r = int(game.cell_size * 2.8)
+            inner_r = int(game.cell_size * 0.8)
+            mask_dim = max(int(game.width * 2.5), 2400)
+            self.fog_texture = self.create_fog_mask(mask_dim, vision_r, inner_r)
+
+    def draw_top_effects(self, game: Any) -> None:
+        if self.fog_texture and self.is_dark:
+            maze_x = int(game.offset_x - game.shake_x)
+            maze_y = int(game.offset_y - game.shake_y)
+            maze_w = int(game.cols * game.cell_size)
+            maze_h = int(game.rows * game.cell_size)
+
+            #Adjust the fog frame to be the maze.
+            game.window.ctx.scissor = (maze_x, maze_y, maze_w, maze_h)
+
+            arcade.draw_texture_rect(
+                self.fog_texture,
+                arcade.rect.XYWH(
+                    game.player.center_x,
+                    game.player.center_y,
+                    self.fog_texture.width,
+                    self.fog_texture.height
+                )
+            )
+            #turning the cut off.
+            game.window.ctx.scissor = None
 
 class Level3(BaseLevel):
 
@@ -230,9 +285,6 @@ class Level4(BaseLevel):
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
 
-    # def draw_effects(self, game: Any) -> None:
-    #     pass
-
 
 class Level5(BaseLevel):
 
@@ -240,26 +292,16 @@ class Level5(BaseLevel):
         super().__init__(config)
 
 
-    # def draw_effects(self, game: Any) -> None:
-    #     pass
-
-
 class Level6(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
-
-    # def draw_effects(self, game: Any) -> None:
-    #     pass
 
 
 class Level7(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
-
-    # def draw_effects(self, game: Any) -> None:
-    #     pass
 
 
 class Level8(BaseLevel):
@@ -270,8 +312,6 @@ class Level8(BaseLevel):
     def update(self, game: Any, delta_time: float) -> None:
         pass
 
-    # def draw_effects(self, game: Any) -> None:
-    #     pass
 
 class Level9(BaseLevel):
 
@@ -280,9 +320,6 @@ class Level9(BaseLevel):
 
     def update(self, game: Any, delta_time: float) -> None:
         pass
-
-    # def draw_effects(self, game: Any) -> None:
-    #     pass
 
 
 class Level10(BaseLevel):
@@ -293,9 +330,6 @@ class Level10(BaseLevel):
     def update(self, game: Any, delta_time: float) -> None:
         pass
 
-    # def draw_effects(self, game: Any) -> None:
-    #     pass
-
 
 class LevelFactory:
 
@@ -304,23 +338,9 @@ class LevelFactory:
         level_number: int,
         config: dict[str, Any],
     ) -> BaseLevel:
-        if level_number == 1:
-            return Level1(config)
-        if level_number == 2:
-            return Level2(config)
-        if level_number == 3:
-            return Level3(config)
-        if level_number == 4:
-            return Level4(config)
-        if level_number == 5:
-            return Level5(config)
-        if level_number == 6:
-            return Level6(config)
-        if level_number == 7:
-            return Level7(config)
-        if level_number == 8:
-            return Level8(config)
-        if level_number == 9:
-            return Level9(config)
-        if level_number == 10:
-            return Level10(config)
+        classes = {
+            1: Level1, 2: Level2, 3: Level3, 4: Level4, 5: Level5,
+            6: Level6, 7: Level7, 8: Level8, 9: Level9, 10: Level10
+        }
+        return classes.get(level_number, Level1)(config)
+
