@@ -156,9 +156,56 @@ class TrailParticle:
         )
 
 class Shockwave:
-    def __init__(self, x:float, y:float) -> None:
+    def __init__(self, x:float, y:float, color) -> None:
         self.x = x
         self.y = y
-        self.max_radius = 120.0
+        self.max_radius = 300.0
         self.current_radius = 0.0
-        self.duration = 0.3
+        self.duration = 0.6
+        self.lifetime = self.duration
+        self.color = color
+    def update(self, delta_time):
+        self.lifetime -= delta_time
+        return self.lifetime > 0
+    def draw(self):
+        r, g, b = self.color
+        progress = 1.0 - (self.lifetime / self.duration)
+        radius = self.max_radius * progress
+        alpha = int(230 * (1.0 - progress))
+        arcade.draw_circle_outline(
+            self.x,
+            self.y,
+            max(1.0, radius),
+            (r,g,b,alpha),
+            3
+        )
+
+import math
+import random
+import arcade
+from arcade.types import Color
+
+
+class CoinSparkle:
+    def __init__(self, x: float, y: float) -> None:
+        self.x = x
+        self.y = y
+        self.vx = random.uniform(-60, 60)
+        self.vy = random.uniform(-60, 60)
+        self.lifetime = 0.25  # Total duration in seconds
+        self.color = random.choice([arcade.color.YELLOW, arcade.color.WHITE, arcade.color.GOLD])
+
+    def update(self, delta_time: float) -> bool:
+        self.lifetime -= delta_time
+        self.x += self.vx * delta_time
+        self.y += self.vy * delta_time
+        return self.lifetime > 0
+
+    def draw(self) -> None:
+        alpha = int(255 * (self.lifetime / 0.25))
+        arcade.draw_point(
+            self.x,
+            self.y,
+            Color(self.color[0], self.color[1], self.color[2], max(0, alpha)),
+            size=4
+        )

@@ -218,6 +218,13 @@ class Ghost(arcade.Sprite):
             elif not player.is_powered_up and self.state == "FRIGHTENED":
                 self.state = "CHASE"
                 self.texture = arcade.load_texture(self.normal_texture_path)
+                self.color = (255, 255, 255)
+            if self.state == "FRIGHTENED":
+                if player.power_timer <= 3.0:
+                    is_white_frame = int(player.power_timer * 6.5) % 2 == 0
+                    self.color = (255, 255, 255) if is_white_frame else (137, 180, 250)
+                else:
+                    self.color = (255, 255, 255)
                 
         if player.power_timer == 0:
             self.was_eaten = False

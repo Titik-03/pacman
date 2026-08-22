@@ -12,7 +12,7 @@ from src.game_over import GameOver
 from src.vectory import Vectory
 from src.ghost import Blinky, Pinky, Inky, Clyde
 from src.cheat_menu import CheatMenu
-from src.particle import ShatterParticle, Floating_score, TrailParticle
+from src.particle import ShatterParticle, Floating_score, TrailParticle, Shockwave, CoinSparkle
 from src.levels import ConfigParser, LevelFactory
 
 
@@ -209,11 +209,12 @@ class GameWindow(arcade.View):
         self.mouse_x = 0.0
         self.mouse_y = 0.0
 
-                # --- Motion Trail State ---
         self.trail_particles: list[TrailParticle] = []
         self.trail_timer = 0.0
-        self.TRAIL_INTERVAL = 0.04  # Spawns a trail snapshot every 40ms while moving
-
+        self.TRAIL_INTERVAL = 0.04 
+        self.shock = []
+        self.coin_sparkles = []
+    
     def trigger_shake(self, duration, intensity):
         self.shake_time = duration
         self.shake_intensity = intensity
@@ -514,7 +515,8 @@ class GameWindow(arcade.View):
         self.camera.use()
         self.draw_background_image()
         self.draw_maze_background()
-
+        for shockwave in self.shock:
+            shockwave.draw()
         self.level_obj.draw_effects(self)
         for i in self.coins_lst:
             i.draw()
@@ -528,7 +530,8 @@ class GameWindow(arcade.View):
         self.pinky_list.draw()
         self.inky_list.draw()
         self.clyde_list.draw()
-
+        for sparkle in self.coin_sparkles:
+            sparkle.draw()
         for particle in self.shatter_particles:
             particle.draw()
         for f in self.floating_scores:
@@ -538,7 +541,7 @@ class GameWindow(arcade.View):
         self.score_text.text = f"{self.score}"
         self.level_text.text = f"{self.level}"
         self.time_text.text = f"{int(self.timer)}s"
-
+        self.draw_combo_bar()
         self.score_text.draw()
         self.draw_hearts()
         self.level_text.draw()
@@ -624,6 +627,8 @@ class GameWindow(arcade.View):
 
     def on_update(self, delta_time: float):
 
+        self.shock = [s for s in self.shock if s.update(delta_time)]
+        self.coin_sparkles = [p for p in self.coin_sparkles if p.update(delta_time)]
         if self.combo_timer > 0:
             self.combo_timer -= delta_time
             if self.combo_timer <= 0:
@@ -726,9 +731,14 @@ class GameWindow(arcade.View):
                 distance = math.hypot(self.player.center_x - coin.x, self.player.center_y - coin.y)
                 if distance < (self.player.width / 2 + coin.radius):
                     coin.is_eaten = True
+                    for _ in range(4):
+                        self.coin_sparkles.append(CoinSparkle(coin.x, coin.y))
                     if coin.is_powerup:
                         self.score += getattr(self.level_obj, "points_per_super_pacgum", 50)
-                        self.player.activate_power_up(self.power_time) #power up.
+                        self.player.activate_power_up(self.power_time)
+                        self.shock.append(
+                            Shockwave(coin.x, coin.y, color=(203, 166, 247))
+                        )
                     else:
                         self.score += getattr(self.level_obj, "points_per_pacgum", 10)
                     self.combo_count += 1
@@ -777,7 +787,6 @@ class GameWindow(arcade.View):
             elif (not self.player.invincible) and ghost.can_damage:
                 self.handle_player_hit()
                 break
-            
 
 
     def handle_player_hit(self):
@@ -807,6 +816,7 @@ class GameWindow(arcade.View):
             ghost.center_x = ghost.target_x = x
             ghost.center_y = ghost.target_y = y
             ghost.state = "CHASE"
+            ghost.color = (255, 255, 255)
             ghost.texture = arcade.load_texture(ghost.normal_texture_path)
 
 
@@ -903,7 +913,7 @@ class GameWindow(arcade.View):
         key = self.level_obj.handle_key(key)
         self.player.on_key_press(key)
 
-        if key == arcade.key.F1:
+        if key == arcade.key.B:
             self.cheat_menu = (not self.cheat_menu)
 
         if key == arcade.key.F2:
