@@ -8,11 +8,11 @@ class Particle:
 
     def __init__(self, width, height):
 
-        self.screen_width = width  # Store the width of the screen.
-        self.screen_height = height  # Store the height of the screen.
+        self.screen_width = width
+        self.screen_height = height
 
-        self.x = random.randint(0, width)  # Pick a random starting x position.
-        self.y = random.randint(0, height)  # Pick a random starting y position.
+        self.x = random.randint(0, width)
+        self.y = random.randint(0, height)
 
         self.radius = random.choice([1, 1, 7, 7, 2, 3, 4, 6, 6, 6])  # Pick a small random radius.
 

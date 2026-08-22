@@ -195,8 +195,16 @@ class GameWindow(arcade.View):
         self.shake_intensity = 0.0
         self.shake_x = 0.0
         self.shake_y = 0.0
+        self.is_hit = False
         self.power_time = 10
         self.power_left = 10
+        
+        self.combo_count = 0
+        self.combo_timer = 0.0
+        self.combo_limit = 1.5
+
+        self.mouse_x = 0.0
+        self.mouse_y = 0.0
 
         self.mouse_x = 0.0
         self.mouse_y = 0.0
@@ -606,13 +614,25 @@ class GameWindow(arcade.View):
         )
 
 
-    def on_update(self, delta_time=10):
+    def on_update(self, delta_time: float):
+
+        if self.combo_timer > 0:
+            self.combo_timer -= delta_time
+            if self.combo_timer <= 0:
+                self.combo_count = 0
+                self.combo_timer = 0.0
+        
+
 
         if self.pause or self.cheat_menu:
             return
-
-        # self.darkness.update(delta_time)
-
+        if self.player.is_powered_up and self.is_hit:
+            self.trigger_shake(0.3, 30)
+            self.is_hit = False
+        elif self.player.is_powered_up:
+            self.trigger_shake(999, 2)
+        else:
+            self.trigger_shake(0,0)
         self.floating_scores = [f for f in self.floating_scores if f.update(delta_time)]
         if self.shake_time>0:
             self.shake_time -= delta_time
@@ -676,9 +696,22 @@ class GameWindow(arcade.View):
                     if coin.is_powerup:
                         self.score += getattr(self.level_obj, "points_per_super_pacgum", 50)
                         self.player.activate_power_up(self.power_time) #power up.
-                        self.trigger_shake(self.power_time, 2)
                     else:
                         self.score += getattr(self.level_obj, "points_per_pacgum", 10)
+                    self.combo_count += 1
+                    self.combo_timer = self.combo_limit
+                    multiplier = (self.combo_count // 10) + 1
+                    bonus = 1.0 + min(0.4, (multiplier - 1) * 0.1)
+                    self.player.speed = self.player_speed * bonus
+                    if self.combo_count >= 10 and self.combo_count % 10 == 0:
+                        self.floating_scores.append(
+                            Floating_score(
+                                self.player.center_x,
+                                self.player.center_y + 15,
+                                f"x{multiplier} COMBO!",
+                                MOCHA_RED
+                            )
+                        )
 
                     self.collected_coins += 1
 
@@ -700,12 +733,14 @@ class GameWindow(arcade.View):
                 continue
             
             if ghost.state == "FRIGHTENED":
+                self.combo_count += 1
+                self.combo_timer = self.combo_limit
                 self.score += getattr(self.level_obj, "points_per_ghost", 200)
                 ghost.get_hit()
                 self.floating_scores.append(
                     Floating_score(ghost.center_x, ghost.center_y, "+200", MOCHA_RED)
                 )
-                self.trigger_shake(0.3, 8)
+                self.is_hit = True
             elif (not self.player.invincible) and ghost.can_damage:
                 self.handle_player_hit()
                 break
@@ -715,6 +750,8 @@ class GameWindow(arcade.View):
     def handle_player_hit(self):
         if self.player.is_dying or self.shatter_particles:
             return
+        self.combo_count = 0
+        self.combo_timer = 0.0
         self.trigger_shake(0.3, 8)
         self.player.take_damage()
         self.player.start_death_animation()

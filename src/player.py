@@ -194,6 +194,7 @@ class Player(arcade.Sprite):
             if self.power_timer <= 0:
                 self.is_powered_up = False
                 self.power_timer = 0.0
+            
 
         self.update_invincibility(delta_time)
 
