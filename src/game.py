@@ -12,7 +12,7 @@ from src.game_over import GameOver
 from src.vectory import Vectory
 from src.ghost import Blinky, Pinky, Inky, Clyde
 from src.cheat_menu import CheatMenu
-from src.particle import ShatterParticle, Floating_score
+from src.particle import ShatterParticle, Floating_score, TrailParticle
 from src.levels import ConfigParser, LevelFactory
 
 
@@ -157,7 +157,7 @@ class GameWindow(arcade.View):
         self.player_spawn_x = start_x
         self.player_spawn_y = start_y
 
-        self.player_speed = self.player.speed
+        self.player_speed = 170
         self.speed_up = False
 
         self.init_ghosts()
@@ -208,6 +208,11 @@ class GameWindow(arcade.View):
 
         self.mouse_x = 0.0
         self.mouse_y = 0.0
+
+                # --- Motion Trail State ---
+        self.trail_particles: list[TrailParticle] = []
+        self.trail_timer = 0.0
+        self.TRAIL_INTERVAL = 0.04  # Spawns a trail snapshot every 40ms while moving
 
     def trigger_shake(self, duration, intensity):
         self.shake_time = duration
@@ -514,6 +519,9 @@ class GameWindow(arcade.View):
 
         for i in self.coins_lst:
             i.draw()
+        if self.player.speed > self.player_speed:
+            for trail in self.trail_particles:
+                trail.draw()
 
         self.player_list.draw()
         self.blinky_list.draw()
@@ -621,9 +629,34 @@ class GameWindow(arcade.View):
             if self.combo_timer <= 0:
                 self.combo_count = 0
                 self.combo_timer = 0.0
+                if not self.player.is_powered_up:
+                    self.player.speed = self.player_speed
+
+        self.trail_particles = [t for t in self.trail_particles if t.update(delta_time)]
+
+
+        if not self.player.is_dying and self.player.current_dir != (0, 0):
+            self.trail_timer += delta_time
+            if self.trail_timer >= self.TRAIL_INTERVAL:
+                self.trail_timer = 0.0
+                
+                # Color: Golden Yellow if powered up / on high combo, else Mauve
+                trail_color = (249, 226, 175) if self.player.is_powered_up else (203, 166, 247)
+                
+                self.trail_particles.append(
+                    TrailParticle(
+                        x=self.player.center_x,
+                        y=self.player.center_y,
+                        texture=self.player.texture,
+                        angle=self.player.angle,
+                        width=self.player.width,
+                        height=self.player.height,
+                        color=trail_color,
+                        lifetime=0.22
+                    )
+                )
+
         
-
-
         if self.pause or self.cheat_menu:
             return
         if self.player.is_powered_up and self.is_hit:
@@ -752,6 +785,7 @@ class GameWindow(arcade.View):
             return
         self.combo_count = 0
         self.combo_timer = 0.0
+        self.player.speed = self.player_speed
         self.trigger_shake(0.3, 8)
         self.player.take_damage()
         self.player.start_death_animation()

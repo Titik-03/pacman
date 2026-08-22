@@ -1,6 +1,7 @@
 import arcade  # Import Arcade for drawing the particle.
 import random  # Import random for generating particle properties.
 import math  # Import math for the sine wave used in alpha animation.
+from arcade.types import Color
 
 
 
@@ -126,4 +127,33 @@ class Floating_score:
             anchor_x="center",
             anchor_y="center"
         )
+class TrailParticle:
+    """Fading after-image trail snapshot of the player sprite."""
 
+    def __init__(self, x: float, y: float, texture: arcade.Texture, angle: float, width: float, height: float, color=(203, 166, 247), lifetime: float = 0.22):
+        self.x = x
+        self.y = y
+        self.texture = texture
+        self.angle = angle
+        self.width = width
+        self.height = height
+        self.color = color
+        self.lifetime = lifetime
+        self.max_lifetime = lifetime
+
+    def update(self, delta_time: float) -> bool:
+        self.lifetime -= delta_time
+        return self.lifetime > 0
+
+    def draw(self) -> None:
+        alpha = int(140 * max(0.0, self.lifetime / self.max_lifetime))
+        
+        # Instantiate the proper Arcade 3.x Color object
+        tint_color = Color(int(self.color[0]), int(self.color[1]), int(self.color[2]), alpha)
+        
+        arcade.draw_texture_rect(
+            self.texture,
+            arcade.rect.XYWH(self.x, self.y, self.width, self.height),
+            angle=self.angle,
+            color=tint_color
+        )
