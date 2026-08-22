@@ -541,7 +541,6 @@ class GameWindow(arcade.View):
         self.score_text.text = f"{self.score}"
         self.level_text.text = f"{self.level}"
         self.time_text.text = f"{int(self.timer)}s"
-        self.draw_combo_bar()
         self.score_text.draw()
         self.draw_hearts()
         self.level_text.draw()
