@@ -170,6 +170,9 @@ class BaseLevel:
     def draw_effects(self, game: Any) -> None:
         """Draw level-specific visual effects (walls)."""
         game.wall_shapes.draw()
+    
+    def key_press(self, key) -> None:
+        pass
 
     def draw_top_effects(self, game: Any) -> None:
         """Draw effects that must go over ghosts/coins (e.g., Darkness)."""
@@ -292,6 +295,26 @@ class Level3(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
+
+    def key_press(self, key: int) -> int:
+        """Invert the movement controls."""
+        if key == arcade.key.UP or key == arcade.key.W:
+            return arcade.key.DOWN
+        elif key == arcade.key.DOWN or key == arcade.key.S:
+            return arcade.key.UP
+        elif key == arcade.key.LEFT or key == arcade.key.A:
+            return arcade.key.RIGHT
+        elif key == arcade.key.RIGHT or key == arcade.key.D:
+            return arcade.key.LEFT
+        
+        # If it's any other key (like F8 for cheats), leave it alone
+        return key
+
+    def draw_top_effects(self, game: Any) -> None:
+        """Draw a flashing warning text so the player knows what is happening."""
+        # Blink the text every 0.5 seconds based on elapsed time
+        if int(self.time_elapsed * 2) % 2 == 0:
+            self.draw_message(game, "SYSTEM SCRAMBLED: CONTROLS INVERTED!")
 
 
 class Level4(BaseLevel):
