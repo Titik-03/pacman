@@ -295,6 +295,22 @@ class Level3(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
+        self.revers_time = 0.0
+        self.revers_controls = False
+
+    def update(self, delta_time: float) -> None:
+
+        self.revers_time += delta_time
+
+        if self.revers_controls:
+            if self.revers_time >= 4.0:
+                self.revers_controls = False
+                self.revers_time = 0.0
+        else:
+            if self.revers_time >= 2.5:
+                self.revers_controls = True
+                self.revers_time = 0.0
+
 
     def key_press(self, key: int) -> int:
         """Invert the movement controls."""
