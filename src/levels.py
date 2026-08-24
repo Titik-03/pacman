@@ -247,6 +247,7 @@ class Level2(BaseLevel):
             if self.light_timer >= 2.5:
                 self.is_dark = True
                 self.light_timer = 0.0
+                
         
         #Resizing the circle.
         target_scale = 1.0 if self.is_dark else 15.0
