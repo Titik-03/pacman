@@ -213,6 +213,8 @@ class Level2(BaseLevel):
         self.light_timer = 0.0
         self.is_dark = False
 
+        self.current_scale = 15.0 
+
     def create_fog_mask(self, size: int, vision_radius: int, inner_radius: int):
         bg_r, bg_g, bg_b = 30, 30, 46
         
@@ -236,6 +238,7 @@ class Level2(BaseLevel):
 
         self.light_timer += delta_time
         
+        #Lights on and off.
         if self.is_dark:
             if self.light_timer >= 4.0:
                 self.is_dark = False
@@ -244,8 +247,14 @@ class Level2(BaseLevel):
             if self.light_timer >= 2.5:
                 self.is_dark = True
                 self.light_timer = 0.0
+        
+        #Resizing the circle.
+        target_scale = 1.0 if self.is_dark else 15.0
 
-        #Create the Fog.
+        animation_speed = 4.0 if self.is_dark else 1.5
+
+        self.current_scale += (target_scale - self.current_scale) * animation_speed * delta_time
+
         if self.fog_texture is None:
             vision_r = int(game.cell_size * 2.8)
             inner_r = int(game.cell_size * 0.8)
@@ -253,25 +262,29 @@ class Level2(BaseLevel):
             self.fog_texture = self.create_fog_mask(mask_dim, vision_r, inner_r)
 
     def draw_top_effects(self, game: Any) -> None:
-        if self.fog_texture and self.is_dark:
+        
+        #Camera shake.
+        if self.fog_texture:
             maze_x = int(game.offset_x - game.shake_x)
             maze_y = int(game.offset_y - game.shake_y)
             maze_w = int(game.cols * game.cell_size)
             maze_h = int(game.rows * game.cell_size)
 
-            #Adjust the fog frame to be the maze.
             game.window.ctx.scissor = (maze_x, maze_y, maze_w, maze_h)
+
+            #Draw the scaled.
+            draw_w = self.fog_texture.width * self.current_scale
+            draw_h = self.fog_texture.height * self.current_scale
 
             arcade.draw_texture_rect(
                 self.fog_texture,
                 arcade.rect.XYWH(
                     game.player.center_x,
                     game.player.center_y,
-                    self.fog_texture.width,
-                    self.fog_texture.height
+                    draw_w,
+                    draw_h
                 )
             )
-            #turning the cut off.
             game.window.ctx.scissor = None
 
 class Level3(BaseLevel):
