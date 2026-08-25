@@ -341,36 +341,32 @@ class Level4(BaseLevel):
 
         self.spin_timer += delta_time
         
-        # Every 4 seconds, rotate the screen 90 degrees clockwise
         if self.spin_timer >= 4.0:
             self.current_angle += 90
-            
-            # Reset back to 0 if we do a full circle
-            if self.current_angle >= 360:
-                self.current_angle = 0
-                
+            self.spin_timer = 0.0
+
+        if self.current_angle >= 360:
+            self.current_angle = 0
             self.spin_timer = 0.0
 
     def key_press(self, key: int) -> int:
         """Rotate the controls to match the visual screen rotation."""
-        
+
         if self.current_angle == 0:
             return key
 
-        # Order is strictly clockwise!
+        #Get the right key based on the current angle.
         keys = [arcade.key.UP, arcade.key.RIGHT, arcade.key.DOWN, arcade.key.LEFT]
         alt_keys = [arcade.key.W, arcade.key.D, arcade.key.S, arcade.key.A]
 
-        # 90 deg = shift 1, 180 deg = shift 2, 270 deg = shift 3
         shift = self.current_angle // 90
 
         if key in keys:
             idx = keys.index(key)
             return keys[(idx + shift) % 4]
-            
+
         elif key in alt_keys:
             idx = alt_keys.index(key)
-            # Map WASD back to the shifted arrow keys
             return keys[(idx + shift) % 4]
 
         return key
@@ -379,12 +375,12 @@ class Level4(BaseLevel):
         """Flash a warning right before the screen spins."""
         time_left = 4.0 - self.spin_timer
         
-        # In the last 1 second before a spin, flash a warning
+        #Warn user 1 second before spin.
         if time_left < 1.0:
             if int(time_left * 10) % 2 == 0:
                 arcade.draw_text(
                     "SHIFTING!",
-                    game.width * 0.5,
+                    game.width * 0.59,
                     game.height * 0.8,
                     arcade.color.YELLOW,
                     font_size=30,

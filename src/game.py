@@ -63,7 +63,7 @@ class GameWindow(arcade.View):
 
         self.config_parser = ConfigParser()
         self.level_factory = LevelFactory()
-        self.level = level
+        self.level = 4
         self.score = score
         # self.seed = seed
         self.walls_hidden = False
@@ -189,6 +189,8 @@ class GameWindow(arcade.View):
         self.vectory = None
         self.shatter_particles: list[ShatterParticle] = []
         self.camera = arcade.Camera2D()
+        self.ui_camera = arcade.Camera2D()
+        self.spin_camera = arcade.Camera2D()
         self.floating_scores = []
 
         self.shake_time = 0.0
@@ -213,6 +215,9 @@ class GameWindow(arcade.View):
         self.trail_particles: list[TrailParticle] = []
         self.trail_timer = 0.0
         self.TRAIL_INTERVAL = 0.04  # Spawns a trail snapshot every 40ms while moving
+
+        self.maze_rect = None
+
 
     def trigger_shake(self, duration, intensity):
         self.shake_time = duration
@@ -390,23 +395,23 @@ class GameWindow(arcade.View):
 
 
     def draw_maze_background(self):
-        maze_width = self.cols * self.cell_size
-        maze_height = self.rows * self.cell_size
+        self.maze_width = self.cols * self.cell_size
+        self.maze_height = self.rows * self.cell_size
         
         arcade.draw_rect_filled(
             arcade.LBWH(
                 self.offset_x,       # Left edge of the maze
                 self.offset_y,       # Bottom edge of the maze
-                maze_width,          # Total maze width
-                maze_height          # Total maze height
+                self.maze_width,          # Total maze width
+                self.maze_height          # Total maze height
             ),
             color=(30, 30, 46, 220))
         arcade.draw_rect_outline(
             arcade.LBWH(
                 self.offset_x,
                 self.offset_y,
-                maze_width + 1,
-                maze_height + 1
+                self.maze_width + 1,
+                self.maze_height + 1
             ),
             color=MOCHA_MAUVE,  # Mauve neon border
             border_width=2
@@ -510,32 +515,14 @@ class GameWindow(arcade.View):
 
     def on_draw(self):
         self.clear()
-        self.camera.position = (self.width / 2 + self.shake_x, self.height / 2 + self.shake_y)
-        self.camera.use()
+
+        if not self.level == 4:
+            camera_angle = 0
+
+        self.ui_camera.position = (self.width / 2, self.height / 2)
+        self.ui_camera.use()
 
         self.draw_background_image()
-        self.draw_maze_background()
-        self.level_obj.draw_effects(self)
-        
-        for i in self.coins_lst:
-            i.draw()
-
-        self.player_list.draw()
-        self.blinky_list.draw()
-        self.pinky_list.draw()
-        self.inky_list.draw()
-        self.clyde_list.draw()
-
-        self.level_obj.draw_top_effects(self)
-
-        if self.player.speed + self.player.current_speed > self.player_speed * 2:
-            for trail in self.trail_particles:
-                trail.draw()
-                
-        for particle in self.shatter_particles:
-            particle.draw()
-        for f in self.floating_scores:
-            f.draw()
 
         self.score_text.text = f"{self.score}"
         self.level_text.text = f"{self.level}"
@@ -546,6 +533,43 @@ class GameWindow(arcade.View):
         self.level_text.draw()
         self.time_text.draw()
 
+        screen_cx = self.width / 2
+        screen_cy = self.height / 2
+
+        maze_cx = self.offset_x + (self.cols * self.cell_size) / 2
+        maze_cy = self.offset_y + (self.rows * self.cell_size) / 2
+
+        angle = getattr(self.level_obj, 'current_angle', 0)
+        self.camera.angle = angle
+
+        dx = maze_cx - screen_cx
+        dy = maze_cy - screen_cy
+
+        rad = math.radians(-angle)
+        rot_dx = dx * math.cos(rad) - dy * math.sin(rad)
+        rot_dy = dx * math.sin(rad) + dy * math.cos(rad)
+
+        self.camera.position = (
+            screen_cx + (dx - rot_dx) + self.shake_x,
+            screen_cy + (dy - rot_dy) + self.shake_y
+        )
+
+        self.camera.use()
+
+        self.draw_maze_background()
+        self.level_obj.draw_effects(self)
+
+        for coin in self.coins_lst:
+            coin.draw()
+
+        self.player_list.draw()
+        self.blinky_list.draw()
+        self.pinky_list.draw()
+        self.inky_list.draw()
+        self.clyde_list.draw()
+
+        self.level_obj.draw_top_effects(self)
+
         if self.debug:
             self.draw_debug()
 
@@ -553,8 +577,21 @@ class GameWindow(arcade.View):
             self.draw_cheat_menu()
 
         if self.pause:
-            arcade.draw_rect_filled(arcade.rect.XYWH(self.width / 2, self.height / 2, self.width, self.height), color=(10, 10, 20, 200))
+            arcade.draw_rect_filled(
+                arcade.rect.XYWH(self.width / 2, self.height / 2, self.width, self.height), 
+                color=(10, 10, 20, 200)
+            )
             self.manager.draw()
+
+        if self.player.speed + self.player.current_speed > self.player_speed * 2:
+            for trail in self.trail_particles:
+                trail.draw()
+                
+        for particle in self.shatter_particles:
+            particle.draw()
+        for f in self.floating_scores:
+            f.draw()
+
 
     def go_to_game_over(self):
         self.shatter_particles.clear()
@@ -627,7 +664,6 @@ class GameWindow(arcade.View):
                     self.player.speed = self.player_speed
 
         self.trail_particles = [t for t in self.trail_particles if t.update(delta_time)]
-
 
         if not self.player.is_dying and self.player.current_dir != (0, 0):
             self.trail_timer += delta_time
