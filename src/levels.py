@@ -171,8 +171,8 @@ class BaseLevel:
         """Draw level-specific visual effects (walls)."""
         game.wall_shapes.draw()
     
-    def key_press(self, key) -> None:
-        pass
+    def key_press(self, key):
+        return key
 
     def draw_top_effects(self, game: Any) -> None:
         """Draw effects that must go over ghosts/coins (e.g., Darkness)."""
@@ -186,20 +186,6 @@ class BaseLevel:
         """Apply a speed multiplier without accumulating it."""
         for ghost in game.ghosts:
             ghost.speed = ghost.og_speed * multiplier
-
-    def draw_message(self, game: Any, text: str) -> None:
-        """Draw a temporary level message."""
-        arcade.draw_text(
-            text,
-            game.width / 2,
-            game.height * 0.92,
-            arcade.color.WHITE,
-            font_size=28,
-            font_name="Handjet",
-            bold=True,
-            anchor_x="center",
-            anchor_y="center",
-        )
 
 
 class Level1(BaseLevel):
@@ -290,53 +276,123 @@ class Level2(BaseLevel):
                 )
             )
             game.window.ctx.scissor = None
-
 class Level3(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
         self.revers_time = 0.0
+
         self.revers_controls = False
 
-    def update(self, delta_time: float) -> None:
+    def update(self, game: Any, delta_time: float) -> None:
+        super().update(game, delta_time)
 
         self.revers_time += delta_time
 
         if self.revers_controls:
-            if self.revers_time >= 4.0:
+            if self.revers_time >= 5.0:
                 self.revers_controls = False
                 self.revers_time = 0.0
         else:
-            if self.revers_time >= 2.5:
+            if self.revers_time >= 2.0:
                 self.revers_controls = True
                 self.revers_time = 0.0
 
-
     def key_press(self, key: int) -> int:
-        """Invert the movement controls."""
+        """Invert the movement controls when active."""
         if key == arcade.key.UP or key == arcade.key.W:
-            return arcade.key.DOWN
+            return arcade.key.DOWN if self.revers_controls else key
         elif key == arcade.key.DOWN or key == arcade.key.S:
-            return arcade.key.UP
+            return arcade.key.UP if self.revers_controls else key
         elif key == arcade.key.LEFT or key == arcade.key.A:
-            return arcade.key.RIGHT
+            return arcade.key.RIGHT if self.revers_controls else key
         elif key == arcade.key.RIGHT or key == arcade.key.D:
-            return arcade.key.LEFT
+            return arcade.key.LEFT if self.revers_controls else key
         
-        # If it's any other key (like F8 for cheats), leave it alone
         return key
 
     def draw_top_effects(self, game: Any) -> None:
-        """Draw a flashing warning text so the player knows what is happening."""
-        # Blink the text every 0.5 seconds based on elapsed time
-        if int(self.time_elapsed * 2) % 2 == 0:
-            self.draw_message(game, "SYSTEM SCRAMBLED: CONTROLS INVERTED!")
+        """Draw a flashing warning text for inverted controls."""
+
+        if self.revers_controls:
+            if int(self.revers_time * 10) % 2 == 0:
+                arcade.draw_text(
+                    "CONTROLS INVERTED!",
+                    game.width * 0.59,
+                    game.height * 0.8,
+                    arcade.color.RED,
+                    font_size=24.0,
+                    font_name="Handjet",
+                    bold=True,
+                    anchor_x="center",
+                    anchor_y="center",
+                )
 
 
 class Level4(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
+        self.spin_timer = 0.0
+        self.current_angle = 0
+
+    def update(self, game: Any, delta_time: float) -> None:
+        super().update(game, delta_time)
+
+        self.spin_timer += delta_time
+        
+        # Every 4 seconds, rotate the screen 90 degrees clockwise
+        if self.spin_timer >= 4.0:
+            self.current_angle += 90
+            
+            # Reset back to 0 if we do a full circle
+            if self.current_angle >= 360:
+                self.current_angle = 0
+                
+            self.spin_timer = 0.0
+
+    def key_press(self, key: int) -> int:
+        """Rotate the controls to match the visual screen rotation."""
+        
+        if self.current_angle == 0:
+            return key
+
+        # Order is strictly clockwise!
+        keys = [arcade.key.UP, arcade.key.RIGHT, arcade.key.DOWN, arcade.key.LEFT]
+        alt_keys = [arcade.key.W, arcade.key.D, arcade.key.S, arcade.key.A]
+
+        # 90 deg = shift 1, 180 deg = shift 2, 270 deg = shift 3
+        shift = self.current_angle // 90
+
+        if key in keys:
+            idx = keys.index(key)
+            return keys[(idx + shift) % 4]
+            
+        elif key in alt_keys:
+            idx = alt_keys.index(key)
+            # Map WASD back to the shifted arrow keys
+            return keys[(idx + shift) % 4]
+
+        return key
+
+    def draw_top_effects(self, game: Any) -> None:
+        """Flash a warning right before the screen spins."""
+        time_left = 4.0 - self.spin_timer
+        
+        # In the last 1 second before a spin, flash a warning
+        if time_left < 1.0:
+            if int(time_left * 10) % 2 == 0:
+                arcade.draw_text(
+                    "SHIFTING!",
+                    game.width * 0.5,
+                    game.height * 0.8,
+                    arcade.color.YELLOW,
+                    font_size=30,
+                    font_name="Handjet",
+                    bold=True,
+                    anchor_x="center",
+                    anchor_y="center",
+                )
 
 
 class Level5(BaseLevel):

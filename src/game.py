@@ -805,7 +805,10 @@ class GameWindow(arcade.View):
 
 
     def on_key_release(self, key, modifiers):
-        key = self.level_obj.handle_key(key)
+        level_key = self.level_obj.key_press(key)
+        if level_key is not None:
+            key = level_key
+
         self.player.on_key_release(key)
 
 
@@ -895,7 +898,10 @@ class GameWindow(arcade.View):
         if self.pause or self.player.is_dying or self.shatter_particles:
             return
 
-        key = self.level_obj.key_press(key)
+        level_key = self.level_obj.key_press(key)
+        if level_key is not None:
+            key = level_key
+
         self.player.on_key_press(key)
 
         if key == arcade.key.F1:
