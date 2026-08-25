@@ -511,19 +511,22 @@ class GameWindow(arcade.View):
                 font_name="Handjet",
                 bold=True
             )
-
-
+    
+    
     def on_draw(self):
         self.clear()
 
-        if not self.level == 4:
-            camera_angle = 0
+        #clear camera angle.
+        if self.level != 4:
+            self.camera.angle = 0
 
+        # Set up the UI camera for drawing UI elements.
         self.ui_camera.position = (self.width / 2, self.height / 2)
         self.ui_camera.use()
 
         self.draw_background_image()
 
+        # Draw the UI elements (score, lives, level, timer) on top of the background.
         self.score_text.text = f"{self.score}"
         self.level_text.text = f"{self.level}"
         self.time_text.text = f"{int(self.timer)}s"
@@ -533,13 +536,14 @@ class GameWindow(arcade.View):
         self.level_text.draw()
         self.time_text.draw()
 
+        # Set up the main camera for drawing the maze.
         screen_cx = self.width / 2
         screen_cy = self.height / 2
 
         maze_cx = self.offset_x + (self.cols * self.cell_size) / 2
         maze_cy = self.offset_y + (self.rows * self.cell_size) / 2
 
-        angle = getattr(self.level_obj, 'current_angle', 0)
+        angle = getattr(self.level_obj, 'current_angle', 0) if self.level == 4 else 0
         self.camera.angle = angle
 
         dx = maze_cx - screen_cx
@@ -556,41 +560,52 @@ class GameWindow(arcade.View):
 
         self.camera.use()
 
+        #draw the maze background and effects.
         self.draw_maze_background()
         self.level_obj.draw_effects(self)
 
+        #draw coins.
         for coin in self.coins_lst:
             coin.draw()
 
+        #draw the player and ghosts.
         self.player_list.draw()
         self.blinky_list.draw()
         self.pinky_list.draw()
         self.inky_list.draw()
         self.clyde_list.draw()
 
+        #draw the top effects of the level (like spinning maze, etc.).
         self.level_obj.draw_top_effects(self)
 
+        #draw debug.
         if self.debug:
             self.draw_debug()
 
+        #draw trail.
+        if self.player.speed + self.player.current_speed > self.player_speed * 2:
+            for trail in self.trail_particles:
+                trail.draw()
+        
+        #draw shatter particles and floating scores.
+        for particle in self.shatter_particles:
+            particle.draw()
+        for f in self.floating_scores:
+            f.draw()
+
+        self.ui_camera.use()
+
+        #draw cheat menu.
         if self.cheat_menu:
             self.draw_cheat_menu()
 
+        #draw pause menu.
         if self.pause:
             arcade.draw_rect_filled(
                 arcade.rect.XYWH(self.width / 2, self.height / 2, self.width, self.height), 
                 color=(10, 10, 20, 200)
             )
             self.manager.draw()
-
-        if self.player.speed + self.player.current_speed > self.player_speed * 2:
-            for trail in self.trail_particles:
-                trail.draw()
-                
-        for particle in self.shatter_particles:
-            particle.draw()
-        for f in self.floating_scores:
-            f.draw()
 
 
     def go_to_game_over(self):
