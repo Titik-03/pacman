@@ -395,6 +395,63 @@ class Level5(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
+        self.input_text = ""
+        self.flash_time = 0.0
+    
+    def update(self, game: Any, delta_time: float) -> None:
+        super().update(game, delta_time)
+
+        self.flash_time += delta_time
+
+        if self.flash_time >= 1.0:
+            self.flash_time = 0.0
+
+    def key_press(self, key: int, game: Any) -> None:
+
+        if game.player.is_dying:
+            return
+
+        #Return the direction based on the typed command.
+        if key == arcade.key.ENTER or key == arcade.key.RETURN:
+            cmd = self.input_text.strip().lower()
+
+            if cmd == "up" or cmd == "UP":
+                game.player.queue_direction((0, 1))
+            elif cmd == "down" or cmd == "DOWN":
+                game.player.queue_direction((0, -1))
+            elif cmd == "left" or cmd == "LEFT":
+                game.player.queue_direction((-1, 0))
+            elif cmd == "right" or cmd == "RIGHT":
+                game.player.queue_direction((1, 0))
+
+            # Reset input box.
+            self.input_text = ""
+
+        #Delete the last character.
+        elif key == arcade.key.BACKSPACE:
+            self.input_text = self.input_text[:-1]
+
+    def on_text(self, text: str) -> None:
+        """Collect letters typed by the user."""
+        if text.isalpha() and len(self.input_text) < 10:
+            self.input_text += text
+
+    def draw_top_effects(self, game: Any) -> None:
+        """Draw the active typing prompt at the top of the UI."""
+        end = "_" if self.flash_time < 0.5 else ""
+        display_str = f"Type to move: {self.input_text.upper()}{end}"
+
+        arcade.draw_text(
+            display_str,
+            game.width * 0.59,
+            game.height * 0.8,
+            arcade.color.CYAN,
+            font_size=20.0,
+            font_name="Handjet",
+            bold=True,
+            anchor_x="center",
+            anchor_y="center",
+        )
 
 
 class Level6(BaseLevel):

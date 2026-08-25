@@ -53,6 +53,11 @@ class Player(arcade.Sprite):
         self.death_timer = 0.0
         self.texture = self.death_animation[0]
         self.angle = 0
+    
+    def queue_direction(self, dir_tuple: tuple[int, int]) -> None:
+        """Sets the queued movement direction directly (used by Level 5 text commands)."""
+        if not self.is_dying:
+            self.queued_dir = dir_tuple
 
     def take_damage(self) -> bool:
         """Removes one life, starts invincibility. Returns True if game over."""

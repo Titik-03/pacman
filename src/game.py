@@ -63,7 +63,7 @@ class GameWindow(arcade.View):
 
         self.config_parser = ConfigParser()
         self.level_factory = LevelFactory()
-        self.level = 4
+        self.level = 5
         self.score = score
         # self.seed = seed
         self.walls_hidden = False
@@ -512,7 +512,10 @@ class GameWindow(arcade.View):
                 bold=True
             )
     
-    
+    def on_text(self, text: str):
+        if hasattr(self.level_obj, 'on_text'):
+            self.level_obj.on_text(text)
+
     def on_draw(self):
         self.clear()
 
@@ -523,18 +526,6 @@ class GameWindow(arcade.View):
         # Set up the UI camera for drawing UI elements.
         self.ui_camera.position = (self.width / 2, self.height / 2)
         self.ui_camera.use()
-
-        self.draw_background_image()
-
-        # Draw the UI elements (score, lives, level, timer) on top of the background.
-        self.score_text.text = f"{self.score}"
-        self.level_text.text = f"{self.level}"
-        self.time_text.text = f"{int(self.timer)}s"
-
-        self.score_text.draw()
-        self.draw_hearts()
-        self.level_text.draw()
-        self.time_text.draw()
 
         # Set up the main camera for drawing the maze.
         screen_cx = self.width / 2
@@ -559,6 +550,18 @@ class GameWindow(arcade.View):
         )
 
         self.camera.use()
+
+        self.draw_background_image()
+
+        # Draw the UI elements (score, lives, level, timer) on top of the background.
+        self.score_text.text = f"{self.score}"
+        self.level_text.text = f"{self.level}"
+        self.time_text.text = f"{int(self.timer)}s"
+
+        self.score_text.draw()
+        self.draw_hearts()
+        self.level_text.draw()
+        self.time_text.draw()
 
         #draw the maze background and effects.
         self.draw_maze_background()
@@ -856,7 +859,11 @@ class GameWindow(arcade.View):
 
 
     def on_key_release(self, key, modifiers):
-        level_key = self.level_obj.key_press(key)
+        if self.level == 5 and hasattr(self.level_obj, 'key_press'):
+            self.level_obj.key_press(key, self)
+            return
+        else:
+            level_key = self.level_obj.key_press(key)
         if level_key is not None:
             key = level_key
 
@@ -949,12 +956,6 @@ class GameWindow(arcade.View):
         if self.pause or self.player.is_dying or self.shatter_particles:
             return
 
-        level_key = self.level_obj.key_press(key)
-        if level_key is not None:
-            key = level_key
-
-        self.player.on_key_press(key)
-
         if key == arcade.key.F1:
             self.cheat_menu = (not self.cheat_menu)
 
@@ -991,6 +992,15 @@ class GameWindow(arcade.View):
         if key == arcade.key.F8:
             if self.cheat_menu:
                 self.go_to_vectory()
+
+        if hasattr(self.level_obj, 'key_press'):
+            if self.level == 5:
+                self.level_obj.key_press(key, self)
+                return
+            else:
+                key = self.level_obj.key_press(key)
+
+        self.player.on_key_press(key)
 
 
             
