@@ -63,7 +63,7 @@ class GameWindow(arcade.View):
 
         self.config_parser = ConfigParser()
         self.level_factory = LevelFactory()
-        self.level = 6
+        self.level = 7
         self.score = score
         # self.seed = seed
         self.walls_hidden = False
@@ -767,7 +767,6 @@ class GameWindow(arcade.View):
             self.ghosts_chase_player(delta_time)
         self.check_ghost_collisions()
 
-
         for coin in self.coins_lst:
             if not coin.is_eaten:
                 distance = math.hypot(self.player.center_x - coin.x, self.player.center_y - coin.y)
@@ -858,11 +857,11 @@ class GameWindow(arcade.View):
 
 
     def on_key_release(self, key, modifiers):
-        if self.level == 5 and hasattr(self.level_obj, 'key_press'):
-            self.level_obj.key_press(key, self)
+        if self.level == 5 and hasattr(self.level_obj, 'key_release'):
+            self.level_obj.key_release(key, self)
             return
         else:
-            level_key = self.level_obj.key_press(key)
+            level_key = self.level_obj.key_release(key, self)
         if level_key is not None:
             key = level_key
 
