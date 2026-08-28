@@ -454,10 +454,93 @@ class Level5(BaseLevel):
         )
 
 
+"""Level 6: Minecraft-style Rubberband Lag Level Sabotage."""
+
+from typing import Any
+import arcade
+from src.levels import BaseLevel  # Adjust import based on your project structure
+
+
+"""Level 6: Minecraft Rubberband Lag Sabotage."""
+
+import math
+from typing import Any
+import arcade
+from src.levels import BaseLevel  # Adjust import based on your project structure
+
+
 class Level6(BaseLevel):
+    """Tracks player grid positions and rubberbands him back to a previous cell when moving."""
 
     def __init__(self, config: dict[str, Any]) -> None:
+        """Initialize timing parameters and position anchor trackers."""
         super().__init__(config)
+        self.normal_duration: float = 5.0
+        self.lag_duration: float = 1.5
+        self.cycle_length: float = self.normal_duration + self.lag_duration
+
+        self.timer: float = 0.0
+        self.is_lagging: bool = False
+
+        #saved coords.
+        self.lag_anchor_x: float = 0.0
+        self.lag_anchor_y: float = 0.0
+
+    def update(self, game: Any, delta_time: float) -> None:
+        """Update cycle timers and continuously pull Pac-Man back to the anchor cell during lag spikes."""
+        self.timer += delta_time
+        current_cycle_time = self.timer % self.cycle_length
+
+        #Check if inside the 1.5-second lag window.
+        if current_cycle_time >= self.normal_duration:
+            if not self.is_lagging:
+                self.is_lagging = True
+                #Lock in Pac-Man's exact cell location the instant lag starts.
+                self.lag_anchor_x = game.player.center_x
+                self.lag_anchor_y = game.player.center_y
+
+            #get the distance between Pac-Man's current position and the anchor position.
+            dist_from_anchor = math.hypot(
+                game.player.center_x - self.lag_anchor_x,
+                game.player.center_y - self.lag_anchor_y,
+            )
+
+            #Teleport pacman back.
+            if dist_from_anchor > 15.0:
+                game.player.center_x = self.lag_anchor_x
+                game.player.center_y = self.lag_anchor_y
+
+        else:
+            #Return to normal.
+            self.is_lagging = False
+
+    def draw_top_effects(self, game: Any) -> None:
+        """Render high ping / rubberband warning overlay on screen."""
+        current_cycle_time = self.timer % self.cycle_length
+
+        if self.is_lagging:
+            arcade.draw_text(
+                "! CONNECTION LOST: RUBBERBANDING... !",
+                game.width * 0.59,
+                game.height * 0.8,
+                arcade.color.RED,
+                font_size=20,
+                font_name="Handjet",
+                anchor_x="center",
+                bold=True,
+            )
+        else:
+            time_left = max(0.0, self.normal_duration - current_cycle_time)
+            arcade.draw_text(
+                f"PING: 28ms (LAG SPIKE IN {time_left:.1f}s)",
+                game.width * 0.59,
+                game.height * 0.8,
+                arcade.color.GREEN,
+                font_size=18,
+                font_name="Handjet",
+                anchor_x="center",
+                bold=True,
+            )
 
 
 class Level7(BaseLevel):

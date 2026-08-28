@@ -63,7 +63,7 @@ class GameWindow(arcade.View):
 
         self.config_parser = ConfigParser()
         self.level_factory = LevelFactory()
-        self.level = 5
+        self.level = 6
         self.score = score
         # self.seed = seed
         self.walls_hidden = False
@@ -731,7 +731,6 @@ class GameWindow(arcade.View):
                     self.respawn_after_death()
             return
 
-
         if self.player.is_dying:
             self.player.update_animation(delta_time)
             if not self.player.is_dying:
@@ -741,7 +740,7 @@ class GameWindow(arcade.View):
                     for _ in range(16)
                 ]
             return
-        
+
         self.level_obj.update(self, delta_time)
 
         if self.collected_coins == self.target_coins:
