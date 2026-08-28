@@ -211,7 +211,7 @@ class GameWindow(arcade.View):
         self.mouse_x = 0.0
         self.mouse_y = 0.0
 
-                # --- Motion Trail State ---
+        # --- Motion Trail State ---
         self.trail_particles: list[TrailParticle] = []
         self.trail_timer = 0.0
         self.TRAIL_INTERVAL = 0.04  # Spawns a trail snapshot every 40ms while moving
@@ -519,15 +519,29 @@ class GameWindow(arcade.View):
     def on_draw(self):
         self.clear()
 
-        #clear camera angle.
+        self.ui_camera.position = (
+            self.width / 2 + self.shake_x, 
+            self.height / 2 + self.shake_y
+        )
+        self.ui_camera.use()
+
+        #Draw the background image FIRST, strictly on the UI layer.
+        self.draw_background_image()
+
+        #Draw the UI text and hearts.
+        self.score_text.text = f"{self.score}"
+        self.level_text.text = f"{self.level}"
+        self.time_text.text = f"{int(self.timer)}s"
+
+        self.score_text.draw()
+        self.draw_hearts()
+        self.level_text.draw()
+        self.time_text.draw()
+
+        #Calculate camera offset and rotation for the maze.
         if self.level != 4:
             self.camera.angle = 0
 
-        # Set up the UI camera for drawing UI elements.
-        self.ui_camera.position = (self.width / 2, self.height / 2)
-        self.ui_camera.use()
-
-        # Set up the main camera for drawing the maze.
         screen_cx = self.width / 2
         screen_cy = self.height / 2
 
@@ -549,60 +563,44 @@ class GameWindow(arcade.View):
             screen_cy + (dy - rot_dy) + self.shake_y
         )
 
+        #use maze camera.
         self.camera.use()
 
-        self.draw_background_image()
-
-        # Draw the UI elements (score, lives, level, timer) on top of the background.
-        self.score_text.text = f"{self.score}"
-        self.level_text.text = f"{self.level}"
-        self.time_text.text = f"{int(self.timer)}s"
-
-        self.score_text.draw()
-        self.draw_hearts()
-        self.level_text.draw()
-        self.time_text.draw()
-
-        #draw the maze background and effects.
+        #Draw the maze background and effects
         self.draw_maze_background()
         self.level_obj.draw_effects(self)
 
-        #draw coins.
+        #Draw coins, player, and ghosts
         for coin in self.coins_lst:
             coin.draw()
 
-        #draw the player and ghosts.
         self.player_list.draw()
         self.blinky_list.draw()
         self.pinky_list.draw()
         self.inky_list.draw()
         self.clyde_list.draw()
 
-        #draw the top effects of the level (like spinning maze, etc.).
+        #Draw top effects (like spinning maze warnings).
         self.level_obj.draw_top_effects(self)
 
-        #draw debug.
         if self.debug:
             self.draw_debug()
 
-        #draw trail.
-        if self.player.speed + self.player.current_speed > self.player_speed * 2:
-            for trail in self.trail_particles:
-                trail.draw()
+        #Draw trail and particles.
+        for trail in self.trail_particles:
+            trail.draw()
         
-        #draw shatter particles and floating scores.
         for particle in self.shatter_particles:
             particle.draw()
         for f in self.floating_scores:
             f.draw()
 
+        #switch ti ui camera for menu.
         self.ui_camera.use()
 
-        #draw cheat menu.
         if self.cheat_menu:
             self.draw_cheat_menu()
 
-        #draw pause menu.
         if self.pause:
             arcade.draw_rect_filled(
                 arcade.rect.XYWH(self.width / 2, self.height / 2, self.width, self.height), 
@@ -683,12 +681,12 @@ class GameWindow(arcade.View):
 
         self.trail_particles = [t for t in self.trail_particles if t.update(delta_time)]
 
-        if not self.player.is_dying and self.player.current_dir != (0, 0):
+        if self.player.current_speed > self.player_speed and not self.player.is_dying and self.player.current_dir != (0, 0):
             self.trail_timer += delta_time
             if self.trail_timer >= self.TRAIL_INTERVAL:
                 self.trail_timer = 0.0
                 
-                # Color: Golden Yellow if powered up / on high combo, else Mauve
+                # Color: Golden Yellow if powered up, else Mauve.
                 trail_color = (249, 226, 175) if self.player.is_powered_up else (203, 166, 247)
                 
                 self.trail_particles.append(
@@ -827,7 +825,7 @@ class GameWindow(arcade.View):
 
 
     def handle_player_hit(self):
-        if self.player.is_dying or self.shatter_particles:
+        if self.player.is_dying or self.shatter_particles or self.player.invincible:
             return
         self.combo_count = 0
         self.combo_timer = 0.0

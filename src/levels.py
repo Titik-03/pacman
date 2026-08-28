@@ -373,7 +373,7 @@ class Level4(BaseLevel):
     def draw_top_effects(self, game: Any) -> None:
         """Flash a warning right before the screen spins."""
         time_left = 4.0 - self.spin_timer
-        
+
         #Warn user 1 second before spin.
         if time_left < 1.0:
             if int(time_left * 10) % 2 == 0:
@@ -539,7 +539,7 @@ class Level7(BaseLevel):
         #Cycle durations in seconds.
         self.green_duration: float = 5.0
         self.yellow_duration: float = 0.75
-        self.red_duration: float = 3.0
+        self.red_duration: float = 1.0
         self.cycle_length: float = self.green_duration + self.yellow_duration + self.red_duration
 
     def key_press(self, key: int, game: Any = None) -> int:
@@ -570,42 +570,37 @@ class Level7(BaseLevel):
         if self.is_braking:
             game.player.speed = 0.0
         else:
-            game.player.speed = game.player_speed 
+            multiplier = (game.combo_count // 10) + 1
+            bonus = 1.0 + min(0.4, (multiplier - 1) * 0.1)
+            game.player.speed = game.player_speed * bonus
 
         #hit pacman if still moving in red light.
-        if self.state == "RED" and not self.is_braking and game.player.current_dir != (0, 0):
+        if self.state == "RED" and not self.is_braking and game.player.current_dir != (0, 0) or game.player.is_powered_up:
             game.handle_player_hit()
 
     def draw_top_effects(self, game: Any) -> None:
 
         center_x = game.width * 0.59
         center_y = game.height * 0.8
-        
-        if self.is_braking:
-            arcade.draw_text(
-                "BRAKING...", 
-                center_x, center_y - 25, 
-                arcade.color.WHITE, 12, anchor_x="center", bold=True
-            )
 
         #draw red light green light.
         if self.state == "GREEN":
             arcade.draw_text(
-                "🟢 GREEN LIGHT: GO!", 
+                "GREEN LIGHT!", 
                 center_x, center_y, 
                 arcade.color.LIME_GREEN, 20, anchor_x="center", bold=True
             )
         elif self.state == "YELLOW":
             arcade.draw_text(
-                "🟡 YELLOW: BRAKE (SPACE)!", 
+                "YELLOW: BRAKE (SPACE)!", 
                 center_x, center_y, 
-                arcade.color.YELLOW, 22, anchor_x="center", bold=True
+                arcade.color.YELLOW, 18, anchor_x="center", bold=True
             )
         elif self.state == "RED":
             arcade.draw_text(
-                "🔴 RED LIGHT: DO NOT MOVE!", 
+                "RED LIGHT!", 
                 center_x, center_y, 
-                arcade.color.RED, 24, anchor_x="center", bold=True
+                arcade.color.RED, 20, anchor_x="center", bold=True
             )
 
 

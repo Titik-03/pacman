@@ -39,6 +39,7 @@ class Player(arcade.Sprite):
         self.frame_duration = 0.08
         self.is_powered_up = False
         self.power_timer = 0.0
+        self.just_took_damage = False
 
         self.lives = 3
         self.invincible = False
@@ -68,6 +69,7 @@ class Player(arcade.Sprite):
         self.is_powered_up = False
         self.power_timer = 0.0
         self.invincible_timer = self.INVINCIBILITY_DURATION
+        self.just_took_damage = True
         return self.lives <= 0
 
     def respawn_at(self, x: float, y: float) -> None:
@@ -86,11 +88,32 @@ class Player(arcade.Sprite):
         self.visible = True
 
     def update_invincibility(self, delta_time: float) -> None:
+
+        if self.is_dying:
+            self.alpha = 255
+            return
+
         if self.invincible:
-            self.invincible_timer -= delta_time
-            if self.invincible_timer <= 0:
-                self.invincible = False
-                self.invincible_timer = 0.0
+
+            if self.just_took_damage:
+                self.invincible_timer -= delta_time
+                
+                #start flashing.
+                if int(self.invincible_timer * 15) % 2 == 0:
+                    self.alpha = 255
+                else:
+                    self.alpha = 0
+                    
+                #stop flashing.
+                if self.invincible_timer <= 0:
+                    self.invincible = False
+                    self.invincible_timer = 0.0
+                    self.just_took_damage = False
+                    self.alpha = 255
+            else:
+                self.alpha = 255
+        else:
+            self.alpha = 255
 
     @staticmethod
     def create_player(
