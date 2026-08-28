@@ -173,14 +173,13 @@ class BaseLevel:
     
     def key_press(self, key):
         return key
+    
+    def key_release(self, key, game: Any) -> None:
+        return key
 
     def draw_top_effects(self, game: Any) -> None:
         """Draw effects that must go over ghosts/coins (e.g., Darkness)."""
         pass
-
-    def handle_key(self, key: int) -> int:
-        """Allow a level to modify player input."""
-        return key
 
     def apply_ghost_speed(self, game: Any, multiplier: float) -> None:
         """Apply a speed multiplier without accumulating it."""
@@ -454,21 +453,6 @@ class Level5(BaseLevel):
         )
 
 
-"""Level 6: Minecraft-style Rubberband Lag Level Sabotage."""
-
-from typing import Any
-import arcade
-from src.levels import BaseLevel  # Adjust import based on your project structure
-
-
-"""Level 6: Minecraft Rubberband Lag Sabotage."""
-
-import math
-from typing import Any
-import arcade
-from src.levels import BaseLevel  # Adjust import based on your project structure
-
-
 class Level6(BaseLevel):
     """Tracks player grid positions and rubberbands him back to a previous cell when moving."""
 
@@ -476,7 +460,7 @@ class Level6(BaseLevel):
         """Initialize timing parameters and position anchor trackers."""
         super().__init__(config)
         self.normal_duration: float = 5.0
-        self.lag_duration: float = 1.5
+        self.lag_duration: float = 1.0
         self.cycle_length: float = self.normal_duration + self.lag_duration
 
         self.timer: float = 0.0
@@ -544,9 +528,85 @@ class Level6(BaseLevel):
 
 
 class Level7(BaseLevel):
+    """Red light Green light."""
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
+        self.timer: float = 0.0
+        self.state: str = "GREEN"
+        self.is_braking: bool = False
+
+        #Cycle durations in seconds.
+        self.green_duration: float = 5.0
+        self.yellow_duration: float = 0.75
+        self.red_duration: float = 3.0
+        self.cycle_length: float = self.green_duration + self.yellow_duration + self.red_duration
+
+    def key_press(self, key: int, game: Any = None) -> int:
+
+        if key == arcade.key.SPACE:
+            self.is_braking = True
+        return key
+
+    def key_release(self, key: int, game: Any = None) -> None:
+
+        if key == arcade.key.SPACE:
+            self.is_braking = False
+
+    def update(self, game: Any, delta_time: float) -> None:
+
+        self.timer += delta_time
+        cycle_time = self.timer % self.cycle_length
+
+        #Update the light.
+        if cycle_time < self.green_duration:
+            self.state = "GREEN"
+        elif cycle_time < self.green_duration + self.yellow_duration:
+            self.state = "YELLOW"
+        else:
+            self.state = "RED"
+
+        #Brake pacman if braking.
+        if self.is_braking:
+            game.player.speed = 0.0
+        else:
+            game.player.speed = game.player_speed 
+
+        #hit pacman if still moving in red light.
+        if self.state == "RED" and not self.is_braking and game.player.current_dir != (0, 0):
+            game.handle_player_hit()
+
+    def draw_top_effects(self, game: Any) -> None:
+
+        center_x = game.width * 0.59
+        center_y = game.height * 0.8
+        
+        if self.is_braking:
+            arcade.draw_text(
+                "BRAKING...", 
+                center_x, center_y - 25, 
+                arcade.color.WHITE, 12, anchor_x="center", bold=True
+            )
+
+        #draw red light green light.
+        if self.state == "GREEN":
+            arcade.draw_text(
+                "🟢 GREEN LIGHT: GO!", 
+                center_x, center_y, 
+                arcade.color.LIME_GREEN, 20, anchor_x="center", bold=True
+            )
+        elif self.state == "YELLOW":
+            arcade.draw_text(
+                "🟡 YELLOW: BRAKE (SPACE)!", 
+                center_x, center_y, 
+                arcade.color.YELLOW, 22, anchor_x="center", bold=True
+            )
+        elif self.state == "RED":
+            arcade.draw_text(
+                "🔴 RED LIGHT: DO NOT MOVE!", 
+                center_x, center_y, 
+                arcade.color.RED, 24, anchor_x="center", bold=True
+            )
 
 
 class Level8(BaseLevel):
