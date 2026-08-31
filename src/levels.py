@@ -605,12 +605,133 @@ class Level7(BaseLevel):
 
 
 class Level8(BaseLevel):
+    """Simon says."""
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
+        self.state: str = "NORMAL"  #NORMAL, WAITING, FROZEN
+        self.timer: float = 0.0
+        
+        self.next_event_time: float = random.uniform(6.0, 10.0)
+        self.reaction_time_limit: float = 3
+        self.freeze_duration: float = 2.0
+        
+        self.current_prompt_text: str = ""
+        self.accepted_keys: list[int] = []
+        self.is_simon: bool = True
+
+        # Define the base directions
+        self.commands = [
+            ("UP", [arcade.key.UP, arcade.key.W]),
+            ("DOWN", [arcade.key.DOWN, arcade.key.S]),
+            ("LEFT", [arcade.key.LEFT, arcade.key.A]),
+            ("RIGHT", [arcade.key.RIGHT, arcade.key.D]),
+        ]
 
     def update(self, game: Any, delta_time: float) -> None:
-        pass
+        """Manage the event cycles and freeze penalties."""
+        if self.state == "NORMAL":
+            self.timer += delta_time
+            if self.timer >= self.next_event_time:
+                self.trigger_simon_says()
+
+        elif self.state == "WAITING":
+            self.timer -= delta_time
+            
+            #time!
+            if self.timer <= 0:
+                #simon said.
+                if self.is_simon:
+                    self.trigger_freeze()
+                #simon did not say.
+                else:
+                    self.state = "NORMAL"
+                    self.timer = 0.0
+                    self.next_event_time = random.uniform(6.0, 10.0)
+
+        elif self.state == "FROZEN":
+            game.player.speed = 0.0
+            self.timer -= delta_time
+            
+            if self.timer <= 0:
+                self.state = "NORMAL"
+                self.timer = 0.0
+                self.next_event_time = random.uniform(6.0, 10.0)
+                
+                #Restore speed with combo.
+                multiplier = (game.combo_count // 10) + 1
+                bonus = 1.0 + min(0.4, (multiplier - 1) * 0.1)
+                game.player.speed = game.player_speed * bonus
+
+    def trigger_simon_says(self) -> None:
+        """Start a random Real or Fake event."""
+        self.state = "WAITING"
+        self.timer = self.reaction_time_limit
+        
+        direction_text, keys = random.choice(self.commands)
+        self.accepted_keys = keys
+        
+        #schoose simon says or not.
+        self.is_simon = random.choice([True, False, True])
+        
+        if self.is_simon:
+            self.current_prompt_text = f"SIMON SAYS: PRESS {direction_text}...!"
+        else:
+            self.current_prompt_text = f"PRESS {direction_text}..!"
+
+    def trigger_freeze(self) -> None:
+        """Punish the player by freezing them."""
+        self.state = "FROZEN"
+        self.timer = self.freeze_duration
+        self.current_prompt_text = "SYSTEM LOCKED..!"
+
+    def key_press(self, key: int, game: Any = None) -> int | None:
+        """Intercept key presses during the event."""
+        
+        if self.state == "WAITING":
+            if self.is_simon:
+                #Simon says.
+                if key in self.accepted_keys:
+                    #SUCCESS: Right key pressed.
+                    self.state = "NORMAL"
+                    self.timer = 0.0
+                    self.next_event_time = random.uniform(6.0, 10.0)
+                    return key
+                else:
+                    #WRONG KEY: Do not freeze yet, just ignore the input.
+                    return None 
+            else:
+                #Simon not says.
+                if key in self.accepted_keys:
+                    self.trigger_freeze()
+                    return None
+                else:
+                    #Pressed a different key. Let them keep playing normally.
+                    return key
+
+        if self.state == "FROZEN":
+            return None
+
+        return key
+
+    def draw_top_effects(self, game: Any) -> None:
+        """Draw the massive UI prompt to the screen."""
+        center_x = game.width * 0.59
+        center_y = game.height * 0.8
+
+        if self.state == "WAITING":
+            if int(self.timer * 10) % 2 == 0:
+                arcade.draw_text(
+                    self.current_prompt_text,
+                    center_x, center_y,
+                    arcade.color.RED, 25, anchor_x="center", bold=True, font_name="Handjet"
+                )
+        elif self.state == "FROZEN":
+            arcade.draw_text(
+                self.current_prompt_text,
+                center_x, center_y,
+                arcade.color.GRAY, 24, anchor_x="center", bold=True, font_name="Handjet"
+            )
 
 
 class Level9(BaseLevel):

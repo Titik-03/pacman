@@ -63,7 +63,7 @@ class GameWindow(arcade.View):
 
         self.config_parser = ConfigParser()
         self.level_factory = LevelFactory()
-        self.level = 7
+        self.level = 8
         self.score = score
         # self.seed = seed
         self.walls_hidden = False
