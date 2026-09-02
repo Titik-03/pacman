@@ -740,14 +740,14 @@ class Level9(BaseLevel):
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
         self.stop_timer: float = 0.0
-        self.grace_period: float = 5.0  # 250ms grace period for hitting walls
+        self.grace_period: float = 1.0
         
         self.previous_lives: int = -1
-        self.ghost_speed_multiplier: float = 1.15  # Ghosts get 15% faster per death
+        self.ghost_speed_multiplier: float = 1.15
 
     def update(self, game: Any, delta_time: float) -> None:
         """Check player movement and scale ghost speeds."""
-        # 1. Initialize or track life count to buff ghosts
+        # Initialize previous_lives on the first update call.
         if self.previous_lives == -1:
             self.previous_lives = game.player.lives
         
@@ -755,15 +755,15 @@ class Level9(BaseLevel):
             self.previous_lives = game.player.lives
             self.increase_ghost_speed(game)
 
-        # Pause the movement penalty if dying or invincible
+        #dont count if pacman is dying or invincible.
         if game.player.is_dying or game.player.invincible:
             self.stop_timer = 0.0
             return
 
-        # 2. Check if Pac-Man is physically moving
+        #is pacman moving.
         if game.player.current_dir == (0, 0) and not game.player.just_started:
             self.stop_timer += delta_time
-            if self.stop_timer >= self.grace_period and not game.player.is_powered_up and not game.player.invincible:
+            if self.stop_timer >= self.grace_period:
                 game.handle_player_hit()
                 self.stop_timer = 0.0
         else:
