@@ -735,12 +735,60 @@ class Level8(BaseLevel):
 
 
 class Level9(BaseLevel):
+    """Pac-Man must never stop moving, and ghosts get faster upon player death."""
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
+        self.stop_timer: float = 0.0
+        self.grace_period: float = 5.0  # 250ms grace period for hitting walls
+        
+        self.previous_lives: int = -1
+        self.ghost_speed_multiplier: float = 1.15  # Ghosts get 15% faster per death
 
     def update(self, game: Any, delta_time: float) -> None:
-        pass
+        """Check player movement and scale ghost speeds."""
+        # 1. Initialize or track life count to buff ghosts
+        if self.previous_lives == -1:
+            self.previous_lives = game.player.lives
+        
+        if game.player.lives < self.previous_lives:
+            self.previous_lives = game.player.lives
+            self.increase_ghost_speed(game)
+
+        # Pause the movement penalty if dying or invincible
+        if game.player.is_dying or game.player.invincible:
+            self.stop_timer = 0.0
+            return
+
+        # 2. Check if Pac-Man is physically moving
+        if game.player.current_dir == (0, 0) and not game.player.just_started:
+            self.stop_timer += delta_time
+            if self.stop_timer >= self.grace_period and not game.player.is_powered_up and not game.player.invincible:
+                game.handle_player_hit()
+                self.stop_timer = 0.0
+        else:
+            self.stop_timer = 0.0
+
+    def increase_ghost_speed(self, game: Any) -> None:
+        """Apply the speed multiplier to all active ghosts."""
+        for ghost in (game.blinky, game.pinky, game.inky, game.clyde):
+            if hasattr(ghost, 'speed'):
+                ghost.speed *= self.ghost_speed_multiplier
+
+    def draw_top_effects(self, game: Any) -> None:
+        """Flash a warning if the player is slowing down."""
+        if self.stop_timer > 0.1 and int(self.stop_timer * 10) % 2 == 0:
+            arcade.draw_text(
+                "RAN KED!",
+                game.width * 0.59,
+                game.height * 0.8,
+                arcade.color.RED,
+                font_size=28,
+                font_name="Handjet",
+                bold=True,
+                anchor_x="center",
+            )
+
 
 
 class Level10(BaseLevel):

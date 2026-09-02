@@ -40,11 +40,13 @@ class Player(arcade.Sprite):
         self.is_powered_up = False
         self.power_timer = 0.0
         self.just_took_damage = False
+        self.just_started = True
+        self.damage_invincibility_duration = 2.0
 
         self.lives = 3
         self.invincible = False
         self.invincible_timer = 0.0
-        self.INVINCIBILITY_DURATION = 2.0
+        # self.INVINCIBILITY_DURATION = 2.0
         self.current_speed = self.speed
 
     def start_death_animation(self) -> None:
@@ -68,7 +70,8 @@ class Player(arcade.Sprite):
         self.invincible = True
         self.is_powered_up = False
         self.power_timer = 0.0
-        self.invincible_timer = self.INVINCIBILITY_DURATION
+        self.damage_invincibility_duration = 2.0
+        self.invincible_timer = 2.0
         self.just_took_damage = True
         return self.lives <= 0
 
@@ -86,6 +89,7 @@ class Player(arcade.Sprite):
         self.texture = self.animation_frames[0]
         self.angle = 0
         self.visible = True
+        self.just_started = True
 
     def update_invincibility(self, delta_time: float) -> None:
 
@@ -94,10 +98,9 @@ class Player(arcade.Sprite):
             return
 
         if self.invincible:
+            self.invincible_timer -= delta_time
 
             if self.just_took_damage:
-                self.invincible_timer -= delta_time
-                
                 #start flashing.
                 if int(self.invincible_timer * 15) % 2 == 0:
                     self.alpha = 255
@@ -112,6 +115,8 @@ class Player(arcade.Sprite):
                     self.alpha = 255
             else:
                 self.alpha = 255
+                self.invincible = False
+                self.invincible_timer = 0.0
         else:
             self.alpha = 255
 
@@ -133,12 +138,17 @@ class Player(arcade.Sprite):
             return
         if key == arcade.key.UP or key == arcade.key.W:
             self.queued_dir = (0, 1)
+            self.just_started = False
         elif key == arcade.key.DOWN or key == arcade.key.S:
             self.queued_dir = (0, -1)
+            self.just_started = False
         elif key == arcade.key.LEFT or key == arcade.key.A:
             self.queued_dir = (-1, 0)
+            self.just_started = False
         elif key == arcade.key.RIGHT or key == arcade.key.D:
             self.queued_dir = (1, 0)
+            self.just_started = False
+
 
     def on_key_release(self, key: int):
         pass
@@ -226,6 +236,12 @@ class Player(arcade.Sprite):
 
 
         self.update_invincibility(delta_time)
+
+        self.damage_invincibility_duration -= delta_time
+        if self.damage_invincibility_duration <= 0:
+            self.damage_invincibility_duration = 0.0
+            self.just_took_damage = False
+        
 
 
         self.current_speed = self.speed * 1.6 if self.is_powered_up else self.speed

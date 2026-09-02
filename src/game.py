@@ -55,7 +55,7 @@ class GameWindow(arcade.View):
                  width=None,
                  height=None,
                  fullscreen=True
-                 ) -> None:
+                ) -> None:
 
         super().__init__()
         arcade.set_background_color((10, 10, 30))
@@ -63,7 +63,7 @@ class GameWindow(arcade.View):
 
         self.config_parser = ConfigParser()
         self.level_factory = LevelFactory()
-        self.level = 8
+        self.level = level
         self.score = score
         # self.seed = seed
         self.walls_hidden = False
@@ -840,7 +840,9 @@ class GameWindow(arcade.View):
         self.player.visible = True
         self.player.respawn_at(self.player_spawn_x, self.player_spawn_y)
         self.player.invincible = True
-        self.player.invincible_timer = self.player.INVINCIBILITY_DURATION
+        self.player.invincible_timer = 2.0
+        self.player.just_took_damage = True
+        self.player.damage_invincibility_duration = 2.0
 
         for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
             if ghost.state == "EATEN":
@@ -958,12 +960,12 @@ class GameWindow(arcade.View):
         if key == arcade.key.F2:
             if self.cheat_menu:
                 self.player.invincible = (not self.player.invincible)
-                self.player.invincible_timer = 9999999999 if self.player.invincible else 0
+                self.player.invincible_timer = 9999999999999999 if self.player.invincible else 0
 
         if key == arcade.key.F3:
             if self.cheat_menu:
                 self.player.is_powered_up = (not self.player.is_powered_up)
-                self.player.power_timer = 9999999999 if self.player.is_powered_up else 0
+                self.player.power_timer = 99999999999999999 if self.player.is_powered_up else 0
 
         if key == arcade.key.F4:
             if self.cheat_menu:
