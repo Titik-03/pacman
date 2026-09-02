@@ -5,6 +5,7 @@ import arcade
 import arcade.gui
 from src.score import Score
 from src.loading import LoadingView
+from src.sound_manager import SoundManager
 
 
 class Vectory(arcade.View):
@@ -34,6 +35,7 @@ class Vectory(arcade.View):
         self.seed = seed
 
     def go_to_next_level(self):
+        SoundManager.get().play_sfx("menu_select")
         if self.next_level <= 10:
             loading_view = LoadingView(
                 self.window,
@@ -47,6 +49,7 @@ class Vectory(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.BLACK_OLIVE)
+        SoundManager.get().play_sfx("level_clear")
 
         self.manager.enable()
 
@@ -60,6 +63,8 @@ class Vectory(arcade.View):
             text_color=arcade.color.YELLOW,
             font_name="Handjet",
             bold=True,
+            anchor_x="center",
+            align="center",
         )
         box.add(score_label)
 
@@ -76,6 +81,7 @@ class Vectory(arcade.View):
             menu_btn = arcade.gui.UIFlatButton(text="MAIN MENU", width=260, height=50)
             @menu_btn.event("on_click")
             def on_click_menu(event):
+                SoundManager.get().play_sfx("menu_select")
                 self.window.show_view(self.main_menu)
 
             box.add(menu_btn)
@@ -85,6 +91,8 @@ class Vectory(arcade.View):
                 font_size=22,
                 text_color=arcade.color.WHITE,
                 font_name="Handjet",
+                anchor_x="center",
+                align="center",
             )
             box.add(name_label)
 
@@ -96,6 +104,7 @@ class Vectory(arcade.View):
             submit_btn = arcade.gui.UIFlatButton(text="Confirm & Exit", width=220)
             @submit_btn.event("on_click")
             def on_click_submit(event):
+                SoundManager.get().play_sfx("menu_select")
                 player_name = self.input_field.text.strip() if self.input_field else ""
                 if player_name:
                     self.score_class.write_score(player_name, self.score)

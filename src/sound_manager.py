@@ -6,19 +6,19 @@ class SoundManager:
 
     def __init__(self):
         self.sfx = {
-            "coin":        arcade.load_sound("src/assets/sfx/coin.wav"),
-            "power_pellet": arcade.load_sound("src/assets/sfx/power_pellet.wav"),
-            "ghost_eaten": arcade.load_sound("src/assets/sfx/ghost_eaten.wav"),
-            "death":       arcade.load_sound("src/assets/sfx/death.wav"),
-            "menu_select": arcade.load_sound("src/assets/sfx/menu_select.wav"),
-            "level_clear": arcade.load_sound("src/assets/sfx/level_clear.wav"),
-            "game_over":   arcade.load_sound("src/assets/sfx/game_over.wav"),
+            "coin":        arcade.load_sound("src/assets/coin.wav"),
+            "power_pellet": arcade.load_sound("src/assets/powerup.wav"),
+            "ghost_eaten": arcade.load_sound("src/assets/ghost_eaten.wav"),
+            "death":       arcade.load_sound("src/assets/death.wav"),
+            "menu_select": arcade.load_sound("src/assets/menu_select.wav"),
+            "level_clear": arcade.load_sound("src/assets/level_clear.wav"),
+            "game_over":   arcade.load_sound("src/assets/game_over.wav"),
         }
 
         self.music = {
-            "menu":       arcade.load_sound("src/assets/music/menu_theme.wav", streaming=True),
-            "gameplay":   arcade.load_sound("src/assets/music/gameplay_theme.wav", streaming=True),
-            "power_up":   arcade.load_sound("src/assets/music/power_up_theme.wav", streaming=True),
+            "menu":       arcade.load_sound("src/assets/menu_ost.wav", streaming=True),
+            "gameplay":   arcade.load_sound("src/assets/main_ost.wav", streaming=True),
+            "power_up":   arcade.load_sound("src/assets/powerup.wav", streaming=True),
         }
 
         self.sfx_volume = 0.8
@@ -44,7 +44,7 @@ class SoundManager:
         sound = self.music.get(name)
         if sound:
             self._current_music_player = arcade.play_sound(
-                sound, volume=self.music_volume, looping=loop
+                sound, volume=self.music_volume, loop=loop
             )
             self._current_music_name = name
 
