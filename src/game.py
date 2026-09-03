@@ -935,7 +935,7 @@ class GameWindow(arcade.View):
         key = self.level_obj.handle_key(key)
         self.player.on_key_press(key)
 
-        if key == arcade.key.B:
+        if key == arcade.key.F1:
             self.cheat_menu = (not self.cheat_menu)
 
         if key == arcade.key.F2:

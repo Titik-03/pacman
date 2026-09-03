@@ -26,13 +26,16 @@ class Vectory(arcade.View):
         self.x_center = self.width / 2
         self.y_center = self.height / 2
 
-        self.manager = arcade.gui.UIManager()
         self.score = score
         self.score_class = Score()
         self.next_level = next_level
         self.lives = lives
         self.input_field = None
         self.seed = seed
+        self.background = arcade.load_texture("src/assets/bgv.png")
+        self.x = 0
+        self.y = 0
+        
 
     def go_to_next_level(self):
         SoundManager.get().play_sfx("menu_select")
@@ -47,96 +50,39 @@ class Vectory(arcade.View):
             )
             self.window.show_view(loading_view)
 
-    def on_show_view(self):
-        arcade.set_background_color(arcade.color.BLACK_OLIVE)
-        SoundManager.get().play_sfx("level_clear")
-
-        self.manager.enable()
-
-        #Build layout.
-        layout = arcade.gui.UIAnchorLayout()
-        box = arcade.gui.UIBoxLayout(space_between=20)
-
-        score_label = arcade.gui.UILabel(
-            text=f"Current Score: {self.score}",
-            font_size=28,
-            text_color=arcade.color.YELLOW,
-            font_name="Handjet",
-            bold=True,
-            anchor_x="center",
-            align="center",
-        )
-        box.add(score_label)
-
-        if self.next_level <= 10:
-            next_btn = arcade.gui.UIFlatButton(
-                text=f"NEXT LEVEL ({self.next_level})", width=260, height=60
-            )
-            @next_btn.event("on_click")
-            def on_click_next(event):
-                self.go_to_next_level()
-
-            box.add(next_btn)
-
-            menu_btn = arcade.gui.UIFlatButton(text="MAIN MENU", width=260, height=50)
-            @menu_btn.event("on_click")
-            def on_click_menu(event):
-                SoundManager.get().play_sfx("menu_select")
-                self.window.show_view(self.main_menu)
-
-            box.add(menu_btn)
-        else:
-            name_label = arcade.gui.UILabel(
-                text="Enter your name for High Score:",
-                font_size=22,
-                text_color=arcade.color.WHITE,
-                font_name="Handjet",
-                anchor_x="center",
-                align="center",
-            )
-            box.add(name_label)
-
-            self.input_field = arcade.gui.UIInputText(
-                width=280, height=45, font_size=20
-            )
-            box.add(self.input_field)
-
-            submit_btn = arcade.gui.UIFlatButton(text="Confirm & Exit", width=220)
-            @submit_btn.event("on_click")
-            def on_click_submit(event):
-                SoundManager.get().play_sfx("menu_select")
-                player_name = self.input_field.text.strip() if self.input_field else ""
-                if player_name:
-                    self.score_class.write_score(player_name, self.score)
-                    self.window.show_view(self.main_menu)
-
-            box.add(submit_btn)
-
-        layout.add(box, anchor_x="center_x", anchor_y="center_y")
-        self.manager.add(layout)
-
-    def on_hide_view(self):
-        self.manager.disable()
-
     def on_draw(self):
         self.clear()
-        title_text = (
-            f"LEVEL {self.next_level - 1} CLEARED!"
-            if self.next_level <= 10
-            else "VICTORY! GAME COMPLETE!"
-        )
+        arcade.draw_texture_rect(
+            self.background,
+            arcade.LBWH(
+                0,
+                0,
+                self.window.width,
+                self.window.height,
+        ))
         arcade.draw_text(
-            title_text,
-            self.x_center,
-            self.y_center + 260,
+            self.score,
+            self.x_center + 15,
+            1020,
             arcade.color.GOLD,
-            font_size=60,
+            font_size=40,
             font_name="Handjet",
             bold=True,
             anchor_x="center",
             anchor_y="center",
         )
-        self.manager.draw()
+        arcade.draw_text(
+            f"{self.x}, {self.y}",
+            10,
+            10,
+            arcade.color.BLACK,
+            font_size=60,
+            font_name="Handjet",
+            bold=True,
+            anchor_x="left",
+            anchor_y="bottom",
+        )
+        
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ENTER:
@@ -148,6 +94,14 @@ class Vectory(arcade.View):
                     self.score_class.write_score(player_name, self.score)
                     self.window.show_view(self.main_menu)
 
-                
+    def on_mouse_press(self, x, y, button, modifiers):
+        if 764 <= x <= 1167:
+            if 373 >= y >= 311:
+                self.go_to_next_level()
+            elif 273 >= y >= 211:
+                SoundManager.get().play_sfx("menu_select")
+                self.window.show_view(self.main_menu)
 
-
+    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> bool | None:
+        self.x = x
+        self.y = y

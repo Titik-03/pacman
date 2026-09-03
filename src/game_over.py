@@ -6,7 +6,6 @@ from src.score import Score
 from src.sound_manager import SoundManager
 import pathlib
 
-#game over view prototype.
 class GameOver(arcade.View):
     def __init__(self, window: arcade.Window, main_menu: arcade.View, score: int):
         super().__init__()
