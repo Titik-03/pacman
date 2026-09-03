@@ -56,7 +56,7 @@ class GameWindow(arcade.View):
                  width=None,
                  height=None,
                  fullscreen=True
-                 ) -> None:
+                ) -> None:
 
         super().__init__()
         arcade.set_background_color((10, 10, 30))
@@ -194,6 +194,8 @@ class GameWindow(arcade.View):
         self.vectory = None
         self.shatter_particles: list[ShatterParticle] = []
         self.camera = arcade.Camera2D()
+        self.ui_camera = arcade.Camera2D()
+        self.spin_camera = arcade.Camera2D()
         self.floating_scores = []
 
         self.shake_time = 0.0
@@ -214,12 +216,13 @@ class GameWindow(arcade.View):
         self.mouse_x = 0.0
         self.mouse_y = 0.0
 
+                # --- Motion Trail State ---
         self.trail_particles: list[TrailParticle] = []
         self.trail_timer = 0.0
-        self.TRAIL_INTERVAL = 0.04 
+        self.TRAIL_INTERVAL = 0.04
         self.shock = []
         self.coin_sparkles = []
-    
+
     def trigger_shake(self, duration, intensity):
         self.shake_time = duration
         self.shake_intensity = intensity
@@ -403,23 +406,23 @@ class GameWindow(arcade.View):
         )
 
     def draw_maze_background(self):
-        maze_width = self.cols * self.cell_size
-        maze_height = self.rows * self.cell_size
+        self.maze_width = self.cols * self.cell_size
+        self.maze_height = self.rows * self.cell_size
         
         arcade.draw_rect_filled(
             arcade.LBWH(
                 self.offset_x,       # Left edge of the maze
                 self.offset_y,       # Bottom edge of the maze
-                maze_width,          # Total maze width
-                maze_height          # Total maze height
+                self.maze_width,          # Total maze width
+                self.maze_height          # Total maze height
             ),
             color=(30, 30, 46, 220))
         arcade.draw_rect_outline(
             arcade.LBWH(
                 self.offset_x,
                 self.offset_y,
-                maze_width + 1,
-                maze_height + 1
+                self.maze_width + 1,
+                self.maze_height + 1
             ),
             color=MOCHA_MAUVE,  # Mauve neon border
             border_width=2
@@ -519,38 +522,25 @@ class GameWindow(arcade.View):
                 font_name="Handjet",
                 bold=True
             )
-
+    
+    def on_text(self, text: str):
+        if hasattr(self.level_obj, 'on_text'):
+            self.level_obj.on_text(text)
 
     def on_draw(self):
         self.clear()
-        self.camera.position = (self.width/2 + self.shake_x, self.height/2 + self.shake_y)
-        self.camera.use()
+
+        self.ui_camera.position = (
+            self.width / 2 + self.shake_x, 
+            self.height / 2 + self.shake_y
+        )
+        self.ui_camera.use()
+
+        #Draw the background image FIRST, strictly on the UI layer.
         self.draw_background_image()
         self.draw_ability()
-        self.draw_maze_background()
         for shockwave in self.shock:
             shockwave.draw()
-        self.level_obj.draw_effects(self)
-        for i in self.coins_lst:
-            i.draw()
-        if self.player.speed + self.player.current_speed > self.player_speed * 2:
-
-            for trail in self.trail_particles:
-                trail.draw()
-
-        self.player_list.draw()
-        self.blinky_list.draw()
-        self.pinky_list.draw()
-        self.inky_list.draw()
-        self.clyde_list.draw()
-        for sparkle in self.coin_sparkles:
-            sparkle.draw()
-        for particle in self.shatter_particles:
-            particle.draw()
-        for f in self.floating_scores:
-            f.draw()
-        
-
         self.score_text.text = f"{self.score}"
         self.level_text.text = f"{self.level}"
         self.time_text.text = f"{int(self.timer)}s"
@@ -559,23 +549,75 @@ class GameWindow(arcade.View):
         self.level_text.draw()
         self.time_text.draw()
 
+        #Calculate camera offset and rotation for the maze.
+        if self.level != 4:
+            self.camera.angle = 0
+
+        screen_cx = self.width / 2
+        screen_cy = self.height / 2
+
+        maze_cx = self.offset_x + (self.cols * self.cell_size) / 2
+        maze_cy = self.offset_y + (self.rows * self.cell_size) / 2
+
+        angle = getattr(self.level_obj, 'current_angle', 0) if self.level == 4 else 0
+        self.camera.angle = angle
+
+        dx = maze_cx - screen_cx
+        dy = maze_cy - screen_cy
+
+        rad = math.radians(-angle)
+        rot_dx = dx * math.cos(rad) - dy * math.sin(rad)
+        rot_dy = dx * math.sin(rad) + dy * math.cos(rad)
+
+        self.camera.position = (
+            screen_cx + (dx - rot_dx) + self.shake_x,
+            screen_cy + (dy - rot_dy) + self.shake_y
+        )
+
+        #use maze camera.
+        self.camera.use()
+
+        #Draw the maze background and effects
+        self.draw_maze_background()
+        self.level_obj.draw_effects(self)
+
+        #Draw coins, player, and ghosts
+        for coin in self.coins_lst:
+            coin.draw()
+
+        self.player_list.draw()
+        self.blinky_list.draw()
+        self.pinky_list.draw()
+        self.inky_list.draw()
+        self.clyde_list.draw()
+        for sparkle in self.coin_sparkles:
+            sparkle.draw()
+        #Draw top effects (like spinning maze warnings).
+        self.level_obj.draw_top_effects(self)
+
         if self.debug:
             self.draw_debug()
+
+        #Draw trail and particles.
+        for trail in self.trail_particles:
+            trail.draw()
+        
+        for particle in self.shatter_particles:
+            particle.draw()
+        for f in self.floating_scores:
+            f.draw()
+        self.ui_camera.use()
 
         if self.cheat_menu:
             self.draw_cheat_menu()
 
         if self.pause:
             arcade.draw_rect_filled(
-                arcade.rect.XYWH(
-                    self.width / 2,
-                    self.height / 2,
-                    self.width,
-                    self.height
-                ),
+                arcade.rect.XYWH(self.width / 2, self.height / 2, self.width, self.height), 
                 color=(10, 10, 20, 200)
             )
             self.manager.draw()
+
 
     def go_to_game_over(self):
         SoundManager.get().stop_music()
@@ -653,13 +695,12 @@ class GameWindow(arcade.View):
 
         self.trail_particles = [t for t in self.trail_particles if t.update(delta_time)]
 
-
-        if not self.player.is_dying and self.player.current_dir != (0, 0):
+        if self.player.current_speed > self.player_speed and not self.player.is_dying and self.player.current_dir != (0, 0):
             self.trail_timer += delta_time
             if self.trail_timer >= self.TRAIL_INTERVAL:
                 self.trail_timer = 0.0
                 
-                # Color: Golden Yellow if powered up / on high combo, else Mauve
+                # Color: Golden Yellow if powered up, else Mauve.
                 trail_color = (249, 226, 175) if self.player.is_powered_up else (203, 166, 247)
                 
                 self.trail_particles.append(
@@ -702,7 +743,6 @@ class GameWindow(arcade.View):
                     self.respawn_after_death()
             return
 
-
         if self.player.is_dying:
             self.player.update_animation(delta_time)
             if not self.player.is_dying:
@@ -712,7 +752,7 @@ class GameWindow(arcade.View):
                     for _ in range(16)
                 ]
             return
-        
+
         self.level_obj.update(self, delta_time)
 
         if self.collected_coins == self.target_coins:
@@ -738,7 +778,6 @@ class GameWindow(arcade.View):
         if not self.freeze_ghosts:
             self.ghosts_chase_player(delta_time)
         self.check_ghost_collisions()
-
 
         for coin in self.coins_lst:
             if not coin.is_eaten:
@@ -807,7 +846,7 @@ class GameWindow(arcade.View):
 
 
     def handle_player_hit(self):
-        if self.player.is_dying or self.shatter_particles:
+        if self.player.is_dying or self.shatter_particles or self.player.invincible:
             return
         SoundManager.get().play_sfx("death")
         self.combo_count = 0
@@ -823,7 +862,9 @@ class GameWindow(arcade.View):
         self.player.visible = True
         self.player.respawn_at(self.player_spawn_x, self.player_spawn_y)
         self.player.invincible = True
-        self.player.invincible_timer = self.player.INVINCIBILITY_DURATION
+        self.player.invincible_timer = 2.0
+        self.player.just_took_damage = True
+        self.player.damage_invincibility_duration = 2.0
 
         for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
             if ghost.state == "EATEN":
@@ -839,6 +880,14 @@ class GameWindow(arcade.View):
 
 
     def on_key_release(self, key, modifiers):
+        if self.level == 5 and hasattr(self.level_obj, 'key_release'):
+            self.level_obj.key_release(key, self)
+            return
+        else:
+            level_key = self.level_obj.key_release(key, self)
+        if level_key is not None:
+            key = level_key
+
         self.player.on_key_release(key)
 
 
@@ -932,21 +981,18 @@ class GameWindow(arcade.View):
         if self.pause or self.player.is_dying or self.shatter_particles:
             return
 
-        key = self.level_obj.handle_key(key)
-        self.player.on_key_press(key)
-
         if key == arcade.key.F1:
             self.cheat_menu = (not self.cheat_menu)
 
         if key == arcade.key.F2:
             if self.cheat_menu:
                 self.player.invincible = (not self.player.invincible)
-                self.player.invincible_timer = 9999999999 if self.player.invincible else 0
+                self.player.invincible_timer = 9999999999999999 if self.player.invincible else 0
 
         if key == arcade.key.F3:
             if self.cheat_menu:
                 self.player.is_powered_up = (not self.player.is_powered_up)
-                self.player.power_timer = 9999999999 if self.player.is_powered_up else 0
+                self.player.power_timer = 99999999999999999 if self.player.is_powered_up else 0
 
         if key == arcade.key.F4:
             if self.cheat_menu:
@@ -971,6 +1017,15 @@ class GameWindow(arcade.View):
         if key == arcade.key.F8:
             if self.cheat_menu:
                 self.go_to_vectory()
+
+        if hasattr(self.level_obj, 'key_press'):
+            if self.level == 5:
+                self.level_obj.key_press(key, self)
+                return
+            else:
+                key = self.level_obj.key_press(key)
+
+        self.player.on_key_press(key)
 
 
             
