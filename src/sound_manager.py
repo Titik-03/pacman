@@ -13,6 +13,7 @@ class SoundManager:
             "menu_select": arcade.load_sound("src/assets/menu_select.wav"),
             "level_clear": arcade.load_sound("src/assets/level_clear.wav"),
             "game_over":   arcade.load_sound("src/assets/game_over.wav"),
+            "menu_hover":  arcade.load_sound("src/assets/hover.wav")
         }
 
         self.music = {

@@ -70,7 +70,6 @@ class MainMenu(arcade.View):
                     window.height
                 )
             )
-        self.hover_sound = arcade.load_sound("src/assets/COMSE_00.VAG.wav")
 
     def on_update(self, delta_time):
         for particle in self.particles:
@@ -103,7 +102,7 @@ class MainMenu(arcade.View):
                     self.bottom_banner.move_to(self.window.width + 300, -self.window.height - 500)
 
                 if self.hovered != -1:
-                    arcade.play_sound(self.hover_sound)
+                    SoundManager.get().play_sfx("menu_hover")
                 self.last_hovered = self.hovered
 
         self.top_banner.update()
