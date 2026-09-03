@@ -821,7 +821,6 @@ class GameWindow(arcade.View):
             elif (not self.player.invincible) and ghost.can_damage:
                 self.handle_player_hit()
                 break
-            
 
 
     def handle_player_hit(self):
@@ -959,13 +958,15 @@ class GameWindow(arcade.View):
 
         if key == arcade.key.F2:
             if self.cheat_menu:
-                self.player.invincible = (not self.player.invincible)
-                self.player.invincible_timer = 9999999999999999 if self.player.invincible else 0
+                self.player.cheat_invincible = not self.player.cheat_invincible
+                self.player.invincible = self.player.cheat_invincible
+                self.player.invincible_timer = 0 if not self.player.cheat_invincible else 99999999
+                self.player.alpha = 255
 
         if key == arcade.key.F3:
             if self.cheat_menu:
                 self.player.is_powered_up = (not self.player.is_powered_up)
-                self.player.power_timer = 99999999999999999 if self.player.is_powered_up else 0
+                self.player.power_timer = 99999999 if self.player.is_powered_up else 0
 
         if key == arcade.key.F4:
             if self.cheat_menu:

@@ -42,6 +42,7 @@ class Player(arcade.Sprite):
         self.just_took_damage = False
         self.just_started = True
         self.damage_invincibility_duration = 2.0
+        self.cheat_invincible = False
 
         self.lives = 3
         self.invincible = False
@@ -64,7 +65,7 @@ class Player(arcade.Sprite):
 
     def take_damage(self) -> bool:
         """Removes one life, starts invincibility. Returns True if game over."""
-        if self.invincible:
+        if self.invincible or self.cheat_invincible:
             return False
         self.lives -= 1
         self.invincible = True
@@ -94,6 +95,12 @@ class Player(arcade.Sprite):
     def update_invincibility(self, delta_time: float) -> None:
 
         if self.is_dying:
+            self.alpha = 255
+            return
+
+        if self.cheat_invincible:
+            self.invincible = True
+            self.invincible_timer = 0.0
             self.alpha = 255
             return
 

@@ -275,6 +275,8 @@ class Level2(BaseLevel):
                 )
             )
             game.window.ctx.scissor = None
+
+
 class Level3(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
@@ -790,14 +792,157 @@ class Level9(BaseLevel):
             )
 
 
-
 class Level10(BaseLevel):
-    
+    """Combines no-stopping, rubberbanding lag, and inverted controls."""
+
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
+        
+        self.revers_time: float = 0.0
+        self.revers_controls: bool = False
+
+        self.normal_duration: float = 5.0
+        self.lag_duration: float = 1.0
+        self.cycle_length: float = self.normal_duration + self.lag_duration
+        self.lag_timer: float = 0.0
+        self.is_lagging: bool = False
+        self.lag_anchor_x: float = 0.0
+        self.lag_anchor_y: float = 0.0
+
+        self.stop_timer: float = 0.0
+        self.grace_period: float = 1.0
+        self.previous_lives: int = -1
+        self.ghost_speed_multiplier: float = 1.15
 
     def update(self, game: Any, delta_time: float) -> None:
-        pass
+        """Update all three chaotic mechanics simultaneously."""
+
+        if self.previous_lives == -1:
+            self.previous_lives = game.player.lives
+        
+        if game.player.lives < self.previous_lives:
+            self.previous_lives = game.player.lives
+            self.increase_ghost_speed(game)
+
+        #Pause penalties if dying or invincible.
+        if game.player.is_dying or game.player.invincible:
+            self.stop_timer = 0.0
+            return
+
+        #lag.
+        self.lag_timer += delta_time
+        current_cycle_time = self.lag_timer % self.cycle_length
+
+        if current_cycle_time >= self.normal_duration:
+            if not self.is_lagging:
+                self.is_lagging = True
+                self.lag_anchor_x = game.player.center_x
+                self.lag_anchor_y = game.player.center_y
+
+            # Teleport Pac-Man back if he moves too far from the anchor
+            dist_from_anchor = math.hypot(
+                game.player.center_x - self.lag_anchor_x,
+                game.player.center_y - self.lag_anchor_y,
+            )
+            if dist_from_anchor > 15.0:
+                game.player.center_x = self.lag_anchor_x
+                game.player.center_y = self.lag_anchor_y
+        else:
+            self.is_lagging = False
+
+        #invert controls.
+        self.revers_time += delta_time
+        if self.revers_controls:
+            if self.revers_time >= 5.0:
+                self.revers_controls = False
+                self.revers_time = 0.0
+        else:
+            if self.revers_time >= 2.0:
+                self.revers_controls = True
+                self.revers_time = 0.0
+
+        #die if stop moving.
+        just_started = getattr(game.player, 'just_started', False)
+        
+        if game.player.current_dir == (0, 0) and not just_started:
+            self.stop_timer += delta_time
+            if self.stop_timer >= self.grace_period:
+                game.handle_player_hit()
+                self.stop_timer = 0.0
+        else:
+            self.stop_timer = 0.0
+
+    def increase_ghost_speed(self, game: Any) -> None:
+        """Apply the speed multiplier to all active ghosts."""
+        for ghost in (game.blinky, game.pinky, game.inky, game.clyde):
+            if hasattr(ghost, 'speed'):
+                ghost.speed *= self.ghost_speed_multiplier
+
+    def key_press(self, key: int) -> int:
+        """Invert the movement controls when active."""
+        if key == arcade.key.UP or key == arcade.key.W:
+            return arcade.key.DOWN if self.revers_controls else key
+        elif key == arcade.key.DOWN or key == arcade.key.S:
+            return arcade.key.UP if self.revers_controls else key
+        elif key == arcade.key.LEFT or key == arcade.key.A:
+            return arcade.key.RIGHT if self.revers_controls else key
+        elif key == arcade.key.RIGHT or key == arcade.key.D:
+            return arcade.key.LEFT if self.revers_controls else key
+        return key
+
+    def draw_top_effects(self, game: Any) -> None:
+        """Draw all stacked warnings to the screen without overlapping."""
+        
+        if self.revers_controls:
+            if int(self.revers_time * 10) % 2 == 0:
+                arcade.draw_text(
+                    "CONTROLS INVERTED!",
+                    game.width * 0.59,
+                    game.height * 0.8,
+                    arcade.color.RED,
+                    font_size=24.0,
+                    font_name="Handjet",
+                    bold=True,
+                    anchor_x="center",
+                    anchor_y="center",
+                )
+
+        current_cycle_time = self.lag_timer % self.cycle_length
+        if self.is_lagging:
+            arcade.draw_text(
+                "! CONNECTION LOST: RUBBERBANDING... !",
+                game.width * 0.59,
+                game.height * 0.75,  # Offset downwards
+                arcade.color.RED,
+                font_size=20,
+                font_name="Handjet",
+                anchor_x="center",
+                bold=True,
+            )
+        else:
+            time_left = max(0.0, self.normal_duration - current_cycle_time)
+            arcade.draw_text(
+                f"PING: 28ms (LAG SPIKE IN {time_left:.1f}s)",
+                game.width * 0.59,
+                game.height * 0.75,  # Offset downwards
+                arcade.color.GREEN,
+                font_size=18,
+                font_name="Handjet",
+                anchor_x="center",
+                bold=True,
+            )
+
+        if self.stop_timer > 0.1 and int(self.stop_timer * 10) % 2 == 0:
+            arcade.draw_text(
+                "KEEP MOVING!",
+                game.width * 0.59,
+                game.height * 0.70,  # Offset further down
+                arcade.color.RED,
+                font_size=28,
+                font_name="Handjet",
+                bold=True,
+                anchor_x="center",
+            )
 
 
 class LevelFactory:
