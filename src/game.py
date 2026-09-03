@@ -82,6 +82,10 @@ class GameWindow(arcade.View):
         self.rows = len(self.maze)
         self.cols = len(self.maze[0])
         self.background = load_texture("src/assets/Dek.png")
+        self.abilities = [load_texture("src/assets/1.png"),
+                          load_texture("src/assets/4.png"),
+                          load_texture("src/assets/6.png"),
+                          load_texture("src/assets/8.png"),]
 
         # Position maze within the dark left area of Dek.png
         left_area_width = self.width * 0.52
@@ -388,7 +392,14 @@ class GameWindow(arcade.View):
             self.height
         )
     )
-
+    
+    def draw_ability(self):
+        idx = 3 - (10 - self.level) // 3
+        idx = max(0, min(3, idx))
+        arcade.draw_texture_rect(
+            self.abilities[idx],
+            arcade.LBWH(1140, 60, 400, 630)
+        )
 
     def draw_maze_background(self):
         maze_width = self.cols * self.cell_size
@@ -514,6 +525,7 @@ class GameWindow(arcade.View):
         self.camera.position = (self.width/2 + self.shake_x, self.height/2 + self.shake_y)
         self.camera.use()
         self.draw_background_image()
+        self.draw_ability()
         self.draw_maze_background()
 
         self.level_obj.draw_effects(self)
