@@ -3,6 +3,7 @@ import json
 import arcade
 import arcade.gui
 from src.score import Score
+from src.sound_manager import SoundManager
 import pathlib
 
 #game over view prototype.
@@ -25,6 +26,9 @@ class GameOver(arcade.View):
         font_path = SCRIPT_DIR / "assets" / "Handjet" / "static" / "Handjet-Bold.ttf"
         arcade.load_font(str(font_path))
         self.selected_option = 0
+
+    def on_show_view(self):
+        SoundManager.get().play_sfx("game_over")
 
     def on_draw(self):
 
@@ -63,13 +67,16 @@ class GameOver(arcade.View):
     def on_key_press(self, key, modifiers):
         if key in (arcade.key.UP, arcade.key.DOWN, arcade.key.TAB):
             self.selected_option ^= 1
+            SoundManager.get().play_sfx("menu_select")
 
         elif key == arcade.key.ENTER:
+            SoundManager.get().play_sfx("menu_select")
             if name := self.player_name.strip():
                 self.score_class.write_score(name, self.score)
             self.main_menu.new_game(seed=42) if self.selected_option == 0 else self.window.show_view(self.main_menu)
 
         elif key == arcade.key.ESCAPE:
+            SoundManager.get().play_sfx("menu_select")
             self.main_menu.new_game(seed=42)
 
         elif key == arcade.key.BACKSPACE:
@@ -84,6 +91,8 @@ class GameOver(arcade.View):
                 self.score_class.write_score(name, self.score)
 
             if 700 <= y <= 791:
+                SoundManager.get().play_sfx("menu_select")
                 self.main_menu.new_game(seed=42)
             elif 400 <= y <= 492:
+                SoundManager.get().play_sfx("menu_select")
                 self.window.show_view(self.main_menu)

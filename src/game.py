@@ -14,6 +14,7 @@ from src.ghost import Blinky, Pinky, Inky, Clyde
 from src.cheat_menu import CheatMenu
 from src.particle import ShatterParticle, Floating_score, TrailParticle, Shockwave, CoinSparkle
 from src.levels import ConfigParser, LevelFactory
+from src.sound_manager import SoundManager
 
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
@@ -81,6 +82,10 @@ class GameWindow(arcade.View):
         self.rows = len(self.maze)
         self.cols = len(self.maze[0])
         self.background = load_texture("src/assets/Dek.png")
+        self.abilities = [load_texture("src/assets/1.png"),
+                          load_texture("src/assets/4.png"),
+                          load_texture("src/assets/6.png"),
+                          load_texture("src/assets/8.png"),]
 
         # Position maze within the dark left area of Dek.png
         left_area_width = self.width * 0.52
@@ -388,7 +393,14 @@ class GameWindow(arcade.View):
             self.height
         )
     )
-
+    
+    def draw_ability(self):
+        idx = 3 - (10 - self.level) // 3
+        idx = max(0, min(3, idx))
+        arcade.draw_texture_rect(
+            self.abilities[idx],
+            arcade.LBWH(1140, 60, 400, 630)
+        )
 
     def draw_maze_background(self):
         maze_width = self.cols * self.cell_size
@@ -514,6 +526,7 @@ class GameWindow(arcade.View):
         self.camera.position = (self.width/2 + self.shake_x, self.height/2 + self.shake_y)
         self.camera.use()
         self.draw_background_image()
+        self.draw_ability()
         self.draw_maze_background()
         for shockwave in self.shock:
             shockwave.draw()
@@ -565,6 +578,7 @@ class GameWindow(arcade.View):
             self.manager.draw()
 
     def go_to_game_over(self):
+        SoundManager.get().stop_music()
         self.shatter_particles.clear()
         self.player.visible = True
         self.game_over = GameOver(self.window, self.main_menu, self.score)
@@ -572,6 +586,7 @@ class GameWindow(arcade.View):
 
 
     def go_to_vectory(self):
+        SoundManager.get().stop_music()
         self.vectory = Vectory(self.window, self.main_menu, self.score, (self.level + 1), lives=self.player.lives, seed=self.level_obj.seed)
         self.window.show_view(self.vectory)
 
@@ -735,11 +750,13 @@ class GameWindow(arcade.View):
                     if coin.is_powerup:
                         self.score += getattr(self.level_obj, "points_per_super_pacgum", 50)
                         self.player.activate_power_up(self.power_time)
+                        SoundManager.get().play_sfx("power_pellet")
                         self.shock.append(
                             Shockwave(coin.x, coin.y, color=(203, 166, 247))
                         )
                     else:
                         self.score += getattr(self.level_obj, "points_per_pacgum", 10)
+                        SoundManager.get().play_sfx("coin")
                     self.combo_count += 1
                     self.combo_timer = self.combo_limit
                     multiplier = (self.combo_count // 10) + 1
@@ -779,6 +796,7 @@ class GameWindow(arcade.View):
                 self.combo_timer = self.combo_limit
                 self.score += getattr(self.level_obj, "points_per_ghost", 200)
                 ghost.get_hit()
+                SoundManager.get().play_sfx("ghost_eaten")
                 self.floating_scores.append(
                     Floating_score(ghost.center_x, ghost.center_y, "+200", MOCHA_RED)
                 )
@@ -791,6 +809,7 @@ class GameWindow(arcade.View):
     def handle_player_hit(self):
         if self.player.is_dying or self.shatter_particles:
             return
+        SoundManager.get().play_sfx("death")
         self.combo_count = 0
         self.combo_timer = 0.0
         self.player.speed = self.player_speed
@@ -824,7 +843,7 @@ class GameWindow(arcade.View):
 
 
     def on_show_view(self):
-
+        SoundManager.get().play_music("gameplay", loop=True)
         self.manager.enable()
 
         menu_elements = arcade.gui.UIBoxLayout(space_between=40)
@@ -873,10 +892,13 @@ class GameWindow(arcade.View):
         @resume_game.event("on_click")
         def on_click_start(event):
             #This is the action! Swap from current menu view to game view.
+            SoundManager.get().play_sfx("menu_select")
             self.pause = False
 
         @quit_game.event("on_click")
         def on_click_quit(event):
+            SoundManager.get().play_sfx("menu_select")
+            SoundManager.get().stop_music()
             self.window.show_view(self.main_menu)
             self.pause = False
 
@@ -895,7 +917,8 @@ class GameWindow(arcade.View):
 
 
     def on_hide_view(self):
-            self.manager.disable()
+        SoundManager.get().stop_music()
+        self.manager.disable()
 
 
     def on_key_press(self, key, modifiers):

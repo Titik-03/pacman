@@ -10,6 +10,7 @@ from src.loading import LoadingView
 from src.banner import Banner
 from src.menu_item import MenuItem
 from src.particle import Particle
+from src.sound_manager import SoundManager
 
 
 # Main menu view.
@@ -140,6 +141,8 @@ class MainMenu(arcade.View):
             self.menu_items[self.hovered].hovered = True
 
         if key == arcade.key.ENTER:
+            if self.hovered != -1:
+                SoundManager.get().play_sfx("menu_select")
             if self.hovered == 0:
                 loading_view = LoadingView(self.window, self, level=1)
                 self.window.show_view(loading_view)
@@ -175,9 +178,11 @@ class MainMenu(arcade.View):
             self.show_highscore = False
             self.hovered = -1
             self.last_hovered = 999
+            SoundManager.get().play_sfx("menu_select")
 
         if self.hovered == -1:
             return
+        SoundManager.get().play_sfx("menu_select")
         if self.hovered == 0:
             loading_view = LoadingView(self.window, self, level=1)
             self.window.show_view(loading_view)
@@ -198,6 +203,7 @@ class MainMenu(arcade.View):
         self.title_text.y = height * 0.8
 
     def on_show_view(self):
+        SoundManager.get().play_music("menu", loop=True)
         self.scores = self.score_manager.load_score()
 
     def draw_leaderboard(self):

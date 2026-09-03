@@ -1,5 +1,6 @@
 import pathlib
 import arcade
+from src.sound_manager import SoundManager
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
 
@@ -58,6 +59,7 @@ class LoadingView(arcade.View):
 
     def on_show_view(self):
         arcade.set_background_color(self.MOCHA_BASE)
+        SoundManager.get().stop_music()
         # Instantiate GameWindow immediately so game assets/maze are ready
 
     def on_update(self, delta_time: float):
