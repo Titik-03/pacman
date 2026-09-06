@@ -35,6 +35,7 @@ MOCHA_MAUVE = (203, 166, 247)    # #cba6f7
 MOCHA_LAVENDER = (180, 190, 254) # #b4befe
 MOCHA_CRUST = (17, 17, 27)       # #11111b
 MOCHA_RED = (243, 139, 168)      # #f38ba8
+MOCHA_GREEN = (166, 227, 161)    # #a6e3a1
 MOCHA_SURFACE0 = (49, 50, 68)    # #313244
 MOCHA_SURFACE1 = (69, 71, 90)    # #45475a
 MOCHA_MANTLE = (24, 24, 37)      # #181825
@@ -213,10 +214,11 @@ class GameWindow(arcade.View):
         self.mouse_x = 0.0
         self.mouse_y = 0.0
 
-        self.mouse_x = 0.0
-        self.mouse_y = 0.0
-
-                # --- Motion Trail State ---
+        # Ability system
+        self.frost_walk_timer = 0.0
+        self.time_stop_timer = 0.0
+        self.ability_cooldown = 0.0
+        # --- Motion Trail State ---
         self.trail_particles: list[TrailParticle] = []
         self.trail_timer = 0.0
         self.TRAIL_INTERVAL = 0.04
@@ -398,12 +400,157 @@ class GameWindow(arcade.View):
     )
     
     def draw_ability(self):
-        idx = 3 - (10 - self.level) // 3
+        idx = (self.level - 1) // 2
         idx = max(0, min(3, idx))
         arcade.draw_texture_rect(
             self.abilities[idx],
             arcade.LBWH(1140, 60, 400, 630)
         )
+
+    def draw_cooldown_slider(self):
+        ability_idx = max(0, min(3, (self.level - 1) // 2))
+        x = 1550
+        y = 180
+        w = 280
+        h = 24
+        if ability_idx == 0:
+            ability_name = "NO ABILITY"
+            status_text = "LOCKED"
+            accent_color = (100, 105, 130)
+            progress = 0.0
+        else:
+            names = {1: "FROST WALK [E]", 2: "STOP TIME [Q]", 3: "TELEPORT [F]"}
+            ability_name = names.get(ability_idx, "ABILITY")
+
+            active_remaining = 0.0
+            if ability_idx == 1 and self.frost_walk_timer > 0:
+                active_remaining = self.frost_walk_timer
+            elif ability_idx == 2 and self.time_stop_timer > 0:
+                active_remaining = self.time_stop_timer
+
+            if active_remaining > 0:
+                status_text = f"ACTIVE {active_remaining:.1f}s"
+                accent_color = (137, 220, 255)
+                progress = active_remaining / 5.0
+            elif self.ability_cooldown > 0:
+                status_text = f"{self.ability_cooldown:.1f}s"
+                accent_color = MOCHA_MAUVE
+                progress = max(0.0, min(1.0, 1.0 - (self.ability_cooldown / 20.0)))
+            else:
+                status_text = "READY"
+                accent_color = MOCHA_GREEN
+                progress = 1.0
+        arcade.draw_text(
+            ability_name,
+            x=x,
+            y=y + h + 14,
+            color=MOCHA_TEXT if ability_idx > 0 else (120, 125, 150),
+            font_size=18,
+            font_name="Handjet",
+            bold=True,
+            anchor_y="center"
+        )
+        arcade.draw_text(
+            status_text,
+            x=x + w,
+            y=y + h + 14,
+            color=accent_color,
+            font_size=18,
+            font_name="Handjet",
+            bold=True,
+            anchor_x="right",
+            anchor_y="center"
+        )
+        arcade.draw_rect_filled(
+            arcade.LBWH(x - 2, y - 2, w + 4, h + 4),
+            color=(17, 17, 27, 200)
+        )
+        arcade.draw_rect_filled(
+            arcade.LBWH(x, y, w, h),
+            color=(30, 30, 46, 235)
+        )
+        for pct in (0.25, 0.5, 0.75):
+            tick_x = x + w * pct
+            arcade.draw_line(
+                tick_x, y + 3,
+                tick_x, y + h - 3,
+                color=(69, 71, 90, 140),
+                line_width=1
+            )
+        fill_max_w = w - 6
+        fill_w = fill_max_w * progress
+        if fill_w > 0:
+            # Base progress fill
+            arcade.draw_rect_filled(
+                arcade.LBWH(x + 3, y + 3, fill_w, h - 6),
+                color=accent_color
+            )
+            arcade.draw_rect_filled(
+                arcade.LBWH(x + 3, y + h / 2, fill_w, (h - 6) / 2),
+                color=(255, 255, 255, 60)
+            )
+
+        border_color = accent_color if (ability_idx > 0 and self.ability_cooldown <= 0) else MOCHA_SURFACE1
+        arcade.draw_rect_outline(
+            arcade.LBWH(x, y, w, h),
+            color=border_color,
+            border_width=2
+        )
+
+        if ability_idx > 0:
+            knob_x = min(x + w - 5, max(x + 5, x + 3 + fill_w))
+            knob_cy = y + h / 2
+            knob_w = 10
+            knob_h = h + 8
+
+            # Knob body
+            arcade.draw_rect_filled(
+                arcade.rect.XYWH(knob_x, knob_cy, knob_w, knob_h),
+                color=(245, 245, 255)
+            )
+            # Knob accent border
+            arcade.draw_rect_outline(
+                arcade.rect.XYWH(knob_x, knob_cy, knob_w, knob_h),
+                color=accent_color,
+                border_width=2
+            )
+            # Center grip notch
+            arcade.draw_line(
+                knob_x, knob_cy - 4,
+                knob_x, knob_cy + 4,
+                color=MOCHA_SURFACE0,
+                line_width=2
+            )
+
+    def trigger_ability(self, key):
+        if self.ability_cooldown > 0:
+            return
+
+        ability_idx = max(0, min(3, (self.level - 1) // 2))
+        if key == arcade.key.E and ability_idx == 1:
+            # Index 1: Frost Walk (Levels 3 & 4) - slows down ghosts for 5 seconds
+            self.frost_walk_timer = 5.0
+            self.ability_cooldown = 20.0
+            SoundManager.get().play_sfx("power_pellet")
+
+        elif key == arcade.key.Q and ability_idx == 2:
+            # Index 2: Freeze Ghosts / Stop Time (Levels 5 & 6) - stops ghosts where they are for 5 seconds
+            self.time_stop_timer = 5.0
+            self.ability_cooldown = 20.0
+            SoundManager.get().play_sfx("power_pellet")
+
+        elif key == arcade.key.F and ability_idx == 3:
+            # Index 3: Teleport to other side of maze (Levels 7, 8, 9, 10)
+            self.ability_cooldown = 20.0
+            col = int(round(((self.player.center_x - self.offset_x) - self.cell_size / 2) / self.cell_size))
+            row = int(round(((self.rows - 1) * self.cell_size + self.cell_size / 2 - (self.player.center_y - self.offset_y)) / self.cell_size))
+            self.player.center_x = self.offset_x + (self.cols - 1 - col + 0.5) * self.cell_size
+            self.player.center_y = self.offset_y + (row + 0.5) * self.cell_size
+            self.player.target_x = self.player.center_x
+            self.player.target_y = self.player.center_y
+            self.player.current_dir = (0, 0)
+            self.player.queued_dir = (0, 0)
+            SoundManager.get().play_sfx("power_pellet")
 
     def draw_maze_background(self):
         self.maze_width = self.cols * self.cell_size
@@ -539,6 +686,7 @@ class GameWindow(arcade.View):
         #Draw the background image FIRST, strictly on the UI layer.
         self.draw_background_image()
         self.draw_ability()
+        self.draw_cooldown_slider()
         for shockwave in self.shock:
             shockwave.draw()
         self.score_text.text = f"{self.score}"
@@ -764,6 +912,14 @@ class GameWindow(arcade.View):
             self.go_to_game_over()
             return
 
+        # Ability timers
+        if self.frost_walk_timer > 0:
+            self.frost_walk_timer -= delta_time
+        if self.time_stop_timer > 0:
+            self.time_stop_timer -= delta_time
+        if self.ability_cooldown > 0:
+            self.ability_cooldown -= delta_time
+
         self.player.update_grid_movement(
             self.maze,
             self.cell_size,
@@ -775,9 +931,23 @@ class GameWindow(arcade.View):
         )
         self.player.update_animation(delta_time)
 
-        if not self.freeze_ghosts:
-            self.ghosts_chase_player(delta_time)
+        if not self.freeze_ghosts and self.time_stop_timer <= 0:
+            ghost_dt = delta_time * 0.4 if self.frost_walk_timer > 0 else delta_time
+            self.ghosts_chase_player(ghost_dt)
         self.check_ghost_collisions()
+
+        if self.time_stop_timer > 0:
+            for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
+                if ghost.state == "CHASE":
+                    ghost.color = (130, 200, 255)
+        elif self.frost_walk_timer > 0:
+            for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
+                if ghost.state == "CHASE":
+                    ghost.color = (140, 210, 255)
+        else:
+            for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
+                if ghost.state == "CHASE" and ghost.color in ((130, 200, 255), (140, 210, 255)):
+                    ghost.color = (255, 255, 255)
 
         for coin in self.coins_lst:
             if not coin.is_eaten:
@@ -865,6 +1035,9 @@ class GameWindow(arcade.View):
         self.player.invincible_timer = 2.0
         self.player.just_took_damage = True
         self.player.damage_invincibility_duration = 2.0
+        self.frost_walk_timer = 0.0
+        self.time_stop_timer = 0.0
+        self.ability_cooldown = 0.0
 
         for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
             if ghost.state == "EATEN":
@@ -1017,6 +1190,19 @@ class GameWindow(arcade.View):
         if key == arcade.key.F8:
             if self.cheat_menu:
                 self.go_to_vectory()
+
+        ability_idx = max(0, min(3, (self.level - 1) // 2))
+        if key == arcade.key.E and ability_idx == 1:
+            self.trigger_ability(key)
+            return
+
+        if key == arcade.key.Q and ability_idx == 2:
+            self.trigger_ability(key)
+            return
+
+        if key == arcade.key.F and ability_idx == 3:
+            self.trigger_ability(key)
+            return
 
         if hasattr(self.level_obj, 'key_press'):
             if self.level == 5:

@@ -433,6 +433,8 @@ class Level5(BaseLevel):
     def on_text(self, text: str) -> None:
         """Collect letters typed by the user."""
         if text.isalpha() and len(self.input_text) < 10:
+            if text.lower() in ('e', 'q') and self.input_text == "":
+                return
             self.input_text += text
 
     def draw_top_effects(self, game: Any) -> None:
