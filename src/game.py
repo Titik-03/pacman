@@ -12,7 +12,13 @@ from src.game_over import GameOver
 from src.vectory import Vectory
 from src.ghost import Blinky, Pinky, Inky, Clyde
 from src.cheat_menu import CheatMenu
-from src.particle import ShatterParticle, Floating_score, TrailParticle, Shockwave, CoinSparkle
+from src.particle import (
+    ShatterParticle,
+    Floating_score,
+    TrailParticle,
+    Shockwave,
+    CoinSparkle,
+)
 from src.levels import ConfigParser, LevelFactory
 from src.sound_manager import SoundManager
 
@@ -32,7 +38,7 @@ WEST = 8
 MOCHA_BASE = (30, 30, 46)        # #1e1e2e
 MOCHA_TEXT = (205, 214, 244)     # #cdd6f4
 MOCHA_MAUVE = (203, 166, 247)    # #cba6f7
-MOCHA_LAVENDER = (180, 190, 254) # #b4befe
+MOCHA_LAVENDER = (180, 190, 254)  # b4befe
 MOCHA_CRUST = (17, 17, 27)       # #11111b
 MOCHA_RED = (243, 139, 168)      # #f38ba8
 MOCHA_GREEN = (166, 227, 161)    # #a6e3a1
@@ -42,7 +48,6 @@ MOCHA_MANTLE = (24, 24, 37)      # #181825
 
 NEON = MOCHA_MAUVE
 GLOW = (203, 166, 247, 80)
-
 
 
 class GameWindow(arcade.View):
@@ -57,11 +62,10 @@ class GameWindow(arcade.View):
                  width=None,
                  height=None,
                  fullscreen=True
-                ) -> None:
+                 ) -> None:
 
         super().__init__()
         arcade.set_background_color((10, 10, 30))
-
 
         self.config_parser = ConfigParser()
         self.level_factory = LevelFactory()
@@ -75,7 +79,8 @@ class GameWindow(arcade.View):
         # except Exception:
         #     level_config = self.config_parser.get_level(1)
 
-        self.level_obj = self.level_factory.create_level(self.level, level_config)
+        self.level_obj = self.level_factory.create_level(
+            self.level, level_config)
 
         self.m = MazeGenerator((15, 15), seed=self.level_obj.seed)
         self.maze = self.m.maze
@@ -94,7 +99,8 @@ class GameWindow(arcade.View):
         margin_y = 100
         available_w = left_area_width - margin_x
         available_h = self.height - margin_y
-        self.cell_size = min(available_w // self.cols, available_h // self.rows)
+        self.cell_size = min(available_w // self.cols,
+                             available_h // self.rows)
 
         self.offset_x = (left_area_width - self.cols * self.cell_size) / 2
         self.offset_y = (self.height - self.rows * self.cell_size) / 2
@@ -104,7 +110,9 @@ class GameWindow(arcade.View):
         self.collected_coins = 0
 
         # Load Handjet font
-        font_path = SCRIPT_DIR / "assets" / "Handjet" / "static" / "Handjet-Bold.ttf"
+        font_path = (
+            SCRIPT_DIR / "assets" / "Handjet" / "static" / "Handjet-Bold.ttf"
+        )
         if font_path.exists():
             arcade.load_font(str(font_path))
 
@@ -148,13 +156,15 @@ class GameWindow(arcade.View):
             anchor_y="center"
         )
 
-        #player coords.
+        # player coords.
         center_col = self.cols // 2
         center_row = self.rows // 2
         start_x = self.offset_x + (center_col + 0.5) * self.cell_size
-        start_y = self.offset_y + (self.rows - 1 - center_row + 0.5) * self.cell_size
+        start_y = self.offset_y + \
+            (self.rows - 1 - center_row + 0.5) * self.cell_size
 
-        self.player, self.player_list = Player.create_player(start_x, start_y, self.cell_size)
+        self.player, self.player_list = Player.create_player(
+            start_x, start_y, self.cell_size)
         if lives is not None:
             self.player.lives = lives
         else:
@@ -176,10 +186,11 @@ class GameWindow(arcade.View):
 
         self.target_score = len(self.coins_lst) + 196
 
-        self.physics_engine = arcade.PhysicsEngineSimple(self.player, self.wall_list)
+        self.physics_engine = arcade.PhysicsEngineSimple(
+            self.player, self.wall_list)
 
         self.manager = arcade.gui.UIManager()
-        
+
         self.main_menu = menu
         self.window = window
         # self.pause_menu = PauseMenu(self)
@@ -206,7 +217,7 @@ class GameWindow(arcade.View):
         self.is_hit = False
         self.power_time = 10
         self.power_left = 10
-        
+
         self.combo_count = 0
         self.combo_timer = 0.0
         self.combo_limit = 1.5
@@ -235,12 +246,13 @@ class GameWindow(arcade.View):
 
     def init_ghosts(self):
 
-        #Blinky init.
+        # Blinky init.
         blinky_row = 0
         blinky_col = 0
 
         blinky_x = self.offset_x + (blinky_col + 0.5) * self.cell_size
-        blinky_y = self.offset_y + (self.rows - 1 - blinky_row + 0.5) * self.cell_size
+        blinky_y = self.offset_y + \
+            (self.rows - 1 - blinky_row + 0.5) * self.cell_size
 
         self.blinky, self.blinky_list = Blinky.create_ghost(
             blinky_x,
@@ -258,12 +270,13 @@ class GameWindow(arcade.View):
             self.offset_y
         )
 
-        #Pinky init.
+        # Pinky init.
         pinky_row = 0
         pinky_col = self.cols - 1
 
         pinky_x = self.offset_x + (pinky_col + 0.5) * self.cell_size
-        pinky_y = self.offset_y + (self.rows - 1 - pinky_row + 0.5) * self.cell_size
+        pinky_y = self.offset_y + \
+            (self.rows - 1 - pinky_row + 0.5) * self.cell_size
 
         self.pinky, self.pinky_list = Pinky.create_ghost(
             pinky_x,
@@ -281,12 +294,13 @@ class GameWindow(arcade.View):
             self.offset_y
         )
 
-        #Inky init.
+        # Inky init.
         inky_row = self.rows - 1
         inky_col = 0
 
         inky_x = self.offset_x + (inky_col + 0.5) * self.cell_size
-        inky_y = self.offset_y + (self.rows - 1 - inky_row + 0.5) * self.cell_size
+        inky_y = self.offset_y + \
+            (self.rows - 1 - inky_row + 0.5) * self.cell_size
 
         self.inky, self.inky_list = Inky.create_ghost(
             inky_x,
@@ -304,13 +318,13 @@ class GameWindow(arcade.View):
             self.offset_y
         )
 
-
-        #Clyde init.
+        # Clyde init.
         clyde_row = self.rows - 1
         clyde_col = self.cols - 1
 
         clyde_x = self.offset_x + (clyde_col + 0.5) * self.cell_size
-        clyde_y = self.offset_y + (self.rows - 1 - clyde_row + 0.5) * self.cell_size
+        clyde_y = self.offset_y + \
+            (self.rows - 1 - clyde_row + 0.5) * self.cell_size
 
         self.clyde, self.clyde_list = Clyde.create_ghost(
             clyde_x,
@@ -327,7 +341,6 @@ class GameWindow(arcade.View):
             self.offset_x,
             self.offset_y
         )
-
 
     def init_maze(self):
 
@@ -347,58 +360,72 @@ class GameWindow(arcade.View):
                 x = self.offset_x + col * cs
                 y = self.offset_y + (self.rows - 1 - row) * cs
                 if (row, col) in corner_cells:
-                    self.coins_lst.append(Coin(x + cs / 2, y + cs / 2, is_powerup=True))
+                    self.coins_lst.append(
+                        Coin(x + cs / 2, y + cs / 2, is_powerup=True))
                 elif cell & 0b1111 != 0b1111:
-                    self.coins_lst.append(Coin(x + cs / 2, y + cs / 2, is_powerup=False))
+                    self.coins_lst.append(
+                        Coin(x + cs / 2, y + cs / 2, is_powerup=False))
                 elif cell & 0b1111 == 0b1111:
-                    self.wall_shapes.append(shapes.create_rectangle(x + cs / 2, y + cs / 2, cs - 3, cs - 3, MOCHA_RED))
+                    self.wall_shapes.append(shapes.create_rectangle(
+                        x + cs / 2, y + cs / 2, cs - 3, cs - 3, MOCHA_RED))
                 if cell & NORTH:
-                    self.wall_shapes.append(shapes.create_line(x, y + cs, x + cs, y + cs, GLOW, 6))
-                    self.wall_shapes.append(shapes.create_line(x, y + cs, x + cs, y + cs, NEON, 2))
-                    w = arcade.SpriteSolidColor(int(cs), wall_thickness, color=(0, 0, 0, 0))
+                    self.wall_shapes.append(shapes.create_line(
+                        x, y + cs, x + cs, y + cs, GLOW, 6))
+                    self.wall_shapes.append(shapes.create_line(
+                        x, y + cs, x + cs, y + cs, NEON, 2))
+                    w = arcade.SpriteSolidColor(
+                        int(cs), wall_thickness, color=(0, 0, 0, 0))
                     w.center_x = x + cs / 2
                     w.center_y = y + cs
                     self.wall_list.append(w)
 
                 if cell & SOUTH:
-                    self.wall_shapes.append(shapes.create_line(x, y, x + cs, y, GLOW, 6))
-                    self.wall_shapes.append(shapes.create_line(x, y, x + cs, y, NEON, 2))
-                    w = arcade.SpriteSolidColor(int(cs), wall_thickness, color=(0, 0, 0, 0))
+                    self.wall_shapes.append(
+                        shapes.create_line(x, y, x + cs, y, GLOW, 6))
+                    self.wall_shapes.append(
+                        shapes.create_line(x, y, x + cs, y, NEON, 2))
+                    w = arcade.SpriteSolidColor(
+                        int(cs), wall_thickness, color=(0, 0, 0, 0))
                     w.center_x = x + cs / 2
                     w.center_y = y
                     self.wall_list.append(w)
 
                 if cell & EAST:
-                    self.wall_shapes.append(shapes.create_line(x + cs, y, x + cs, y + cs, GLOW, 6))
-                    self.wall_shapes.append(shapes.create_line(x + cs, y, x + cs, y + cs, NEON, 2))
-                    w = arcade.SpriteSolidColor(wall_thickness, int(cs), color=(0, 0, 0, 0))
+                    self.wall_shapes.append(shapes.create_line(
+                        x + cs, y, x + cs, y + cs, GLOW, 6))
+                    self.wall_shapes.append(shapes.create_line(
+                        x + cs, y, x + cs, y + cs, NEON, 2))
+                    w = arcade.SpriteSolidColor(
+                        wall_thickness, int(cs), color=(0, 0, 0, 0))
                     w.center_x = x + cs
                     w.center_y = y + cs / 2
                     self.wall_list.append(w)
 
                 if cell & WEST:
-                    self.wall_shapes.append(shapes.create_line(x, y, x, y + cs, GLOW, 6))
-                    self.wall_shapes.append(shapes.create_line(x, y, x, y + cs, NEON, 2))
-                    w = arcade.SpriteSolidColor(wall_thickness, int(cs), color=(0, 0, 0, 0))
+                    self.wall_shapes.append(
+                        shapes.create_line(x, y, x, y + cs, GLOW, 6))
+                    self.wall_shapes.append(
+                        shapes.create_line(x, y, x, y + cs, NEON, 2))
+                    w = arcade.SpriteSolidColor(
+                        wall_thickness, int(cs), color=(0, 0, 0, 0))
                     w.center_x = x
                     w.center_y = y + cs / 2
                     self.wall_list.append(w)
 
         self.target_coins = len(self.coins_lst)
 
-
     def draw_background_image(self):
         self.clear()
         arcade.draw_texture_rect(
-        self.background,
-        arcade.LBWH(
-            0,
-            0,
-            self.width,
-            self.height
+            self.background,
+            arcade.LBWH(
+                0,
+                0,
+                self.width,
+                self.height
+            )
         )
-    )
-    
+
     def draw_ability(self):
         idx = (self.level - 1) // 2
         idx = max(0, min(3, idx))
@@ -419,7 +446,8 @@ class GameWindow(arcade.View):
             accent_color = (100, 105, 130)
             progress = 0.0
         else:
-            names = {1: "FROST WALK [E]", 2: "STOP TIME [Q]", 3: "TELEPORT [F]"}
+            names = {1: "FROST WALK [E]",
+                     2: "STOP TIME [Q]", 3: "TELEPORT [F]"}
             ability_name = names.get(ability_idx, "ABILITY")
 
             active_remaining = 0.0
@@ -435,7 +463,8 @@ class GameWindow(arcade.View):
             elif self.ability_cooldown > 0:
                 status_text = f"{self.ability_cooldown:.1f}s"
                 accent_color = MOCHA_MAUVE
-                progress = max(0.0, min(1.0, 1.0 - (self.ability_cooldown / 20.0)))
+                progress = max(
+                    0.0, min(1.0, 1.0 - (self.ability_cooldown / 20.0)))
             else:
                 status_text = "READY"
                 accent_color = MOCHA_GREEN
@@ -490,7 +519,8 @@ class GameWindow(arcade.View):
                 color=(255, 255, 255, 60)
             )
 
-        border_color = accent_color if (ability_idx > 0 and self.ability_cooldown <= 0) else MOCHA_SURFACE1
+        border_color = accent_color if (
+            ability_idx > 0 and self.ability_cooldown <= 0) else MOCHA_SURFACE1
         arcade.draw_rect_outline(
             arcade.LBWH(x, y, w, h),
             color=border_color,
@@ -528,13 +558,15 @@ class GameWindow(arcade.View):
 
         ability_idx = max(0, min(3, (self.level - 1) // 2))
         if key == arcade.key.E and ability_idx == 1:
-            # Index 1: Frost Walk (Levels 3 & 4) - slows down ghosts for 5 seconds
+            # Index 1: Frost Walk (Levels 3 & 4) - slows down ghosts
+            # for 5 seconds
             self.frost_walk_timer = 5.0
             self.ability_cooldown = 20.0
             SoundManager.get().play_sfx("power_pellet")
 
         elif key == arcade.key.Q and ability_idx == 2:
-            # Index 2: Freeze Ghosts / Stop Time (Levels 5 & 6) - stops ghosts where they are for 5 seconds
+            # Index 2: Freeze Ghosts / Stop Time (Levels 5 & 6) - stops ghosts
+            # where they are for 5 seconds
             self.time_stop_timer = 5.0
             self.ability_cooldown = 20.0
             SoundManager.get().play_sfx("power_pellet")
@@ -542,9 +574,20 @@ class GameWindow(arcade.View):
         elif key == arcade.key.F and ability_idx == 3:
             # Index 3: Teleport to other side of maze (Levels 7, 8, 9, 10)
             self.ability_cooldown = 20.0
-            col = int(round(((self.player.center_x - self.offset_x) - self.cell_size / 2) / self.cell_size))
-            row = int(round(((self.rows - 1) * self.cell_size + self.cell_size / 2 - (self.player.center_y - self.offset_y)) / self.cell_size))
-            self.player.center_x = self.offset_x + (self.cols - 1 - col + 0.5) * self.cell_size
+            col = int(round(((self.player.center_x - self.offset_x) -
+                      self.cell_size / 2) / self.cell_size))
+            row = int(
+                round(
+                    (
+                        (self.rows - 1) * self.cell_size
+                        + self.cell_size / 2
+                        - (self.player.center_y - self.offset_y)
+                    )
+                    / self.cell_size
+                )
+            )
+            self.player.center_x = self.offset_x + \
+                (self.cols - 1 - col + 0.5) * self.cell_size
             self.player.center_y = self.offset_y + (row + 0.5) * self.cell_size
             self.player.target_x = self.player.center_x
             self.player.target_y = self.player.center_y
@@ -555,7 +598,7 @@ class GameWindow(arcade.View):
     def draw_maze_background(self):
         self.maze_width = self.cols * self.cell_size
         self.maze_height = self.rows * self.cell_size
-        
+
         arcade.draw_rect_filled(
             arcade.LBWH(
                 self.offset_x,       # Left edge of the maze
@@ -575,17 +618,40 @@ class GameWindow(arcade.View):
             border_width=2
         )
 
-
     def draw_debug(self):
 
-        self.blinky.draw_target_x(self.cell_size, self.offset_x, self.offset_y, rows=self.rows, color=arcade.color.RED)
-        self.pinky.draw_target_x(self.cell_size, self.offset_x, self.offset_y, rows=self.rows, color=arcade.color.PINK)
-        self.inky.draw_target_x(self.cell_size, self.offset_x, self.offset_y, rows=self.rows, color=arcade.color.CYAN)
-        self.clyde.draw_target_x(self.cell_size, self.offset_x, self.offset_y, rows=self.rows, color=arcade.color.ORANGE)
+        self.blinky.draw_target_x(
+            self.cell_size,
+            self.offset_x,
+            self.offset_y,
+            rows=self.rows,
+            color=arcade.color.RED,
+        )
+        self.pinky.draw_target_x(
+            self.cell_size,
+            self.offset_x,
+            self.offset_y,
+            rows=self.rows,
+            color=arcade.color.PINK,
+        )
+        self.inky.draw_target_x(
+            self.cell_size,
+            self.offset_x,
+            self.offset_y,
+            rows=self.rows,
+            color=arcade.color.CYAN,
+        )
+        self.clyde.draw_target_x(
+            self.cell_size,
+            self.offset_x,
+            self.offset_y,
+            rows=self.rows,
+            color=arcade.color.ORANGE,
+        )
 
         arcade.draw_text(
             f"Mouse coords: {self.mouse_x, self.mouse_y}",
-            10,10
+            10, 10
         )
 
     def draw_hearts(self):
@@ -594,12 +660,13 @@ class GameWindow(arcade.View):
         spacing = 38 * (self.width / 1920.0)
         color = MOCHA_RED
 
-
         for i in range(max(0, self.player.lives)):
             cx = self.lives_x + i * spacing
             cy = self.lives_y
-            arcade.draw_circle_filled(cx - size * 0.35, cy + size * 0.15, size * 0.4, color)
-            arcade.draw_circle_filled(cx + size * 0.35, cy + size * 0.15, size * 0.4, color)
+            arcade.draw_circle_filled(
+                cx - size * 0.35, cy + size * 0.15, size * 0.4, color)
+            arcade.draw_circle_filled(
+                cx + size * 0.35, cy + size * 0.15, size * 0.4, color)
             arcade.draw_triangle_filled(
                 cx - size * 0.72, cy + size * 0.15,
                 cx + size * 0.72, cy + size * 0.15,
@@ -608,12 +675,12 @@ class GameWindow(arcade.View):
             )
 
     def draw_cheat_menu(self):
-        #blur.
+        # blur.
         arcade.draw_rect_filled(
             arcade.rect.XYWH(
-                self.width / 2, 
-                self.height / 2, 
-                self.width, 
+                self.width / 2,
+                self.height / 2,
+                self.width,
                 self.height
             ),
             color=(10, 10, 20, 200)
@@ -644,11 +711,14 @@ class GameWindow(arcade.View):
             bold=True
         )
 
+        inv_status = 'ON' if self.player.invincible else 'OFF'
+        power_status = 'ON' if self.player.is_powered_up else 'OFF'
+        freeze_status = 'ON' if self.freeze_ghosts else 'OFF'
         cheats = [
             "[F1 / ESC] TO Close Menu",
-            f"[F2] Toggle Invincibility: {'ON' if self.player.invincible else 'OFF'}",
-            f"[F3] Trigger Power Pellet: {'ON' if self.player.is_powered_up else 'OFF'}",
-            f"[F4] Toggle Freeze all ghosts: {'ON' if self.freeze_ghosts else 'OFF'}",
+            f"[F2] Toggle Invincibility: {inv_status}",
+            f"[F3] Trigger Power Pellet: {power_status}",
+            f"[F4] Toggle Freeze all ghosts: {freeze_status}",
             f"[F5] Toggle Debug: {'ON' if self.debug else 'OFF'}",
             f"[F6] Toggle Speed: {'ON' if self.speed_up else 'OFF'}",
             "[F7] Add +1 Life",
@@ -661,7 +731,7 @@ class GameWindow(arcade.View):
                 line,
                 x=cx,
                 y=start_y - (i * 70),
-                #(i * 40) is how far from each other.
+                # (i * 40) is how far from each other.
                 color=arcade.color.WHITE,
                 font_size=25,
                 anchor_x="center",
@@ -669,7 +739,7 @@ class GameWindow(arcade.View):
                 font_name="Handjet",
                 bold=True
             )
-    
+
     def on_text(self, text: str):
         if hasattr(self.level_obj, 'on_text'):
             self.level_obj.on_text(text)
@@ -678,12 +748,12 @@ class GameWindow(arcade.View):
         self.clear()
 
         self.ui_camera.position = (
-            self.width / 2 + self.shake_x, 
+            self.width / 2 + self.shake_x,
             self.height / 2 + self.shake_y
         )
         self.ui_camera.use()
 
-        #Draw the background image FIRST, strictly on the UI layer.
+        # Draw the background image FIRST, strictly on the UI layer.
         self.draw_background_image()
         self.draw_ability()
         self.draw_cooldown_slider()
@@ -697,7 +767,7 @@ class GameWindow(arcade.View):
         self.level_text.draw()
         self.time_text.draw()
 
-        #Calculate camera offset and rotation for the maze.
+        # Calculate camera offset and rotation for the maze.
         if self.level != 4:
             self.camera.angle = 0
 
@@ -707,7 +777,8 @@ class GameWindow(arcade.View):
         maze_cx = self.offset_x + (self.cols * self.cell_size) / 2
         maze_cy = self.offset_y + (self.rows * self.cell_size) / 2
 
-        angle = getattr(self.level_obj, 'current_angle', 0) if self.level == 4 else 0
+        angle = getattr(self.level_obj, 'current_angle',
+                        0) if self.level == 4 else 0
         self.camera.angle = angle
 
         dx = maze_cx - screen_cx
@@ -722,14 +793,14 @@ class GameWindow(arcade.View):
             screen_cy + (dy - rot_dy) + self.shake_y
         )
 
-        #use maze camera.
+        # use maze camera.
         self.camera.use()
 
-        #Draw the maze background and effects
+        # Draw the maze background and effects
         self.draw_maze_background()
         self.level_obj.draw_effects(self)
 
-        #Draw coins, player, and ghosts
+        # Draw coins, player, and ghosts
         for coin in self.coins_lst:
             coin.draw()
 
@@ -740,16 +811,16 @@ class GameWindow(arcade.View):
         self.clyde_list.draw()
         for sparkle in self.coin_sparkles:
             sparkle.draw()
-        #Draw top effects (like spinning maze warnings).
+        # Draw top effects (like spinning maze warnings).
         self.level_obj.draw_top_effects(self)
 
         if self.debug:
             self.draw_debug()
 
-        #Draw trail and particles.
+        # Draw trail and particles.
         for trail in self.trail_particles:
             trail.draw()
-        
+
         for particle in self.shatter_particles:
             particle.draw()
         for f in self.floating_scores:
@@ -761,11 +832,11 @@ class GameWindow(arcade.View):
 
         if self.pause:
             arcade.draw_rect_filled(
-                arcade.rect.XYWH(self.width / 2, self.height / 2, self.width, self.height), 
+                arcade.rect.XYWH(self.width / 2, self.height /
+                                 2, self.width, self.height),
                 color=(10, 10, 20, 200)
             )
             self.manager.draw()
-
 
     def go_to_game_over(self):
         SoundManager.get().stop_music()
@@ -774,12 +845,11 @@ class GameWindow(arcade.View):
         self.game_over = GameOver(self.window, self.main_menu, self.score)
         self.window.show_view(self.game_over)
 
-
     def go_to_vectory(self):
         SoundManager.get().stop_music()
-        self.vectory = Vectory(self.window, self.main_menu, self.score, (self.level + 1), lives=self.player.lives, seed=self.level_obj.seed)
+        self.vectory = Vectory(self.window, self.main_menu, self.score, (
+            self.level + 1), lives=self.player.lives, seed=self.level_obj.seed)
         self.window.show_view(self.vectory)
-
 
     def ghosts_chase_player(self, delta_time):
 
@@ -828,11 +898,11 @@ class GameWindow(arcade.View):
             delta_time
         )
 
-
     def on_update(self, delta_time: float):
 
         self.shock = [s for s in self.shock if s.update(delta_time)]
-        self.coin_sparkles = [p for p in self.coin_sparkles if p.update(delta_time)]
+        self.coin_sparkles = [
+            p for p in self.coin_sparkles if p.update(delta_time)]
         if self.combo_timer > 0:
             self.combo_timer -= delta_time
             if self.combo_timer <= 0:
@@ -841,16 +911,25 @@ class GameWindow(arcade.View):
                 if not self.player.is_powered_up:
                     self.player.speed = self.player_speed
 
-        self.trail_particles = [t for t in self.trail_particles if t.update(delta_time)]
+        self.trail_particles = [
+            t for t in self.trail_particles if t.update(delta_time)]
 
-        if self.player.current_speed > self.player_speed and not self.player.is_dying and self.player.current_dir != (0, 0):
+        if (
+            self.player.current_speed > self.player_speed
+            and not self.player.is_dying
+            and self.player.current_dir != (0, 0)
+        ):
             self.trail_timer += delta_time
             if self.trail_timer >= self.TRAIL_INTERVAL:
                 self.trail_timer = 0.0
-                
+
                 # Color: Golden Yellow if powered up, else Mauve.
-                trail_color = (249, 226, 175) if self.player.is_powered_up else (203, 166, 247)
-                
+                trail_color = (
+                    (249, 226, 175)
+                    if self.player.is_powered_up
+                    else (203, 166, 247)
+                )
+
                 self.trail_particles.append(
                     TrailParticle(
                         x=self.player.center_x,
@@ -864,7 +943,6 @@ class GameWindow(arcade.View):
                     )
                 )
 
-        
         if self.pause or self.cheat_menu:
             return
         if self.player.is_powered_up and self.is_hit:
@@ -873,17 +951,21 @@ class GameWindow(arcade.View):
         elif self.player.is_powered_up:
             self.trigger_shake(999, 2)
         else:
-            self.trigger_shake(0,0)
-        self.floating_scores = [f for f in self.floating_scores if f.update(delta_time)]
-        if self.shake_time>0:
+            self.trigger_shake(0, 0)
+        self.floating_scores = [
+            f for f in self.floating_scores if f.update(delta_time)]
+        if self.shake_time > 0:
             self.shake_time -= delta_time
-            self.shake_x = random.uniform(-self.shake_intensity, self.shake_intensity)
-            self.shake_y = random.uniform(-self.shake_intensity, self.shake_intensity)
+            self.shake_x = random.uniform(-self.shake_intensity,
+                                          self.shake_intensity)
+            self.shake_y = random.uniform(-self.shake_intensity,
+                                          self.shake_intensity)
         else:
             self.shake_x = 0
             self.shake_y = 0
         if self.shatter_particles:
-            self.shatter_particles = [p for p in self.shatter_particles if p.update(delta_time)]
+            self.shatter_particles = [
+                p for p in self.shatter_particles if p.update(delta_time)]
             if not self.shatter_particles:
                 if self.player.lives <= 0:
                     self.go_to_game_over()
@@ -904,7 +986,7 @@ class GameWindow(arcade.View):
         self.level_obj.update(self, delta_time)
 
         if self.collected_coins == self.target_coins:
-            #change the view to vectory menu.
+            # change the view to vectory menu.
             self.go_to_vectory()
 
         self.timer -= delta_time
@@ -932,7 +1014,11 @@ class GameWindow(arcade.View):
         self.player.update_animation(delta_time)
 
         if not self.freeze_ghosts and self.time_stop_timer <= 0:
-            ghost_dt = delta_time * 0.4 if self.frost_walk_timer > 0 else delta_time
+            ghost_dt = (
+                delta_time * 0.4
+                if self.frost_walk_timer > 0
+                else delta_time
+            )
             self.ghosts_chase_player(ghost_dt)
         self.check_ghost_collisions()
 
@@ -946,25 +1032,33 @@ class GameWindow(arcade.View):
                     ghost.color = (140, 210, 255)
         else:
             for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
-                if ghost.state == "CHASE" and ghost.color in ((130, 200, 255), (140, 210, 255)):
+                if (
+                    ghost.state == "CHASE"
+                    and ghost.color in ((130, 200, 255), (140, 210, 255))
+                ):
                     ghost.color = (255, 255, 255)
 
         for coin in self.coins_lst:
             if not coin.is_eaten:
-                distance = math.hypot(self.player.center_x - coin.x, self.player.center_y - coin.y)
+                distance = math.hypot(
+                    self.player.center_x - coin.x,
+                    self.player.center_y - coin.y,
+                )
                 if distance < (self.player.width / 2 + coin.radius):
                     coin.is_eaten = True
                     for _ in range(4):
                         self.coin_sparkles.append(CoinSparkle(coin.x, coin.y))
                     if coin.is_powerup:
-                        self.score += getattr(self.level_obj, "points_per_super_pacgum", 50)
+                        self.score += getattr(self.level_obj,
+                                              "points_per_super_pacgum", 50)
                         self.player.activate_power_up(self.power_time)
                         SoundManager.get().play_sfx("power_pellet")
                         self.shock.append(
                             Shockwave(coin.x, coin.y, color=(203, 166, 247))
                         )
                     else:
-                        self.score += getattr(self.level_obj, "points_per_pacgum", 10)
+                        self.score += getattr(self.level_obj,
+                                              "points_per_pacgum", 10)
                         SoundManager.get().play_sfx("coin")
                     self.combo_count += 1
                     self.combo_timer = self.combo_limit
@@ -983,9 +1077,10 @@ class GameWindow(arcade.View):
 
                     self.collected_coins += 1
 
-
     def check_ghost_collisions(self):
-        """Handles Pac-Man <-> ghost contact: taking damage or eating a scared ghost."""
+        """Handles Pac-Man <-> ghost contact: taking damage or eating a scared
+        ghost.
+        """
         if self.player.is_dying or self.shatter_particles:
             return
 
@@ -999,7 +1094,7 @@ class GameWindow(arcade.View):
             )
             if distance >= (self.player.width / 2 + ghost.width / 2):
                 continue
-            
+
             if ghost.state == "FRIGHTENED":
                 self.combo_count += 1
                 self.combo_timer = self.combo_limit
@@ -1007,16 +1102,20 @@ class GameWindow(arcade.View):
                 ghost.get_hit()
                 SoundManager.get().play_sfx("ghost_eaten")
                 self.floating_scores.append(
-                    Floating_score(ghost.center_x, ghost.center_y, "+200", MOCHA_RED)
+                    Floating_score(
+                        ghost.center_x, ghost.center_y, "+200", MOCHA_RED)
                 )
                 self.is_hit = True
             elif (not self.player.invincible) and ghost.can_damage:
                 self.handle_player_hit()
                 break
 
-
     def handle_player_hit(self):
-        if self.player.is_dying or self.shatter_particles or self.player.invincible:
+        if (
+            self.player.is_dying
+            or self.shatter_particles
+            or self.player.invincible
+        ):
             return
         SoundManager.get().play_sfx("death")
         self.combo_count = 0
@@ -1025,7 +1124,6 @@ class GameWindow(arcade.View):
         self.trigger_shake(0.3, 8)
         self.player.take_damage()
         self.player.start_death_animation()
-
 
     def respawn_after_death(self):
         self.shatter_particles.clear()
@@ -1043,14 +1141,18 @@ class GameWindow(arcade.View):
             if ghost.state == "EATEN":
                 continue
             x, y = ghost.get_cell_center(
-                ghost.home_row, ghost.home_col, self.cell_size, self.rows, self.offset_x, self.offset_y
+                ghost.home_row,
+                ghost.home_col,
+                self.cell_size,
+                self.rows,
+                self.offset_x,
+                self.offset_y,
             )
             ghost.center_x = ghost.target_x = x
             ghost.center_y = ghost.target_y = y
             ghost.state = "CHASE"
             ghost.color = (255, 255, 255)
             ghost.texture = arcade.load_texture(ghost.normal_texture_path)
-
 
     def on_key_release(self, key, modifiers):
         if self.level == 5 and hasattr(self.level_obj, 'key_release'):
@@ -1063,14 +1165,13 @@ class GameWindow(arcade.View):
 
         self.player.on_key_release(key)
 
-
     def on_show_view(self):
         SoundManager.get().play_music("gameplay", loop=True)
         self.manager.enable()
 
         menu_elements = arcade.gui.UIBoxLayout(space_between=40)
 
-        #button style.
+        # button style.
         button_style = {
             "normal": arcade.gui.UIFlatButton.UIStyle(
                 font_size=20,
@@ -1106,14 +1207,16 @@ class GameWindow(arcade.View):
             )
         }
 
-        #init the buttons.
-        resume_game = arcade.gui.UIFlatButton(text="RESUME GAME", width=300, height=100, style=button_style)
-        quit_game = arcade.gui.UIFlatButton(text="MAIN_MENU", width=300, height=100, style=button_style)
+        # init the buttons.
+        resume_game = arcade.gui.UIFlatButton(
+            text="RESUME GAME", width=300, height=100, style=button_style)
+        quit_game = arcade.gui.UIFlatButton(
+            text="MAIN_MENU", width=300, height=100, style=button_style)
 
-        #nested function to do things if the buttons was clicked.
+        # nested function to do things if the buttons was clicked.
         @resume_game.event("on_click")
         def on_click_start(event):
-            #This is the action! Swap from current menu view to game view.
+            # This is the action! Swap from current menu view to game view.
             SoundManager.get().play_sfx("menu_select")
             self.pause = False
 
@@ -1124,11 +1227,11 @@ class GameWindow(arcade.View):
             self.window.show_view(self.main_menu)
             self.pause = False
 
-        #adding buttons to one group layout.
+        # adding buttons to one group layout.
         menu_elements.add(resume_game)
         menu_elements.add(quit_game)
 
-        #give the group to the manager.
+        # give the group to the manager.
         self.manager.add(
             arcade.gui.UIAnchorLayout(
                 anchor_x="center_x",
@@ -1137,11 +1240,9 @@ class GameWindow(arcade.View):
             )
         )
 
-
     def on_hide_view(self):
         SoundManager.get().stop_music()
         self.manager.disable()
-
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ESCAPE:
@@ -1159,13 +1260,22 @@ class GameWindow(arcade.View):
 
         if key == arcade.key.F2:
             if self.cheat_menu:
-                self.player.invincible = (not self.player.invincible)
-                self.player.invincible_timer = 9999999999999999 if self.player.invincible else 0
+                self.player.invincible_cheat = (
+                    not self.player.invincible_cheat
+                )
+                self.player.invincible = self.player.invincible_cheat
+                self.player.invincible_timer = (
+                    9999999999999999 if self.player.invincible else 0
+                )
+                self.player.just_took_damage = False
+                self.player.alpha = 255
 
         if key == arcade.key.F3:
             if self.cheat_menu:
                 self.player.is_powered_up = (not self.player.is_powered_up)
-                self.player.power_timer = 99999999999999999 if self.player.is_powered_up else 0
+                self.player.power_timer = (
+                    99999999999999999 if self.player.is_powered_up else 0
+                )
 
         if key == arcade.key.F4:
             if self.cheat_menu:
@@ -1181,7 +1291,8 @@ class GameWindow(arcade.View):
         if key == arcade.key.F6:
             if self.cheat_menu:
                 self.speed_up = (not self.speed_up)
-                self.player.speed = self.player_speed * 2 if self.speed_up else self.player_speed
+                self.player.speed = self.player_speed * \
+                    2 if self.speed_up else self.player_speed
 
         if key == arcade.key.F7:
             if self.cheat_menu:
@@ -1212,7 +1323,3 @@ class GameWindow(arcade.View):
                 key = self.level_obj.key_press(key)
 
         self.player.on_key_press(key)
-
-
-            
-

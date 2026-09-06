@@ -1,6 +1,5 @@
 import arcade
 import arcade.gui
-from typing import List
 # from main_menu import MainMenu
 
 
@@ -36,8 +35,9 @@ class PauseMenu(arcade.View):
             self.window.show_view(self.game)
 
 
-
-# window = arcade.Window(1920, 1080, "Pac-man", resizable=True, fullscreen=True)
+# window = arcade.Window(
+#     1920, 1080, "Pac-man", resizable=True, fullscreen=True
+# )
 
 # p = PauseMenu()
 
@@ -45,4 +45,3 @@ class PauseMenu(arcade.View):
 # window.show_view(p)
 
 # arcade.run()
-

@@ -1,6 +1,4 @@
 from src.player import Player
-import math
-import random
 import random
 import pathlib
 from collections import deque
@@ -18,9 +16,10 @@ EYES_PATH = SCRIPT_DIR / "assets" / "eyes.png"
 EYES_PATH = SCRIPT_DIR / "assets" / "eyes.png"
 
 
-
 class Ghost(arcade.Sprite):
-    def __init__(self, center_x: float, center_y: float, texture_path, name: str) -> None:
+    def __init__(
+        self, center_x: float, center_y: float, texture_path, name: str
+    ) -> None:
         super().__init__(path_or_texture=texture_path)
         self.center_x = center_x
         self.center_y = center_y
@@ -54,8 +53,6 @@ class Ghost(arcade.Sprite):
         self.name = name
         self.target_tile = None
 
-
-
     @classmethod
     def create_ghost(
         cls,
@@ -76,7 +73,7 @@ class Ghost(arcade.Sprite):
 
         return ghost, ghost_list
 
-    #Coordinate helpers
+    # Coordinate helpers
 
     def get_target_tile(
             self,
@@ -84,7 +81,7 @@ class Ghost(arcade.Sprite):
             player_row,
             player_col,
             **kwargs
-            ):
+    ):
         """
         Returns the row and column this ghost wants
         to chase.
@@ -97,7 +94,7 @@ class Ghost(arcade.Sprite):
             my_row = kwargs.get("my_row")
             my_col = kwargs.get("my_col")
 
-            #safe check.
+            # safe check.
             if my_row is None or my_col is None:
                 return self.home_row, self.home_col
 
@@ -107,7 +104,7 @@ class Ghost(arcade.Sprite):
             # if diff_row == 0 and diff_col == 0:
             #     return self.home_row, self.home_col
 
-            #opposite direction.
+            # opposite direction.
             target_row = my_row + (diff_row)
             target_col = my_col + (diff_col)
 
@@ -115,27 +112,44 @@ class Ghost(arcade.Sprite):
 
         return player_row, player_col
 
-
     def get_cell(self, x, y, cell_size, rows, offset_x=0.0, offset_y=0.0):
         col = int(round(((x - offset_x) - cell_size / 2) / cell_size))
-        row = int(round(((rows - 1) * cell_size + cell_size / 2 - (y - offset_y)) / cell_size))
+        row = int(
+            round(
+                ((rows - 1) * cell_size + cell_size / 2 - (y - offset_y))
+                / cell_size
+            )
+        )
         return row, col
 
-    def get_cell_center(self, row, col, cell_size, rows, offset_x=0.0, offset_y=0.0):
+    def get_cell_center(
+        self, row, col, cell_size, rows, offset_x=0.0, offset_y=0.0
+    ):
         x = offset_x + col * cell_size + cell_size / 2
         y = offset_y + (rows - 1 - row) * cell_size + cell_size / 2
         return x, y
 
-    #Pathfinding helpers
+    # Pathfinding helpers
 
-    def can_move(self, dir_tuple: tuple[int, int], maze, cell_size: float, rows: int, cols: int,
-                 offset_x: float = 0.0, offset_y: float = 0.0) -> bool:
+    def can_move(
+        self,
+        dir_tuple: tuple[int, int],
+        maze,
+        cell_size: float,
+        rows: int,
+        cols: int,
+        offset_x: float = 0.0,
+        offset_y: float = 0.0,
+    ) -> bool:
         dx, dy = dir_tuple
         if dx == 0 and dy == 0:
             return False
 
-        col = int(round(((self.center_x - offset_x) - cell_size / 2) / cell_size))
-        row = int(round(((rows - 1) * cell_size + cell_size / 2 - (self.center_y - offset_y)) / cell_size))
+        col = int(
+            round(((self.center_x - offset_x) - cell_size / 2) / cell_size)
+        )
+        row = int(round(((rows - 1) * cell_size + cell_size /
+                  2 - (self.center_y - offset_y)) / cell_size))
 
         col = max(0, min(cols - 1, col))
         row = max(0, min(rows - 1, row))
@@ -172,9 +186,10 @@ class Ghost(arcade.Sprite):
             result.append(((row, col - 1), (-1, 0)))
         return result
 
-
     def next_direction_bfs(self, start, goal, maze, rows, cols):
-        """BFS from start cell to goal cell. Returns the first-step direction."""
+        """BFS from start cell to goal cell.
+        Returns the first-step direction.
+        """
         if start == goal:
             return (0, 0)
 
@@ -197,19 +212,16 @@ class Ghost(arcade.Sprite):
 
         return (0, 0)
 
-
     def get_hit(self) -> None:
         """Called when Pac-Man eats this ghost while it's FRIGHTENED."""
         self.state = "EATEN"
         self.can_damage = True
         self.texture = arcade.load_texture(EYES_PATH)
 
-
-    def update_texrture(self, player:Player):
+    def update_texrture(self, player: Player):
 
         if self.state == "EATEN":
             return
-
 
         if not self.was_eaten:
             if player.is_powered_up and self.state == "CHASE":
@@ -222,44 +234,53 @@ class Ghost(arcade.Sprite):
             if self.state == "FRIGHTENED":
                 if player.power_timer <= 3.0:
                     is_white_frame = int(player.power_timer * 6.5) % 2 == 0
-                    self.color = (255, 255, 255) if is_white_frame else (137, 180, 250)
+                    self.color = (255, 255, 255) if is_white_frame else (
+                        137, 180, 250)
                 else:
                     self.color = (255, 255, 255)
-                
+
         if player.power_timer == 0:
             self.was_eaten = False
 
+    def draw_target_x(
+        self,
+        cell_size,
+        offset_x,
+        offset_y,
+        rows,
+        color=arcade.color.RED,
+        size=10,
+        line_width=3,
+    ):
 
-    def draw_target_x(self, cell_size, offset_x, offset_y, rows, color=arcade.color.RED, size=10, line_width=3):
+        if hasattr(self, "target_tile") and self.target_tile:
+            target_row, target_col = self.target_tile
 
-            if hasattr(self, "target_tile") and self.target_tile:
-                target_row, target_col = self.target_tile
+            # Convert (row, col) to Screen (x, y) center position
+            target_x = offset_x + (target_col + 0.5) * cell_size
+            target_y = offset_y + (rows - 1 - target_row + 0.5) * cell_size
 
-                #Convert (row, col) to Screen (x, y) center position
-                target_x = offset_x + (target_col + 0.5) * cell_size
-                target_y = offset_y + (rows - 1 - target_row + 0.5) * cell_size
+            if self.state == "FRIGHTENED":
+                color = arcade.color.BLUE
 
-                if self.state == "FRIGHTENED":
-                    color = arcade.color.BLUE
+            arcade.draw_line(
+                self.center_x, self.center_y,
+                target_x, target_y,
+                color, line_width=2
+            )
 
-                arcade.draw_line(
-                    self.center_x, self.center_y,
-                    target_x, target_y,
-                    color, line_width=2
-                )
+            arcade.draw_line(
+                target_x - size, target_y - size,
+                target_x + size, target_y + size,
+                color, line_width
+            )
+            arcade.draw_line(
+                target_x - size, target_y + size,
+                target_x + size, target_y - size,
+                color, line_width
+            )
 
-                arcade.draw_line(
-                    target_x - size, target_y - size, 
-                    target_x + size, target_y + size, 
-                    color, line_width
-                )
-                arcade.draw_line(
-                    target_x - size, target_y + size, 
-                    target_x + size, target_y - size, 
-                    color, line_width
-                )
-
-    #chase the player.
+    # chase the player.
     def chase_player(self,
                      player: Player,
                      maze,
@@ -277,38 +298,73 @@ class Ghost(arcade.Sprite):
             self.can_damage = True
             self.visible = True
 
-        my_row, my_col = self.get_cell(self.center_x, self.center_y, cell_size, rows, offset_x, offset_y)
+        my_row, my_col = self.get_cell(
+            self.center_x,
+            self.center_y,
+            cell_size,
+            rows,
+            offset_x,
+            offset_y,
+        )
 
-        if self.was_eaten and my_row == self.home_row and my_col == self.home_col:
+        if (
+            self.was_eaten
+            and my_row == self.home_row
+            and my_col == self.home_col
+        ):
             self.texture = arcade.load_texture(EYES_PATH)
 
         if self.was_eaten and player.power_timer != 0:
             return
 
-
         # Let the ghost move twice as fast when returning as eyes
-        current_speed = self.speed * 2.0 if self.state == "EATEN" else self.speed
+        current_speed = (
+            self.speed * 2.0 if self.state == "EATEN" else self.speed
+        )
         step = current_speed * delta_time
 
         self.update_texrture(player)
 
         # Snap to target when close enough to avoid float jitter.
-        if abs(self.center_x - self.target_x) <= step and abs(self.center_y - self.target_y) <= step:
+        if (
+            abs(self.center_x - self.target_x) <= step
+            and abs(self.center_y - self.target_y) <= step
+        ):
             self.center_x = self.target_x
             self.center_y = self.target_y
 
         # Arrived at a cell center -> pick next direction via BFS.
         if self.center_x == self.target_x and self.center_y == self.target_y:
-            my_row, my_col = self.get_cell(self.center_x, self.center_y, cell_size, rows, offset_x, offset_y)
+            my_row, my_col = self.get_cell(
+                self.center_x,
+                self.center_y,
+                cell_size,
+                rows,
+                offset_x,
+                offset_y,
+            )
 
-            # If we are eaten and have arrived at our home cell, turn back into a normal ghost
+            # If we are eaten and have arrived at our home cell,
+            # turn back into a normal ghost
             if player.power_timer == 0:
-                if self.state == "EATEN" and my_row == self.home_row and my_col == self.home_col:
+                if (
+                    self.state == "EATEN"
+                    and my_row == self.home_row
+                    and my_col == self.home_col
+                ):
                     self.state = "CHASE"
-                    self.texture = arcade.load_texture(self.normal_texture_path)
+                    self.texture = arcade.load_texture(
+                        self.normal_texture_path)
                     self.was_eaten = True
 
-            player_row, player_col = self.get_cell(player.center_x, player.center_y, cell_size, rows, offset_x, offset_y)
+            player_row, player_col = self.get_cell(
+                player.center_x,
+                player.center_y,
+                cell_size,
+                rows,
+                offset_x,
+                offset_y,
+            )
 
             my_row = max(0, min(rows - 1, my_row))
             my_col = max(0, min(cols - 1, my_col))
@@ -318,24 +374,29 @@ class Ghost(arcade.Sprite):
             blinky_row = blinky_col = None
             if blinky is not None:
                 blinky_row, blinky_col = self.get_cell(
-                    blinky.center_x, blinky.center_y, cell_size, rows, offset_x, offset_y
+                    blinky.center_x,
+                    blinky.center_y,
+                    cell_size,
+                    rows,
+                    offset_x,
+                    offset_y,
                 )
                 blinky_row = max(0, min(rows - 1, blinky_row))
                 blinky_col = max(0, min(cols - 1, blinky_col))
 
-            #choose where to go.
+            # choose where to go.
             if self.state == "FRIGHTENED":
                 valid_moves = self.neighbors(my_row, my_col, maze, rows, cols)
                 reverse_dir = (-self.current_dir[0], -self.current_dir[1])
 
-                
-                #dont go to the same way you came from.
+                # dont go to the same way you came from.
                 if len(valid_moves) > 1:
-                    forward_moves = [m for m in valid_moves if m[1] != reverse_dir]
+                    forward_moves = [
+                        m for m in valid_moves if m[1] != reverse_dir]
                     if forward_moves:
                         valid_moves = forward_moves
 
-                #chose tile that keeps ghost away from player.
+                # chose tile that keeps ghost away from player.
                 best_dir = (0, 0)
                 max_dist = -1
 
@@ -366,7 +427,7 @@ class Ghost(arcade.Sprite):
                         rows=rows,
                         cols=cols,
                     )
-            
+
                 target_row = max(0, min(rows - 1, target_row))
                 target_col = max(0, min(cols - 1, target_col))
 
@@ -382,7 +443,8 @@ class Ghost(arcade.Sprite):
 
                 # Prevent the ghost from stopping on the player when chasing
                 if self.current_dir == (0, 0) and self.state == "CHASE":
-                    valid_moves = self.neighbors(my_row, my_col, maze, rows, cols)
+                    valid_moves = self.neighbors(
+                        my_row, my_col, maze, rows, cols)
                     if valid_moves:
                         import random
                         random_move = random.choice(valid_moves)
@@ -409,7 +471,9 @@ class Ghost(arcade.Sprite):
 
 class Blinky(Ghost):
     def __init__(self, center_x, center_y, name: str):
-        super().__init__(center_x, center_y, texture_path=BLINKY_PATH, name=name)
+        super().__init__(
+            center_x, center_y, texture_path=BLINKY_PATH, name=name
+        )
 
 
 class Pinky(Ghost):
@@ -419,28 +483,30 @@ class Pinky(Ghost):
     AMBUSH_CHANCE = 0.5
 
     def __init__(self, center_x, center_y, name: str):
-        super().__init__(center_x, center_y, texture_path=PINKY_PATH, name=name)
+        super().__init__(
+            center_x, center_y, texture_path=PINKY_PATH, name=name
+        )
 
     def get_target_tile(self, player, player_row, player_col, **kwargs):
 
         if self.state == "FRIGHTENED":
             my_row = kwargs.get("my_row")
             my_col = kwargs.get("my_col")
-            
-            #safe check.
+
+            # safe check.
             if my_row is None or my_col is None:
                 return self.home_row, self.home_col
 
             diff_row = my_row - player_row
             diff_col = my_col - player_col
-            
+
             if diff_row == 0 and diff_col == 0:
                 return self.home_row, self.home_col
 
-            #opposite direction.
+            # opposite direction.
             target_row = my_row + (diff_row * 20)
             target_col = my_col + (diff_col * 20)
-            
+
             return target_row, target_col
 
         dx, dy = player.current_dir
@@ -467,21 +533,21 @@ class Inky(Ghost):
         if self.state == "FRIGHTENED":
             my_row = kwargs.get("my_row")
             my_col = kwargs.get("my_col")
-            
-            #safe check.
+
+            # safe check.
             if my_row is None or my_col is None:
                 return self.home_row, self.home_col
 
             diff_row = my_row - player_row
             diff_col = my_col - player_col
-            
+
             if diff_row == 0 and diff_col == 0:
                 return self.home_row, self.home_col
 
-            #opposite direction.
+            # opposite direction.
             target_row = my_row + (diff_row * 20)
             target_col = my_col + (diff_col * 20)
-            
+
             return target_row, target_col
 
         dx, dy = player.current_dir
@@ -496,30 +562,31 @@ class Inky(Ghost):
 
 class Clyde(Ghost):
 
-
     def __init__(self, center_x, center_y, name: str):
-        super().__init__(center_x, center_y, texture_path=CLYDE_PATH, name=name)
+        super().__init__(
+            center_x, center_y, texture_path=CLYDE_PATH, name=name
+        )
 
     def get_target_tile(self, player, player_row, player_col, **kwargs):
 
         if self.state == "FRIGHTENED":
             my_row = kwargs.get("my_row")
             my_col = kwargs.get("my_col")
-            
-            #safe check.
+
+            # safe check.
             if my_row is None or my_col is None:
                 return self.home_row, self.home_col
 
             diff_row = my_row - player_row
             diff_col = my_col - player_col
-            
+
             if diff_row == 0 and diff_col == 0:
                 return self.home_row, self.home_col
 
-            #opposite direction.
+            # opposite direction.
             target_row = my_row + (diff_row * 20)
             target_col = my_col + (diff_col * 20)
-            
+
             return target_row, target_col
 
         rows = kwargs.get("rows")
@@ -529,5 +596,3 @@ class Clyde(Ghost):
             return player_row, player_col
 
         return random.randrange(rows), random.randrange(cols)
-
-

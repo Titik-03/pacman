@@ -26,16 +26,24 @@ class Player(arcade.Sprite):
         ]
         self.death_crack = arcade.load_texture("src/assets/death/8.png")
         self.death_start = arcade.load_texture("src/assets/death/Group 13.png")
-        self.death_middle = arcade.load_texture("src/assets/death/Group 14.png")
+        self.death_middle = arcade.load_texture(
+            "src/assets/death/Group 14.png")
         self.death_end = arcade.load_texture("src/assets/death/Group 15.png")
-        self.death_shatter = arcade.load_texture("src/assets/death/Group 16.png")
-        self.death_animation = [self.death_crack, self.death_start, self.death_middle, self.death_end, self.death_shatter]
+        self.death_shatter = arcade.load_texture(
+            "src/assets/death/Group 16.png")
+        self.death_animation = [
+            self.death_crack,
+            self.death_start,
+            self.death_middle,
+            self.death_end,
+            self.death_shatter,
+        ]
         self.is_dying = False
         self.death_frame_index = 0
         self.death_timer = 0.0
         self.death_frame_duration = 0.15
         self.cur_frame_index = 0
-        self.time_counter = 0.0 
+        self.time_counter = 0.0
         self.frame_duration = 0.08
         self.is_powered_up = False
         self.power_timer = 0.0
@@ -45,6 +53,7 @@ class Player(arcade.Sprite):
 
         self.lives = 3
         self.invincible = False
+        self.invincible_cheat = False
         self.invincible_timer = 0.0
         # self.INVINCIBILITY_DURATION = 2.0
         self.current_speed = self.speed
@@ -56,14 +65,18 @@ class Player(arcade.Sprite):
         self.death_timer = 0.0
         self.texture = self.death_animation[0]
         self.angle = 0
-    
+
     def queue_direction(self, dir_tuple: tuple[int, int]) -> None:
-        """Sets the queued movement direction directly (used by Level 5 text commands)."""
+        """Sets the queued movement direction directly
+        (used by Level 5 text commands).
+        """
         if not self.is_dying:
             self.queued_dir = dir_tuple
 
     def take_damage(self) -> bool:
-        """Removes one life, starts invincibility. Returns True if game over."""
+        """Removes one life, starts invincibility.
+        Returns True if game over.
+        """
         if self.invincible:
             return False
         self.lives -= 1
@@ -101,28 +114,33 @@ class Player(arcade.Sprite):
             self.invincible_timer -= delta_time
 
             if self.just_took_damage:
-                #start flashing.
+                # start flashing.
                 if int(self.invincible_timer * 15) % 2 == 0:
                     self.alpha = 255
                 else:
                     self.alpha = 0
-                    
-                #stop flashing.
+
+                # stop flashing.
                 if self.invincible_timer <= 0:
-                    self.invincible = False
-                    self.invincible_timer = 0.0
                     self.just_took_damage = False
                     self.alpha = 255
+                    if not self.invincible_cheat:
+                        self.invincible = False
+                        self.invincible_timer = 0.0
             else:
                 self.alpha = 255
-                self.invincible = False
-                self.invincible_timer = 0.0
+                if self.invincible_timer <= 0 and not self.invincible_cheat:
+                    self.invincible = False
+                    self.invincible_timer = 0.0
         else:
             self.alpha = 255
 
     @staticmethod
     def create_player(
-        center_x: float, center_y: float, cell_size: float, speed: float = 170.0
+        center_x: float,
+        center_y: float,
+        cell_size: float,
+        speed: float = 170.0,
     ) -> tuple["Player", arcade.SpriteList]:
         player_list: arcade.SpriteList = arcade.SpriteList()
 
@@ -149,17 +167,28 @@ class Player(arcade.Sprite):
             self.queued_dir = (1, 0)
             self.just_started = False
 
-
     def on_key_release(self, key: int):
         pass
 
-    def can_move(self, dir_tuple: tuple[int, int], maze, cell_size: float, rows: int, cols: int, offset_x: float = 0.0, offset_y: float = 0.0) -> bool:
+    def can_move(
+        self,
+        dir_tuple: tuple[int, int],
+        maze,
+        cell_size: float,
+        rows: int,
+        cols: int,
+        offset_x: float = 0.0,
+        offset_y: float = 0.0,
+    ) -> bool:
         dx, dy = dir_tuple
         if dx == 0 and dy == 0:
             return False
 
-        col = int(round(((self.center_x - offset_x) - cell_size / 2) / cell_size))
-        row = int(round(((rows - 1) * cell_size + cell_size / 2 - (self.center_y - offset_y)) / cell_size))
+        col = int(
+            round(((self.center_x - offset_x) - cell_size / 2) / cell_size)
+        )
+        row = int(round(((rows - 1) * cell_size + cell_size /
+                  2 - (self.center_y - offset_y)) / cell_size))
 
         col = max(0, min(cols - 1, col))
         row = max(0, min(rows - 1, row))
@@ -195,7 +224,9 @@ class Player(arcade.Sprite):
         self.is_powered_up = True
         self.power_timer = duration
 
-    def update_animation(self, delta_time: float = 1 / 60, *args, **kwargs) -> None:
+    def update_animation(
+        self, delta_time: float = 1 / 60, *args, **kwargs
+    ) -> None:
         if self.is_dying:
             self.death_timer += delta_time
             if self.death_timer >= self.death_frame_duration:
@@ -211,13 +242,16 @@ class Player(arcade.Sprite):
             self.time_counter += delta_time
             if self.time_counter >= self.frame_duration:
                 self.time_counter = 0.0
-                self.cur_frame_index = (self.cur_frame_index + 1) % len(self.animation_frames)
+                self.cur_frame_index = (
+                    self.cur_frame_index + 1) % len(self.animation_frames)
                 frame_tex = self.animation_frames[self.cur_frame_index]
-                self.texture = frame_tex.flip_left_right() if self.current_dir[0] < 0 else frame_tex
+                self.texture = frame_tex.flip_left_right(
+                ) if self.current_dir[0] < 0 else frame_tex
         else:
             base_tex = self.animation_frames[0]
-            self.texture = base_tex.flip_left_right() if self.queued_dir[0] < 0 else base_tex
-    
+            self.texture = base_tex.flip_left_right(
+            ) if self.queued_dir[0] < 0 else base_tex
+
     def update_grid_movement(self,
                              maze,
                              cell_size: float,
@@ -234,30 +268,47 @@ class Player(arcade.Sprite):
                 self.is_powered_up = False
                 self.power_timer = 0.0
 
-
         self.update_invincibility(delta_time)
 
         self.damage_invincibility_duration -= delta_time
         if self.damage_invincibility_duration <= 0:
             self.damage_invincibility_duration = 0.0
             self.just_took_damage = False
-        
 
-
-        self.current_speed = self.speed * 1.6 if self.is_powered_up else self.speed
+        self.current_speed = (
+            self.speed * 1.6 if self.is_powered_up else self.speed
+        )
         step = self.current_speed * delta_time
 
-
-        if abs(self.center_x - self.target_x) <= step and abs(self.center_y - self.target_y) <= step:
+        if (
+            abs(self.center_x - self.target_x) <= step
+            and abs(self.center_y - self.target_y) <= step
+        ):
             self.center_x = self.target_x
             self.center_y = self.target_y
 
         # Arrived at cell center -> evaluate next move.
         if self.center_x == self.target_x and self.center_y == self.target_y:
-            if self.can_move(self.queued_dir, maze, cell_size, rows, cols, offset_x, offset_y):
+            if self.can_move(
+                self.queued_dir,
+                maze,
+                cell_size,
+                rows,
+                cols,
+                offset_x,
+                offset_y,
+            ):
                 self.current_dir = self.queued_dir
 
-            elif not self.can_move(self.current_dir, maze, cell_size, rows, cols, offset_x, offset_y):
+            elif not self.can_move(
+                self.current_dir,
+                maze,
+                cell_size,
+                rows,
+                cols,
+                offset_x,
+                offset_y,
+            ):
                 self.current_dir = (0, 0)
 
             if self.current_dir != (0, 0):
@@ -273,5 +324,3 @@ class Player(arcade.Sprite):
             self.center_y = min(self.target_y, self.center_y + step)
         elif self.center_y > self.target_y:
             self.center_y = max(self.target_y, self.center_y - step)
-
-

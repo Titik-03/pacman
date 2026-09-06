@@ -1,7 +1,6 @@
-import sys
-import os
 import arcade
 from src.main_menu import MainMenu
+
 
 def main():
 
@@ -13,4 +12,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

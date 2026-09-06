@@ -1,4 +1,5 @@
-from typing import List, Dict
+from typing import Dict, List
+import os
 import json
 import arcade
 import arcade.gui
@@ -6,17 +7,17 @@ import arcade.gui
 
 class HighScore(arcade.View):
 
-    #init with deafults.
+    # init with deafults.
     def __init__(self, main_menu: arcade.View, window: arcade.Window):
         super().__init__()
 
         self.x_center = self.width / 2
         self.y_center = self.height / 2
-    
+
         self.high_score_text = arcade.Text(
             text="High_score.",
-            x = self.width / 2,
-            y = self.height - 200,
+            x=self.width / 2,
+            y=self.height - 200,
             color=arcade.color.WHITE,
             font_size=150,
             anchor_x="center"
@@ -38,13 +39,12 @@ class HighScore(arcade.View):
             anchor_x="center"
         )
 
+    # what will happen if the view is showed.
 
-    #what will happen if the view is showed.
     def on_show_view(self):
-        
+
         h = Score()
         self.score = h.load_score()
-
 
     def draw_background(self):
 
@@ -57,8 +57,6 @@ class HighScore(arcade.View):
 
         arcade.draw_line(1100, 600, 1500, 600, color, 6)
         arcade.draw_line(1100, 300, 1100, 600, color, 6)
-        
-
 
     def draw_score_panel(self):
 
@@ -132,9 +130,9 @@ class HighScore(arcade.View):
             if i == 0:
                 color = arcade.color.GOLD
             elif i == 1:
-                color = (220,220,220)
+                color = (220, 220, 220)
             elif i == 2:
-                color = (205,127,50)
+                color = (205, 127, 50)
             else:
                 color = arcade.color.WHITE
 
@@ -166,27 +164,21 @@ class HighScore(arcade.View):
 
             row_y -= 45
 
+    # what will draw.
 
-    #what will draw.
     def on_draw(self):
 
-        #clear the screen before drawing new things to prevent overdrawing on last view.
+        # clear the screen before drawing new things to prevent overdrawing
+        # on last view.
         self.clear()
-
 
         self.draw_background()
         self.high_score_text.draw()
         self.draw_score_panel()
 
-
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ESCAPE:
             self.window.show_view(self.main_menu)
-
-
-import json
-import os
-from typing import Dict, List
 
 
 class Score:
@@ -197,7 +189,10 @@ class Score:
         self.load_score()
 
     def load_score(self) -> List[Dict]:
-        """Loads scores from the JSON file. Creates file if missing or corrupted."""
+        """Loads scores from the JSON file.
+
+        Creates file if missing or corrupted.
+        """
         if not os.path.exists(self.filepath):
             self.scores = []
             self._save_to_disk()
@@ -210,7 +205,9 @@ class Score:
             # Filter out stray non-dict elements like empty lists [[]]
             if isinstance(data, list):
                 self.scores = [
-                    self._normalize_entry(item) for item in data if isinstance(item, dict)
+                    self._normalize_entry(item)
+                    for item in data
+                    if isinstance(item, dict)
                 ]
             else:
                 self.scores = []
@@ -223,7 +220,9 @@ class Score:
 
     @staticmethod
     def _normalize_entry(item: Dict) -> Dict:
-        """Converts legacy {'PlayerName': 220} entries to {'name': 'PlayerName', 'score': 220}."""
+        """Converts legacy {'PlayerName': 220} entries to
+        {'name': 'PlayerName', 'score': 220}.
+        """
         if "name" in item and "score" in item:
             return item
         if len(item) == 1:
@@ -256,5 +255,3 @@ class Score:
                 json.dump(self.scores, fp, indent=4)
         except Exception as e:
             print(f"Error saving scores: {e}")
-
-

@@ -1,6 +1,3 @@
-import random
-from typing import List, Dict
-import json
 import arcade
 import arcade.gui
 from src.score import Score
@@ -35,7 +32,6 @@ class Vectory(arcade.View):
         self.background = arcade.load_texture("src/assets/bgv.png")
         self.x = 0
         self.y = 0
-        
 
     def go_to_next_level(self):
         SoundManager.get().play_sfx("menu_select")
@@ -59,7 +55,7 @@ class Vectory(arcade.View):
                 0,
                 self.window.width,
                 self.window.height,
-        ))
+            ))
         arcade.draw_text(
             self.score,
             self.x_center + 15,
@@ -71,18 +67,17 @@ class Vectory(arcade.View):
             anchor_x="center",
             anchor_y="center",
         )
-        arcade.draw_text(
-            f"{self.x}, {self.y}",
-            10,
-            10,
-            arcade.color.BLACK,
-            font_size=60,
-            font_name="Handjet",
-            bold=True,
-            anchor_x="left",
-            anchor_y="bottom",
-        )
-        
+        # arcade.draw_text(
+        #     f"{self.x}, {self.y}",
+        #     10,
+        #     10,
+        #     arcade.color.BLACK,
+        #     font_size=60,
+        #     font_name="Handjet",
+        #     bold=True,
+        #     anchor_x="left",
+        #     anchor_y="bottom",
+        # )
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ENTER:

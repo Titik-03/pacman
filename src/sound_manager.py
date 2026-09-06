@@ -1,5 +1,6 @@
 import arcade
 
+
 class SoundManager:
 
     _instance = None
@@ -17,9 +18,15 @@ class SoundManager:
         }
 
         self.music = {
-            "menu":       arcade.load_sound("src/assets/menu_ost.wav", streaming=True),
-            "gameplay":   arcade.load_sound("src/assets/main_ost.wav", streaming=True),
-            "power_up":   arcade.load_sound("src/assets/powerup.wav", streaming=True),
+            "menu": arcade.load_sound(
+                "src/assets/menu_ost.wav", streaming=True
+            ),
+            "gameplay": arcade.load_sound(
+                "src/assets/main_ost.wav", streaming=True
+            ),
+            "power_up": arcade.load_sound(
+                "src/assets/powerup.wav", streaming=True
+            ),
         }
 
         self.sfx_volume = 0.8

@@ -55,7 +55,10 @@ class ConfigParser:
             "src/outputs/high_score.json",
         )
 
-        if not isinstance(self.highscore_filename, str) or not self.highscore_filename:
+        if (
+            not isinstance(self.highscore_filename, str)
+            or not self.highscore_filename
+        ):
             raise ConfigError(
                 "'highscore_filename' must be a non-empty string."
             )
@@ -170,10 +173,10 @@ class BaseLevel:
     def draw_effects(self, game: Any) -> None:
         """Draw level-specific visual effects (walls)."""
         game.wall_shapes.draw()
-    
+
     def key_press(self, key):
         return key
-    
+
     def key_release(self, key, game: Any) -> None:
         return key
 
@@ -201,11 +204,13 @@ class Level2(BaseLevel):
         self.light_timer = 0.0
         self.is_dark = False
 
-        self.current_scale = 15.0 
+        self.current_scale = 15.0
 
-    def create_fog_mask(self, size: int, vision_radius: int, inner_radius: int):
+    def create_fog_mask(
+        self, size: int, vision_radius: int, inner_radius: int
+    ):
         bg_r, bg_g, bg_b = 30, 30, 46
-        
+
         dark_color = (bg_r, bg_g, bg_b, 255)
         img = PIL.Image.new("RGBA", (size, size), dark_color)
         draw = PIL.ImageDraw.Draw(img)
@@ -216,17 +221,26 @@ class Level2(BaseLevel):
             r = inner_radius + (vision_radius - inner_radius) * (i / steps)
             alpha = int(255 * (i / steps))
             fill_color = (bg_r, bg_g, bg_b, alpha)
-            draw.ellipse([center - r, center - r, center + r, center + r], fill=fill_color)
+            draw.ellipse([center - r, center - r, center +
+                         r, center + r], fill=fill_color)
 
-        draw.ellipse([center - inner_radius, center - inner_radius, center + inner_radius, center + inner_radius], fill=(0, 0, 0, 0))
+        draw.ellipse(
+            [
+                center - inner_radius,
+                center - inner_radius,
+                center + inner_radius,
+                center + inner_radius,
+            ],
+            fill=(0, 0, 0, 0),
+        )
         return arcade.Texture(img)
 
     def update(self, game: Any, delta_time: float) -> None:
         super().update(game, delta_time)
 
         self.light_timer += delta_time
-        
-        #Lights on and off.
+
+        # Lights on and off.
         if self.is_dark:
             if self.light_timer >= 4.0:
                 self.is_dark = False
@@ -235,24 +249,26 @@ class Level2(BaseLevel):
             if self.light_timer >= 2.5:
                 self.is_dark = True
                 self.light_timer = 0.0
-                
-        
-        #Resizing the circle.
+
+        # Resizing the circle.
         target_scale = 1.0 if self.is_dark else 15.0
 
         animation_speed = 4.0 if self.is_dark else 1.5
 
-        self.current_scale += (target_scale - self.current_scale) * animation_speed * delta_time
+        self.current_scale += (
+            (target_scale - self.current_scale) * animation_speed * delta_time
+        )
 
         if self.fog_texture is None:
             vision_r = int(game.cell_size * 2.8)
             inner_r = int(game.cell_size * 0.8)
             mask_dim = max(int(game.width * 2.5), 2400)
-            self.fog_texture = self.create_fog_mask(mask_dim, vision_r, inner_r)
+            self.fog_texture = self.create_fog_mask(
+                mask_dim, vision_r, inner_r)
 
     def draw_top_effects(self, game: Any) -> None:
-        
-        #Camera shake.
+
+        # Camera shake.
         if self.fog_texture:
             maze_x = int(game.offset_x - game.shake_x)
             maze_y = int(game.offset_y - game.shake_y)
@@ -261,7 +277,7 @@ class Level2(BaseLevel):
 
             game.window.ctx.scissor = (maze_x, maze_y, maze_w, maze_h)
 
-            #Draw the scaled.
+            # Draw the scaled.
             draw_w = self.fog_texture.width * self.current_scale
             draw_h = self.fog_texture.height * self.current_scale
 
@@ -275,6 +291,8 @@ class Level2(BaseLevel):
                 )
             )
             game.window.ctx.scissor = None
+
+
 class Level3(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
@@ -307,7 +325,7 @@ class Level3(BaseLevel):
             return arcade.key.RIGHT if self.revers_controls else key
         elif key == arcade.key.RIGHT or key == arcade.key.D:
             return arcade.key.LEFT if self.revers_controls else key
-        
+
         return key
 
     def draw_top_effects(self, game: Any) -> None:
@@ -339,7 +357,7 @@ class Level4(BaseLevel):
         super().update(game, delta_time)
 
         self.spin_timer += delta_time
-        
+
         if self.spin_timer >= 4.0:
             self.current_angle += 90
             self.spin_timer = 0.0
@@ -354,8 +372,9 @@ class Level4(BaseLevel):
         if self.current_angle == 0:
             return key
 
-        #Get the right key based on the current angle.
-        keys = [arcade.key.UP, arcade.key.RIGHT, arcade.key.DOWN, arcade.key.LEFT]
+        # Get the right key based on the current angle.
+        keys = [arcade.key.UP, arcade.key.RIGHT,
+                arcade.key.DOWN, arcade.key.LEFT]
         alt_keys = [arcade.key.W, arcade.key.D, arcade.key.S, arcade.key.A]
 
         shift = self.current_angle // 90
@@ -374,7 +393,7 @@ class Level4(BaseLevel):
         """Flash a warning right before the screen spins."""
         time_left = 4.0 - self.spin_timer
 
-        #Warn user 1 second before spin.
+        # Warn user 1 second before spin.
         if time_left < 1.0:
             if int(time_left * 10) % 2 == 0:
                 arcade.draw_text(
@@ -396,7 +415,7 @@ class Level5(BaseLevel):
         super().__init__(config)
         self.input_text = ""
         self.flash_time = 0.0
-    
+
     def update(self, game: Any, delta_time: float) -> None:
         super().update(game, delta_time)
 
@@ -410,7 +429,7 @@ class Level5(BaseLevel):
         if game.player.is_dying:
             return
 
-        #Return the direction based on the typed command.
+        # Return the direction based on the typed command.
         if key == arcade.key.ENTER or key == arcade.key.RETURN:
             cmd = self.input_text.strip().lower()
 
@@ -426,7 +445,7 @@ class Level5(BaseLevel):
             # Reset input box.
             self.input_text = ""
 
-        #Delete the last character.
+        # Delete the last character.
         elif key == arcade.key.BACKSPACE:
             self.input_text = self.input_text[:-1]
 
@@ -456,7 +475,9 @@ class Level5(BaseLevel):
 
 
 class Level6(BaseLevel):
-    """Tracks player grid positions and rubberbands him back to a previous cell when moving."""
+    """Tracks player grid positions and rubberbands him back to a previous cell
+    when moving.
+    """
 
     def __init__(self, config: dict[str, Any]) -> None:
         """Initialize timing parameters and position anchor trackers."""
@@ -468,36 +489,39 @@ class Level6(BaseLevel):
         self.timer: float = 0.0
         self.is_lagging: bool = False
 
-        #saved coords.
+        # saved coords.
         self.lag_anchor_x: float = 0.0
         self.lag_anchor_y: float = 0.0
 
     def update(self, game: Any, delta_time: float) -> None:
-        """Update cycle timers and continuously pull Pac-Man back to the anchor cell during lag spikes."""
+        """Update cycle timers and continuously pull Pac-Man back to the anchor
+        cell during lag spikes.
+        """
         self.timer += delta_time
         current_cycle_time = self.timer % self.cycle_length
 
-        #Check if inside the 1.5-second lag window.
+        # Check if inside the 1.5-second lag window.
         if current_cycle_time >= self.normal_duration:
             if not self.is_lagging:
                 self.is_lagging = True
-                #Lock in Pac-Man's exact cell location the instant lag starts.
+                # Lock in Pac-Man's exact cell location the instant lag starts.
                 self.lag_anchor_x = game.player.center_x
                 self.lag_anchor_y = game.player.center_y
 
-            #get the distance between Pac-Man's current position and the anchor position.
+            # get the distance between Pac-Man's current position and the
+            # anchor position.
             dist_from_anchor = math.hypot(
                 game.player.center_x - self.lag_anchor_x,
                 game.player.center_y - self.lag_anchor_y,
             )
 
-            #Teleport pacman back.
+            # Teleport pacman back.
             if dist_from_anchor > 15.0:
                 game.player.center_x = self.lag_anchor_x
                 game.player.center_y = self.lag_anchor_y
 
         else:
-            #Return to normal.
+            # Return to normal.
             self.is_lagging = False
 
     def draw_top_effects(self, game: Any) -> None:
@@ -538,11 +562,12 @@ class Level7(BaseLevel):
         self.state: str = "GREEN"
         self.is_braking: bool = False
 
-        #Cycle durations in seconds.
+        # Cycle durations in seconds.
         self.green_duration: float = 5.0
         self.yellow_duration: float = 0.75
         self.red_duration: float = 1.0
-        self.cycle_length: float = self.green_duration + self.yellow_duration + self.red_duration
+        self.cycle_length: float = self.green_duration + \
+            self.yellow_duration + self.red_duration
 
     def key_press(self, key: int, game: Any = None) -> int:
 
@@ -560,7 +585,7 @@ class Level7(BaseLevel):
         self.timer += delta_time
         cycle_time = self.timer % self.cycle_length
 
-        #Update the light.
+        # Update the light.
         if cycle_time < self.green_duration:
             self.state = "GREEN"
         elif cycle_time < self.green_duration + self.yellow_duration:
@@ -568,7 +593,7 @@ class Level7(BaseLevel):
         else:
             self.state = "RED"
 
-        #Brake pacman if braking.
+        # Brake pacman if braking.
         if self.is_braking:
             game.player.speed = 0.0
         else:
@@ -576,8 +601,13 @@ class Level7(BaseLevel):
             bonus = 1.0 + min(0.4, (multiplier - 1) * 0.1)
             game.player.speed = game.player_speed * bonus
 
-        #hit pacman if still moving in red light.
-        if self.state == "RED" and not self.is_braking and game.player.current_dir != (0, 0) or game.player.is_powered_up:
+        # hit pacman if still moving in red light.
+        if (
+            self.state == "RED"
+            and not self.is_braking
+            and game.player.current_dir != (0, 0)
+            or game.player.is_powered_up
+        ):
             game.handle_player_hit()
 
     def draw_top_effects(self, game: Any) -> None:
@@ -585,23 +615,23 @@ class Level7(BaseLevel):
         center_x = game.width * 0.59
         center_y = game.height * 0.8
 
-        #draw red light green light.
+        # draw red light green light.
         if self.state == "GREEN":
             arcade.draw_text(
-                "GREEN LIGHT!", 
-                center_x, center_y, 
+                "GREEN LIGHT!",
+                center_x, center_y,
                 arcade.color.LIME_GREEN, 20, anchor_x="center", bold=True
             )
         elif self.state == "YELLOW":
             arcade.draw_text(
-                "YELLOW: BRAKE (SPACE)!", 
-                center_x, center_y, 
+                "YELLOW: BRAKE (SPACE)!",
+                center_x, center_y,
                 arcade.color.YELLOW, 18, anchor_x="center", bold=True
             )
         elif self.state == "RED":
             arcade.draw_text(
-                "RED LIGHT!", 
-                center_x, center_y, 
+                "RED LIGHT!",
+                center_x, center_y,
                 arcade.color.RED, 20, anchor_x="center", bold=True
             )
 
@@ -611,13 +641,13 @@ class Level8(BaseLevel):
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
-        self.state: str = "NORMAL"  #NORMAL, WAITING, FROZEN
+        self.state: str = "NORMAL"  # NORMAL, WAITING, FROZEN
         self.timer: float = 0.0
-        
+
         self.next_event_time: float = random.uniform(6.0, 10.0)
         self.reaction_time_limit: float = 3
         self.freeze_duration: float = 2.0
-        
+
         self.current_prompt_text: str = ""
         self.accepted_keys: list[int] = []
         self.is_simon: bool = True
@@ -639,13 +669,13 @@ class Level8(BaseLevel):
 
         elif self.state == "WAITING":
             self.timer -= delta_time
-            
-            #time!
+
+            # time!
             if self.timer <= 0:
-                #simon said.
+                # simon said.
                 if self.is_simon:
                     self.trigger_freeze()
-                #simon did not say.
+                # simon did not say.
                 else:
                     self.state = "NORMAL"
                     self.timer = 0.0
@@ -654,13 +684,13 @@ class Level8(BaseLevel):
         elif self.state == "FROZEN":
             game.player.speed = 0.0
             self.timer -= delta_time
-            
+
             if self.timer <= 0:
                 self.state = "NORMAL"
                 self.timer = 0.0
                 self.next_event_time = random.uniform(6.0, 10.0)
-                
-                #Restore speed with combo.
+
+                # Restore speed with combo.
                 multiplier = (game.combo_count // 10) + 1
                 bonus = 1.0 + min(0.4, (multiplier - 1) * 0.1)
                 game.player.speed = game.player_speed * bonus
@@ -669,15 +699,17 @@ class Level8(BaseLevel):
         """Start a random Real or Fake event."""
         self.state = "WAITING"
         self.timer = self.reaction_time_limit
-        
+
         direction_text, keys = random.choice(self.commands)
         self.accepted_keys = keys
-        
-        #schoose simon says or not.
+
+        # schoose simon says or not.
         self.is_simon = random.choice([True, False, True])
-        
+
         if self.is_simon:
-            self.current_prompt_text = f"SIMON SAYS: PRESS {direction_text}...!"
+            self.current_prompt_text = (
+                f"SIMON SAYS: PRESS {direction_text}...!"
+            )
         else:
             self.current_prompt_text = f"PRESS {direction_text}..!"
 
@@ -689,26 +721,26 @@ class Level8(BaseLevel):
 
     def key_press(self, key: int, game: Any = None) -> int | None:
         """Intercept key presses during the event."""
-        
+
         if self.state == "WAITING":
             if self.is_simon:
-                #Simon says.
+                # Simon says.
                 if key in self.accepted_keys:
-                    #SUCCESS: Right key pressed.
+                    # SUCCESS: Right key pressed.
                     self.state = "NORMAL"
                     self.timer = 0.0
                     self.next_event_time = random.uniform(6.0, 10.0)
                     return key
                 else:
-                    #WRONG KEY: Do not freeze yet, just ignore the input.
-                    return None 
+                    # WRONG KEY: Do not freeze yet, just ignore the input.
+                    return None
             else:
-                #Simon not says.
+                # Simon not says.
                 if key in self.accepted_keys:
                     self.trigger_freeze()
                     return None
                 else:
-                    #Pressed a different key. Let them keep playing normally.
+                    # Pressed a different key. Let them keep playing normally.
                     return key
 
         if self.state == "FROZEN":
@@ -725,25 +757,37 @@ class Level8(BaseLevel):
             if int(self.timer * 10) % 2 == 0:
                 arcade.draw_text(
                     self.current_prompt_text,
-                    center_x, center_y,
-                    arcade.color.RED, 25, anchor_x="center", bold=True, font_name="Handjet"
+                    center_x,
+                    center_y,
+                    arcade.color.RED,
+                    25,
+                    anchor_x="center",
+                    bold=True,
+                    font_name="Handjet",
                 )
         elif self.state == "FROZEN":
             arcade.draw_text(
                 self.current_prompt_text,
-                center_x, center_y,
-                arcade.color.GRAY, 24, anchor_x="center", bold=True, font_name="Handjet"
+                center_x,
+                center_y,
+                arcade.color.GRAY,
+                24,
+                anchor_x="center",
+                bold=True,
+                font_name="Handjet",
             )
 
 
 class Level9(BaseLevel):
-    """Pac-Man must never stop moving, and ghosts get faster upon player death."""
+    """Pac-Man must never stop moving, and ghosts get faster upon player
+    death.
+    """
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
         self.stop_timer: float = 0.0
         self.grace_period: float = 1.0
-        
+
         self.previous_lives: int = -1
         self.ghost_speed_multiplier: float = 1.15
 
@@ -752,17 +796,17 @@ class Level9(BaseLevel):
         # Initialize previous_lives on the first update call.
         if self.previous_lives == -1:
             self.previous_lives = game.player.lives
-        
+
         if game.player.lives < self.previous_lives:
             self.previous_lives = game.player.lives
             self.increase_ghost_speed(game)
 
-        #dont count if pacman is dying or invincible.
+        # dont count if pacman is dying or invincible.
         if game.player.is_dying or game.player.invincible:
             self.stop_timer = 0.0
             return
 
-        #is pacman moving.
+        # is pacman moving.
         if game.player.current_dir == (0, 0) and not game.player.just_started:
             self.stop_timer += delta_time
             if self.stop_timer >= self.grace_period:
@@ -792,9 +836,8 @@ class Level9(BaseLevel):
             )
 
 
-
 class Level10(BaseLevel):
-    
+
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
 
@@ -814,4 +857,3 @@ class LevelFactory:
             6: Level6, 7: Level7, 8: Level8, 9: Level9, 10: Level10
         }
         return classes.get(level_number, Level1)(config)
-

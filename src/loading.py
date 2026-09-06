@@ -6,7 +6,15 @@ SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
 
 
 class LoadingView(arcade.View):
-    def __init__(self, window: arcade.Window, main_menu: arcade.View, seed: int = 42, level: int = 1, score: int = 0, lives: int = None):
+    def __init__(
+        self,
+        window: arcade.Window,
+        main_menu: arcade.View,
+        seed: int = 42,
+        level: int = 1,
+        score: int = 0,
+        lives: int = None,
+    ):
         super().__init__()
         self.window = window
         self.main_menu = main_menu
@@ -24,12 +32,14 @@ class LoadingView(arcade.View):
         self.MOCHA_SURFACE0 = (49, 50, 68)    # #313244
         self.MOCHA_TEXT = (205, 214, 244)     # #cdd6f4
         self.MOCHA_MAUVE = (203, 166, 247)    # #cba6f7
-        self.MOCHA_LAVENDER = (180, 190, 254) # #b4befe
+        self.MOCHA_LAVENDER = (180, 190, 254)  # b4befe
         self.MOCHA_YELLOW = (249, 226, 175)   # #f9e2af (Pac-Man)
-        self.MOCHA_ROSEWATER = (245, 224, 220)# #f5e0dc (Dots)
+        self.MOCHA_ROSEWATER = (245, 224, 220)  # f5e0dc (Dots)
 
         # Load Handjet font
-        font_path = SCRIPT_DIR / "assets" / "Handjet" / "static" / "Handjet-Bold.ttf"
+        font_path = (
+            SCRIPT_DIR / "assets" / "Handjet" / "static" / "Handjet-Bold.ttf"
+        )
         if font_path.exists():
             arcade.load_font(str(font_path))
 
@@ -68,7 +78,16 @@ class LoadingView(arcade.View):
 
         if self.elapsed >= self.loading_duration:
             from src.game import GameWindow
-            self.window.show_view(GameWindow(self.main_menu, self.window, seed=self.seed, level=self.level, score=self.score, lives=self.lives))
+            self.window.show_view(
+                GameWindow(
+                    self.main_menu,
+                    self.window,
+                    seed=self.seed,
+                    level=self.level,
+                    score=self.score,
+                    lives=self.lives,
+                )
+            )
 
     def on_draw(self):
         self.clear()
@@ -106,7 +125,8 @@ class LoadingView(arcade.View):
         end_dot_x = bar_x + bar_w - 10
         dot_x = start_dot_x
         while dot_x < end_dot_x:
-            arcade.draw_circle_filled(dot_x, bar_y + bar_h / 2, 4, self.MOCHA_ROSEWATER)
+            arcade.draw_circle_filled(
+                dot_x, bar_y + bar_h / 2, 4, self.MOCHA_ROSEWATER)
             dot_x += dot_spacing
 
         # Draw animated champing Pac-Man at current progress position
@@ -122,4 +142,3 @@ class LoadingView(arcade.View):
             mouth_angle,
             360 - mouth_angle
         )
-

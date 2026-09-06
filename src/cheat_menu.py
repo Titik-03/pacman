@@ -1,6 +1,5 @@
 import arcade
 import arcade.gui
-from typing import List
 
 
 class CheatMenu(arcade.View):
@@ -35,8 +34,9 @@ class CheatMenu(arcade.View):
             self.window.show_view(self.game)
 
 
-
-# window = arcade.Window(1920, 1080, "Pac-man", resizable=True, fullscreen=True)
+# window = arcade.Window(
+#     1920, 1080, "Pac-man", resizable=True, fullscreen=True
+# )
 
 # p = PauseMenu()
 
@@ -44,4 +44,3 @@ class CheatMenu(arcade.View):
 # window.show_view(p)
 
 # arcade.run()
-

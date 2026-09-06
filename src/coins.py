@@ -1,4 +1,7 @@
+import math
+import time
 import arcade
+
 
 class Coin:
     def __init__(self, x, y, is_powerup: bool = False):
@@ -16,9 +19,14 @@ class Coin:
             self.glow_color = None
 
     def draw(self):
-        if not self.is_eaten:
-            if self.is_powerup and self.glow_color:
-                arcade.draw_circle_filled(self.x, self.y, self.radius + 4, self.glow_color)
-            arcade.draw_circle_filled(self.x, self.y, self.radius, self.color)
+        if self.is_eaten:
+            return
 
+        hover = math.sin(time.time() * 3.5 + (self.x + self.y) * 0.03)
+        draw_y = self.y + hover * (3.0 if self.is_powerup else 1.5)
 
+        if self.is_powerup and self.glow_color:
+            arcade.draw_circle_filled(
+                self.x, draw_y, self.radius + 4, self.glow_color
+            )
+        arcade.draw_circle_filled(self.x, draw_y, self.radius, self.color)

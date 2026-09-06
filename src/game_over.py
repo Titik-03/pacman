@@ -1,13 +1,14 @@
-from typing import List, Dict
-import json
 import arcade
 import arcade.gui
 from src.score import Score
 from src.sound_manager import SoundManager
 import pathlib
 
+
 class GameOver(arcade.View):
-    def __init__(self, window: arcade.Window, main_menu: arcade.View, score: int):
+    def __init__(
+        self, window: arcade.Window, main_menu: arcade.View, score: int
+    ):
         super().__init__()
         SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
 
@@ -22,7 +23,9 @@ class GameOver(arcade.View):
         self.score = score
         self.score_class = Score()
         self.player_name = ""
-        font_path = SCRIPT_DIR / "assets" / "Handjet" / "static" / "Handjet-Bold.ttf"
+        font_path = (
+            SCRIPT_DIR / "assets" / "Handjet" / "static" / "Handjet-Bold.ttf"
+        )
         arcade.load_font(str(font_path))
         self.selected_option = 0
 
@@ -39,7 +42,7 @@ class GameOver(arcade.View):
                 0,
                 self.window.width,
                 self.window.height,
-        ))
+            ))
         arcade.draw_text(
             f"{self.score}",
             self.x_center + 110,
@@ -72,7 +75,10 @@ class GameOver(arcade.View):
             SoundManager.get().play_sfx("menu_select")
             if name := self.player_name.strip():
                 self.score_class.write_score(name, self.score)
-            self.main_menu.new_game(seed=42) if self.selected_option == 0 else self.window.show_view(self.main_menu)
+            if self.selected_option == 0:
+                self.main_menu.new_game(seed=42)
+            else:
+                self.window.show_view(self.main_menu)
 
         elif key == arcade.key.ESCAPE:
             SoundManager.get().play_sfx("menu_select")
@@ -81,7 +87,9 @@ class GameOver(arcade.View):
         elif key == arcade.key.BACKSPACE:
             self.player_name = self.player_name[:-1]
 
-        elif len(self.player_name) < 10 and (chr(key).isalnum() or key == arcade.key.SPACE):
+        elif len(self.player_name) < 10 and (
+            chr(key).isalnum() or key == arcade.key.SPACE
+        ):
             self.player_name += chr(key).upper()
 
     def on_mouse_press(self, x, y, button, modifiers):
