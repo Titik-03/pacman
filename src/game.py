@@ -362,7 +362,7 @@ class GameWindow(arcade.View):
                 if (row, col) in corner_cells:
                     self.coins_lst.append(
                         Coin(x + cs / 2, y + cs / 2, is_powerup=True))
-                elif cell & 0b1111 != 0b1111:
+                elif cell & 0b1111 != 0b1111 and random.choice([True, False]):
                     self.coins_lst.append(
                         Coin(x + cs / 2, y + cs / 2, is_powerup=False))
                 elif cell & 0b1111 == 0b1111:
