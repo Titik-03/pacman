@@ -8,21 +8,29 @@ from src.banner import Banner
 from src.menu_item import MenuItem
 from src.particle import Particle
 from src.sound_manager import SoundManager
+from src.levels import ConfigParser
 
 
 # Main menu view.
 class MainMenu(arcade.View):
-    def __init__(self, window):
+    def __init__(
+        self,
+        window: arcade.Window,
+        config_parser: ConfigParser | None = None,
+    ) -> None:
         super().__init__()
         arcade.load_font("src/assets/Handjet/static/Handjet-Regular.ttf")
         arcade.load_font("src/assets/Handjet/static/Handjet-Bold.ttf")
 
+        self.config_parser = config_parser or ConfigParser()
         self.high_score_view = HighScore(self, window)
         self.instuctions_view = Instuctions(self, window)
         self.top_banner = Banner(window.width + 300, window.height + 300)
         self.bottom_banner = Banner(window.width + 300, -window.height - 500)
 
-        self.score_manager = Score()
+        self.score_manager = Score(
+            filepath=self.config_parser.highscore_filename
+        )
         self.window = window
         self.scores = []
         self.background = arcade.load_texture("src/assets/menu.png")

@@ -25,9 +25,9 @@ class Ghost(arcade.Sprite):
         self.center_y = center_y
         self.target_x = center_x
         self.target_y = center_y
-        self.speed = 130.0
-        self.og_speed = 130.0
-        self.og_speed = 130.0
+        self.speed = 115.0
+        self.og_speed = 115.0
+        self.og_speed = 115.0
         self.current_dir = (0, 0)
 
         # Power-Up System
@@ -223,14 +223,11 @@ class Ghost(arcade.Sprite):
         if self.state == "EATEN":
             return
 
-        if not self.was_eaten:
-            if player.is_powered_up and self.state == "CHASE":
+        if player.is_powered_up:
+            if self.state == "CHASE":
                 self.state = "FRIGHTENED"
                 self.texture = arcade.load_texture(SCARED_PATH)
-            elif not player.is_powered_up and self.state == "FRIGHTENED":
-                self.state = "CHASE"
-                self.texture = arcade.load_texture(self.normal_texture_path)
-                self.color = (255, 255, 255)
+
             if self.state == "FRIGHTENED":
                 if player.power_timer <= 3.0:
                     is_white_frame = int(player.power_timer * 6.5) % 2 == 0
@@ -238,9 +235,14 @@ class Ghost(arcade.Sprite):
                         137, 180, 250)
                 else:
                     self.color = (255, 255, 255)
+            return
 
-        if player.power_timer == 0:
-            self.was_eaten = False
+        if self.state == "FRIGHTENED":
+            self.state = "CHASE"
+            self.texture = arcade.load_texture(self.normal_texture_path)
+
+        self.color = (255, 255, 255)
+        self.was_eaten = False
 
     def draw_target_x(
         self,

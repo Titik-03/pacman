@@ -59,15 +59,13 @@ class GameWindow(arcade.View):
                  level: int = 1,
                  score: int = 0,
                  lives: int = None,
-                 width=None,
-                 height=None,
-                 fullscreen=True
                  ) -> None:
 
         super().__init__()
-        arcade.set_background_color((10, 10, 30))
-
-        self.config_parser = ConfigParser()
+        self.main_menu = menu
+        self.config_parser = getattr(
+            self.main_menu, "config_parser", None
+        ) or ConfigParser()
         self.level_factory = LevelFactory()
         self.level = level
         self.score = score
@@ -82,8 +80,20 @@ class GameWindow(arcade.View):
         self.level_obj = self.level_factory.create_level(
             self.level, level_config)
 
-        self.m = MazeGenerator((15, 15), seed=self.level_obj.seed)
-        self.maze = self.m.maze
+        try:
+            maze_w = getattr(self.level_obj, "width", 15)
+            maze_h = getattr(self.level_obj, "height", 15)
+            self.m = MazeGenerator(
+                (maze_h, maze_w), perfect=False, seed=self.level_obj.seed
+            )
+            self.maze = self.m.maze
+        except Exception as e:
+            import sys
+            print(
+                f"Warning: MazeGenerator failed ({e}). Using default grid.",
+                file=sys.stderr,
+            )
+            self.maze = [[0 for _ in range(15)] for _ in range(15)]
 
         self.rows = len(self.maze)
         self.cols = len(self.maze[0])
@@ -173,7 +183,7 @@ class GameWindow(arcade.View):
         self.player_spawn_x = start_x
         self.player_spawn_y = start_y
 
-        self.player_speed = 170
+        self.player_speed = 180
         self.speed_up = False
 
         self.init_ghosts()
@@ -192,7 +202,9 @@ class GameWindow(arcade.View):
         self.manager = arcade.gui.UIManager()
 
         self.main_menu = menu
-        self.window = window
+        self.config_parser = getattr(
+            self.main_menu, "config_parser", None
+        ) or ConfigParser()
         # self.pause_menu = PauseMenu(self)
         self.cheat_menu = CheatMenu(self)
         self.pause = False
@@ -226,15 +238,135 @@ class GameWindow(arcade.View):
         self.mouse_y = 0.0
 
         # Ability system
-        self.frost_walk_timer = 0.0
-        self.time_stop_timer = 0.0
-        self.ability_cooldown = 0.0
+        self.ability_defs = [
+            {
+                "name": "FROST WALK [E]",
+                "key": arcade.key.E,
+                "unlock_level": 3,
+                "duration": 5.0,
+                "cooldown": 20.0,
+                "active_timer": 0.0,
+                "cooldown_timer": 0.0,
+                "icon_index": 1,
+                "effect": "frost_walk",
+            },
+            {
+                "name": "STOP TIME [Q]",
+                "key": arcade.key.Q,
+                "unlock_level": 5,
+                "duration": 5.0,
+                "cooldown": 20.0,
+                "active_timer": 0.0,
+                "cooldown_timer": 0.0,
+                "icon_index": 2,
+                "effect": "stop_time",
+            },
+            {
+                "name": "TELEPORT [F]",
+                "key": arcade.key.F,
+                "unlock_level": 7,
+                "duration": 0.0,
+                "cooldown": 20.0,
+                "active_timer": 0.0,
+                "cooldown_timer": 0.0,
+                "icon_index": 3,
+                "effect": "teleport",
+            },
+        ]
         # --- Motion Trail State ---
         self.trail_particles: list[TrailParticle] = []
         self.trail_timer = 0.0
         self.TRAIL_INTERVAL = 0.04
         self.shock = []
         self.coin_sparkles = []
+
+    def get_unlocked_abilities(self) -> list[dict[str, object]]:
+        return [
+            ability for ability in self.ability_defs
+            if self.level >= ability["unlock_level"]
+        ]
+
+    def get_ability_by_key(self, key: int) -> dict[str, object] | None:
+        for ability in self.ability_defs:
+            if key == ability["key"] and self.level >= ability["unlock_level"]:
+                return ability
+        return None
+
+    def get_player_facing_dir(self) -> tuple[int, int]:
+        if self.player.current_dir != (0, 0):
+            return self.player.current_dir
+        if self.player.queued_dir != (0, 0):
+            return self.player.queued_dir
+        return (0, 0)
+
+    def get_furthest_tile_in_direction(
+        self,
+        start_row: int,
+        start_col: int,
+        direction: tuple[int, int],
+    ) -> tuple[int, int]:
+        dx, dy = direction
+        row, col = start_row, start_col
+
+        while True:
+            next_row = row - dy
+            next_col = col + dx
+
+            if not (0 <= next_row < self.rows and 0 <= next_col < self.cols):
+                break
+
+            cell_val = self.maze[row][col]
+
+            if dy == 1 and (cell_val & NORTH):
+                break
+            if dy == -1 and (cell_val & SOUTH):
+                break
+            if dx == 1 and (cell_val & EAST):
+                break
+            if dx == -1 and (cell_val & WEST):
+                break
+
+            row, col = next_row, next_col
+
+        return row, col
+
+    def reset_ghost_colors(self) -> None:
+        active_stop_time = self.get_ability_by_key(arcade.key.Q)
+        active_frost_walk = self.get_ability_by_key(arcade.key.E)
+
+        for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
+            if ghost.state == "EATEN":
+                continue
+
+            if self.player.is_powered_up and ghost.state == "FRIGHTENED":
+                if self.player.power_timer <= 3.0:
+                    is_white = int(self.player.power_timer * 6.5) % 2 == 0
+                    ghost.color = (
+                        (255, 255, 255) if is_white else (137, 180, 250)
+                    )
+                else:
+                    ghost.color = (255, 255, 255)
+                continue
+
+            if ghost.state == "FRIGHTENED" and not self.player.is_powered_up:
+                ghost.state = "CHASE"
+                ghost.texture = arcade.load_texture(ghost.normal_texture_path)
+                ghost.was_eaten = False
+
+            if (
+                active_stop_time is not None
+                and active_stop_time["active_timer"] > 0
+                and ghost.state == "CHASE"
+            ):
+                ghost.color = (130, 200, 255)
+            elif (
+                active_frost_walk is not None
+                and active_frost_walk["active_timer"] > 0
+                and ghost.state == "CHASE"
+            ):
+                ghost.color = (140, 210, 255)
+            else:
+                ghost.color = (255, 255, 255)
 
     def trigger_shake(self, duration, intensity):
         self.shake_time = duration
@@ -427,113 +559,103 @@ class GameWindow(arcade.View):
         )
 
     def draw_ability(self):
-        idx = (self.level - 1) // 2
-        idx = max(0, min(3, idx))
+        unlocked = self.get_unlocked_abilities()
+        idx = unlocked[-1]["icon_index"] if unlocked else 0
         arcade.draw_texture_rect(
             self.abilities[idx],
             arcade.LBWH(1140, 60, 400, 630)
         )
 
     def draw_cooldown_slider(self):
-        ability_idx = max(0, min(3, (self.level - 1) // 2))
         x = 1550
-        y = 180
         w = 280
         h = 24
-        if ability_idx == 0:
-            ability_name = "NO ABILITY"
-            status_text = "LOCKED"
-            accent_color = (100, 105, 130)
-            progress = 0.0
-        else:
-            names = {1: "FROST WALK [E]",
-                     2: "STOP TIME [Q]", 3: "TELEPORT [F]"}
-            ability_name = names.get(ability_idx, "ABILITY")
-
-            active_remaining = 0.0
-            if ability_idx == 1 and self.frost_walk_timer > 0:
-                active_remaining = self.frost_walk_timer
-            elif ability_idx == 2 and self.time_stop_timer > 0:
-                active_remaining = self.time_stop_timer
+        for row, ability in enumerate(self.get_unlocked_abilities()):
+            y = 180 - row * 62
+            active_remaining = float(ability["active_timer"])
+            cooldown_remaining = float(ability["cooldown_timer"])
+            duration = float(ability["duration"])
+            cooldown = float(ability["cooldown"])
 
             if active_remaining > 0:
                 status_text = f"ACTIVE {active_remaining:.1f}s"
                 accent_color = (137, 220, 255)
-                progress = active_remaining / 5.0
-            elif self.ability_cooldown > 0:
-                status_text = f"{self.ability_cooldown:.1f}s"
+                progress = (
+                    active_remaining / duration if duration else 0.0
+                )
+            elif cooldown_remaining > 0:
+                status_text = f"{cooldown_remaining:.1f}s"
                 accent_color = MOCHA_MAUVE
-                progress = max(
-                    0.0, min(1.0, 1.0 - (self.ability_cooldown / 20.0)))
+                progress = (
+                    1.0 - (cooldown_remaining / cooldown) if cooldown else 1.0
+                )
             else:
                 status_text = "READY"
                 accent_color = MOCHA_GREEN
                 progress = 1.0
-        arcade.draw_text(
-            ability_name,
-            x=x,
-            y=y + h + 14,
-            color=MOCHA_TEXT if ability_idx > 0 else (120, 125, 150),
-            font_size=18,
-            font_name="Handjet",
-            bold=True,
-            anchor_y="center"
-        )
-        arcade.draw_text(
-            status_text,
-            x=x + w,
-            y=y + h + 14,
-            color=accent_color,
-            font_size=18,
-            font_name="Handjet",
-            bold=True,
-            anchor_x="right",
-            anchor_y="center"
-        )
-        arcade.draw_rect_filled(
-            arcade.LBWH(x - 2, y - 2, w + 4, h + 4),
-            color=(17, 17, 27, 200)
-        )
-        arcade.draw_rect_filled(
-            arcade.LBWH(x, y, w, h),
-            color=(30, 30, 46, 235)
-        )
-        for pct in (0.25, 0.5, 0.75):
-            tick_x = x + w * pct
-            arcade.draw_line(
-                tick_x, y + 3,
-                tick_x, y + h - 3,
-                color=(69, 71, 90, 140),
-                line_width=1
+
+            arcade.draw_text(
+                ability["name"],
+                x=x,
+                y=y + h + 14,
+                color=MOCHA_TEXT,
+                font_size=18,
+                font_name="Handjet",
+                bold=True,
+                anchor_y="center"
             )
-        fill_max_w = w - 6
-        fill_w = fill_max_w * progress
-        if fill_w > 0:
-            # Base progress fill
-            arcade.draw_rect_filled(
-                arcade.LBWH(x + 3, y + 3, fill_w, h - 6),
-                color=accent_color
+            arcade.draw_text(
+                status_text,
+                x=x + w,
+                y=y + h + 14,
+                color=accent_color,
+                font_size=18,
+                font_name="Handjet",
+                bold=True,
+                anchor_x="right",
+                anchor_y="center"
             )
             arcade.draw_rect_filled(
-                arcade.LBWH(x + 3, y + h / 2, fill_w, (h - 6) / 2),
-                color=(255, 255, 255, 60)
+                arcade.LBWH(x - 2, y - 2, w + 4, h + 4),
+                color=(17, 17, 27, 200)
+            )
+            arcade.draw_rect_filled(
+                arcade.LBWH(x, y, w, h),
+                color=(30, 30, 46, 235)
+            )
+            for pct in (0.25, 0.5, 0.75):
+                tick_x = x + w * pct
+                arcade.draw_line(
+                    tick_x, y + 3,
+                    tick_x, y + h - 3,
+                    color=(69, 71, 90, 140),
+                    line_width=1
+                )
+            fill_max_w = w - 6
+            fill_w = fill_max_w * max(0.0, min(1.0, progress))
+            if fill_w > 0:
+                arcade.draw_rect_filled(
+                    arcade.LBWH(x + 3, y + 3, fill_w, h - 6),
+                    color=accent_color
+                )
+                arcade.draw_rect_filled(
+                    arcade.LBWH(x + 3, y + h / 2, fill_w, (h - 6) / 2),
+                    color=(255, 255, 255, 60)
+                )
+
+            is_ready = cooldown_remaining <= 0
+            border_color = accent_color if is_ready else MOCHA_SURFACE1
+            arcade.draw_rect_outline(
+                arcade.LBWH(x, y, w, h),
+                color=border_color,
+                border_width=2
             )
 
-        border_color = accent_color if (
-            ability_idx > 0 and self.ability_cooldown <= 0) else MOCHA_SURFACE1
-        arcade.draw_rect_outline(
-            arcade.LBWH(x, y, w, h),
-            color=border_color,
-            border_width=2
-        )
-
-        if ability_idx > 0:
             knob_x = min(x + w - 5, max(x + 5, x + 3 + fill_w))
             knob_cy = y + h / 2
             knob_w = 10
             knob_h = h + 8
 
-            # Knob body
             arcade.draw_rect_filled(
                 arcade.rect.XYWH(knob_x, knob_cy, knob_w, knob_h),
                 color=(245, 245, 255)
@@ -553,29 +675,36 @@ class GameWindow(arcade.View):
             )
 
     def trigger_ability(self, key):
-        if self.ability_cooldown > 0:
+        ability = self.get_ability_by_key(key)
+        if ability is None:
             return
 
-        ability_idx = max(0, min(3, (self.level - 1) // 2))
-        if key == arcade.key.E and ability_idx == 1:
-            # Index 1: Frost Walk (Levels 3 & 4) - slows down ghosts
-            # for 5 seconds
-            self.frost_walk_timer = 5.0
-            self.ability_cooldown = 20.0
+        if ability["cooldown_timer"] > 0 or ability["active_timer"] > 0:
+            return
+
+        effect = ability["effect"]
+
+        if effect == "frost_walk":
+            ability["active_timer"] = ability["duration"]
+            ability["cooldown_timer"] = ability["cooldown"]
             SoundManager.get().play_sfx("power_pellet")
 
-        elif key == arcade.key.Q and ability_idx == 2:
-            # Index 2: Freeze Ghosts / Stop Time (Levels 5 & 6) - stops ghosts
-            # where they are for 5 seconds
-            self.time_stop_timer = 5.0
-            self.ability_cooldown = 20.0
+        elif effect == "stop_time":
+            ability["active_timer"] = ability["duration"]
+            ability["cooldown_timer"] = ability["cooldown"]
             SoundManager.get().play_sfx("power_pellet")
 
-        elif key == arcade.key.F and ability_idx == 3:
-            # Index 3: Teleport to other side of maze (Levels 7, 8, 9, 10)
-            self.ability_cooldown = 20.0
-            col = int(round(((self.player.center_x - self.offset_x) -
-                      self.cell_size / 2) / self.cell_size))
+        elif effect == "teleport":
+            direction = self.get_player_facing_dir()
+            if direction == (0, 0):
+                return
+
+            ability["cooldown_timer"] = ability["cooldown"]
+
+            col = int(
+                round(((self.player.center_x - self.offset_x) -
+                      self.cell_size / 2) / self.cell_size)
+            )
             row = int(
                 round(
                     (
@@ -586,9 +715,12 @@ class GameWindow(arcade.View):
                     / self.cell_size
                 )
             )
-            self.player.center_x = self.offset_x + \
-                (self.cols - 1 - col + 0.5) * self.cell_size
-            self.player.center_y = self.offset_y + (row + 0.5) * self.cell_size
+            row, col = self.get_furthest_tile_in_direction(row, col, direction)
+
+            self.player.center_x = self.offset_x + (col + 0.5) * self.cell_size
+            self.player.center_y = self.offset_y + (
+                self.rows - 1 - row + 0.5
+            ) * self.cell_size
             self.player.target_x = self.player.center_x
             self.player.target_y = self.player.center_y
             self.player.current_dir = (0, 0)
@@ -811,8 +943,6 @@ class GameWindow(arcade.View):
         self.clyde_list.draw()
         for sparkle in self.coin_sparkles:
             sparkle.draw()
-        # Draw top effects (like spinning maze warnings).
-        self.level_obj.draw_top_effects(self)
 
         if self.debug:
             self.draw_debug()
@@ -826,6 +956,9 @@ class GameWindow(arcade.View):
         for f in self.floating_scores:
             f.draw()
         self.ui_camera.use()
+
+        # Draw top effects on the UI layer (stay fixed during rotation).
+        self.level_obj.draw_top_effects(self)
 
         if self.cheat_menu:
             self.draw_cheat_menu()
@@ -845,10 +978,29 @@ class GameWindow(arcade.View):
         self.game_over = GameOver(self.window, self.main_menu, self.score)
         self.window.show_view(self.game_over)
 
-    def go_to_vectory(self):
+    def go_to_next_level(self):
         SoundManager.get().stop_music()
-        self.vectory = Vectory(self.window, self.main_menu, self.score, (
-            self.level + 1), lives=self.player.lives, seed=self.level_obj.seed)
+        from src.loading import LoadingView
+        loading_view = LoadingView(
+            self.window,
+            self.main_menu,
+            seed=self.level_obj.seed,
+            level=self.level + 1,
+            score=self.score,
+            lives=self.player.lives,
+        )
+        self.window.show_view(loading_view)
+
+    def go_to_victory(self):
+        SoundManager.get().stop_music()
+        self.vectory = Vectory(
+            self.window,
+            self.main_menu,
+            self.score,
+            self.level + 1,
+            lives=self.player.lives,
+            seed=self.level_obj.seed,
+        )
         self.window.show_view(self.vectory)
 
     def ghosts_chase_player(self, delta_time):
@@ -986,8 +1138,11 @@ class GameWindow(arcade.View):
         self.level_obj.update(self, delta_time)
 
         if self.collected_coins == self.target_coins:
-            # change the view to vectory menu.
-            self.go_to_vectory()
+            if self.level < self.config_parser.max_level:
+                self.go_to_next_level()
+            else:
+                self.go_to_victory()
+            return
 
         self.timer -= delta_time
         if self.timer < 0.80:
@@ -995,12 +1150,13 @@ class GameWindow(arcade.View):
             return
 
         # Ability timers
-        if self.frost_walk_timer > 0:
-            self.frost_walk_timer -= delta_time
-        if self.time_stop_timer > 0:
-            self.time_stop_timer -= delta_time
-        if self.ability_cooldown > 0:
-            self.ability_cooldown -= delta_time
+        for ability in self.ability_defs:
+            if ability["active_timer"] > 0:
+                ability["active_timer"] = max(
+                    0.0, ability["active_timer"] - delta_time)
+            if ability["cooldown_timer"] > 0:
+                ability["cooldown_timer"] = max(
+                    0.0, ability["cooldown_timer"] - delta_time)
 
         self.player.update_grid_movement(
             self.maze,
@@ -1013,30 +1169,22 @@ class GameWindow(arcade.View):
         )
         self.player.update_animation(delta_time)
 
-        if not self.freeze_ghosts and self.time_stop_timer <= 0:
+        active_stop_time = self.get_ability_by_key(arcade.key.Q)
+        active_frost_walk = self.get_ability_by_key(arcade.key.E)
+
+        if not self.freeze_ghosts and (
+            active_stop_time is None
+            or active_stop_time["active_timer"] <= 0
+        ):
             ghost_dt = (
                 delta_time * 0.4
-                if self.frost_walk_timer > 0
+                if active_frost_walk is not None
+                and active_frost_walk["active_timer"] > 0
                 else delta_time
             )
             self.ghosts_chase_player(ghost_dt)
         self.check_ghost_collisions()
-
-        if self.time_stop_timer > 0:
-            for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
-                if ghost.state == "CHASE":
-                    ghost.color = (130, 200, 255)
-        elif self.frost_walk_timer > 0:
-            for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
-                if ghost.state == "CHASE":
-                    ghost.color = (140, 210, 255)
-        else:
-            for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
-                if (
-                    ghost.state == "CHASE"
-                    and ghost.color in ((130, 200, 255), (140, 210, 255))
-                ):
-                    ghost.color = (255, 255, 255)
+        self.reset_ghost_colors()
 
         for coin in self.coins_lst:
             if not coin.is_eaten:
@@ -1133,9 +1281,9 @@ class GameWindow(arcade.View):
         self.player.invincible_timer = 2.0
         self.player.just_took_damage = True
         self.player.damage_invincibility_duration = 2.0
-        self.frost_walk_timer = 0.0
-        self.time_stop_timer = 0.0
-        self.ability_cooldown = 0.0
+        for ability in self.ability_defs:
+            ability["active_timer"] = 0.0
+            ability["cooldown_timer"] = 0.0
 
         for ghost in (self.blinky, self.pinky, self.inky, self.clyde):
             if ghost.state == "EATEN":
@@ -1300,18 +1448,12 @@ class GameWindow(arcade.View):
 
         if key == arcade.key.F8:
             if self.cheat_menu:
-                self.go_to_vectory()
+                if self.level < self.config_parser.max_level:
+                    self.go_to_next_level()
+                else:
+                    self.go_to_victory()
 
-        ability_idx = max(0, min(3, (self.level - 1) // 2))
-        if key == arcade.key.E and ability_idx == 1:
-            self.trigger_ability(key)
-            return
-
-        if key == arcade.key.Q and ability_idx == 2:
-            self.trigger_ability(key)
-            return
-
-        if key == arcade.key.F and ability_idx == 3:
+        if key in (arcade.key.E, arcade.key.Q, arcade.key.F):
             self.trigger_ability(key)
             return
 

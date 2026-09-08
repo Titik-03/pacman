@@ -1,20 +1,24 @@
 import arcade
-import arcade.gui
+import pathlib
 from src.score import Score
 from src.loading import LoadingView
 from src.sound_manager import SoundManager
 
+SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
+
 
 class Vectory(arcade.View):
+    """Victory View shown upon completing the game."""
+
     def __init__(
         self,
         window: arcade.Window,
         main_menu: arcade.View,
         score: int,
         next_level: int,
-        lives: int = None,
-        seed: int = None,
-    ):
+        lives: int | None = None,
+        seed: int | None = None,
+    ) -> None:
         super().__init__()
 
         self.main_menu = main_menu
@@ -27,26 +31,34 @@ class Vectory(arcade.View):
         self.score_class = Score()
         self.next_level = next_level
         self.lives = lives
-        self.input_field = None
+        self.player_name = ""
         self.seed = seed
         self.background = arcade.load_texture("src/assets/bgv.png")
-        self.x = 0
-        self.y = 0
 
-    def go_to_next_level(self):
+        font_path = (
+            SCRIPT_DIR / "assets" / "Handjet" / "static" / "Handjet-Bold.ttf"
+        )
+        if font_path.exists():
+            arcade.load_font(str(font_path))
+
+    def get_max_level(self) -> int:
+        cfg = getattr(self.main_menu, "config_parser", None)
+        return cfg.max_level if cfg else 10
+
+    def go_to_next_level(self) -> None:
         SoundManager.get().play_sfx("menu_select")
-        if self.next_level <= 10:
+        if self.next_level <= self.get_max_level():
             loading_view = LoadingView(
                 self.window,
                 self.main_menu,
-                seed=self.seed,
+                seed=self.seed if self.seed is not None else 42,
                 level=self.next_level,
                 score=self.score,
                 lives=self.lives,
             )
             self.window.show_view(loading_view)
 
-    def on_draw(self):
+    def on_draw(self) -> None:
         self.clear()
         arcade.draw_texture_rect(
             self.background,
@@ -55,9 +67,10 @@ class Vectory(arcade.View):
                 0,
                 self.window.width,
                 self.window.height,
-            ))
+            ),
+        )
         arcade.draw_text(
-            self.score,
+            f"{self.score}",
             self.x_center + 15,
             1020,
             arcade.color.GOLD,
@@ -67,36 +80,47 @@ class Vectory(arcade.View):
             anchor_x="center",
             anchor_y="center",
         )
-        # arcade.draw_text(
-        #     f"{self.x}, {self.y}",
-        #     10,
-        #     10,
-        #     arcade.color.BLACK,
-        #     font_size=60,
-        #     font_name="Handjet",
-        #     bold=True,
-        #     anchor_x="left",
-        #     anchor_y="bottom",
-        # )
+        has_name = bool(self.player_name)
+        display_name = self.player_name.upper() if has_name else "TYPE NAME"
+        arcade.draw_text(
+            f"{display_name}_",
+            self.x_center,
+            self.y_center - 60,
+            (180, 190, 254),
+            font_size=36,
+            font_name="Handjet",
+            bold=True,
+            anchor_x="center",
+            anchor_y="center",
+        )
 
-    def on_key_press(self, key, modifiers):
+    def on_key_press(self, key: int, modifiers: int) -> None:
         if key == arcade.key.ENTER:
-            if self.next_level <= 10:
-                self.go_to_next_level()
-            elif self.input_field:
-                player_name = self.input_field.text.strip()
-                if player_name:
-                    self.score_class.write_score(player_name, self.score)
-                    self.window.show_view(self.main_menu)
+            SoundManager.get().play_sfx("menu_select")
+            name = self.player_name.strip() or "PLAYER"
+            self.score_class.write_score(name, self.score)
+            self.window.show_view(self.main_menu)
+        elif key == arcade.key.ESCAPE:
+            SoundManager.get().play_sfx("menu_select")
+            self.window.show_view(self.main_menu)
+        elif key == arcade.key.BACKSPACE:
+            self.player_name = self.player_name[:-1]
+        elif len(self.player_name) < 10 and (
+            chr(key).isalnum() or key == arcade.key.SPACE
+        ):
+            self.player_name += chr(key).upper()
 
-    def on_mouse_press(self, x, y, button, modifiers):
+    def on_mouse_press(
+        self, x: float, y: float, button: int, modifiers: int
+    ) -> None:
         if 764 <= x <= 1167:
             if 373 >= y >= 311:
-                self.go_to_next_level()
+                if self.next_level <= self.get_max_level():
+                    self.go_to_next_level()
+                else:
+                    name = self.player_name.strip() or "PLAYER"
+                    self.score_class.write_score(name, self.score)
+                    self.window.show_view(self.main_menu)
             elif 273 >= y >= 211:
                 SoundManager.get().play_sfx("menu_select")
                 self.window.show_view(self.main_menu)
-
-    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> bool | None:
-        self.x = x
-        self.y = y

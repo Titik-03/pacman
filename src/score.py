@@ -231,16 +231,24 @@ class Score:
         return {"name": item.get("name", "???"), "score": item.get("score", 0)}
 
     def write_score(self, name: str, score: int) -> List[Dict]:
-        """Adds a new score, sorts the list descending, and saves to file."""
-        # Standardize structure: {"name": "Player", "score": 100}
-        new_entry = {"name": name, "score": score}
+        """Adds a new score, sorts descending, clamps to top 10,
+        and saves to file.
+        """
+        import re
+        clean_name = re.sub(r"[^A-Za-z0-9 ]", "", name).strip()[:10]
+        if not clean_name:
+            clean_name = "PLAYER"
+        clean_score = max(0, int(score))
+
+        new_entry = {"name": clean_name, "score": clean_score}
 
         # Reload fresh data first to prevent overwriting parallel changes
         self.load_score()
         self.scores.append(new_entry)
 
-        # Sort highest scores to the top
+        # Sort highest scores to the top and keep top 10
         self.scores.sort(key=lambda x: x.get("score", 0), reverse=True)
+        self.scores = self.scores[:10]
 
         self._save_to_disk()
         return self.scores
@@ -248,7 +256,9 @@ class Score:
     def _save_to_disk(self) -> None:
         """Helper method to handle JSON write operations."""
         # Ensure output directory exists before writing
-        os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
+        dirname = os.path.dirname(self.filepath)
+        if dirname:
+            os.makedirs(dirname, exist_ok=True)
 
         try:
             with open(self.filepath, "w") as fp:

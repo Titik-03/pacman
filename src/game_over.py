@@ -97,9 +97,9 @@ class GameOver(arcade.View):
             if name := self.player_name.strip():
                 self.score_class.write_score(name, self.score)
 
-            if 700 <= y <= 791:
+            if 560 <= y <= 690:
                 SoundManager.get().play_sfx("menu_select")
                 self.main_menu.new_game(seed=42)
-            elif 400 <= y <= 492:
+            elif 250 <= y <= 390:
                 SoundManager.get().play_sfx("menu_select")
                 self.window.show_view(self.main_menu)

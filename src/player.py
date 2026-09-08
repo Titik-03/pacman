@@ -140,7 +140,7 @@ class Player(arcade.Sprite):
         center_x: float,
         center_y: float,
         cell_size: float,
-        speed: float = 170.0,
+        speed: float = 180.0,
     ) -> tuple["Player", arcade.SpriteList]:
         player_list: arcade.SpriteList = arcade.SpriteList()
 

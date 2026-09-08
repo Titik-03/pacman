@@ -2,104 +2,16 @@
   "levels": [
     {
       "level": 1,
-      "width": 28,
-      "height": 31,
       "lives": 3,
-      "pacgum": 42,
-      "points_per_pacgum": 10,
-      "points_per_super_pacgum": 50,
-      "points_per_ghost": 200,
-      "seed": 42,
-      "level_max_time": 90
+      "pacgum": 120,
+      "points_per_pacgum": 35,
+      "points_per_super_pacgum": 175,
+      "points_per_ghost": 750,
+      "seed": 420,
+      "level_max_time": 140
     },
     {
       "level": 2,
-      "width": 30,
-      "height": 31,
-      "lives": 3,
-      "pacgum": 48,
-      "points_per_pacgum": 12,
-      "points_per_super_pacgum": 60,
-      "points_per_ghost": 250,
-      "seed": 84,
-      "level_max_time": 95
-    },
-    {
-      "level": 3,
-      "width": 32,
-      "height": 33,
-      "lives": 3,
-      "pacgum": 55,
-      "points_per_pacgum": 15,
-      "points_per_super_pacgum": 75,
-      "points_per_ghost": 300,
-      "seed": 126,
-      "level_max_time": 100
-    },
-    {
-      "level": 4,
-      "width": 34,
-      "height": 33,
-      "lives": 3,
-      "pacgum": 62,
-      "points_per_pacgum": 18,
-      "points_per_super_pacgum": 90,
-      "points_per_ghost": 350,
-      "seed": 168,
-      "level_max_time": 105
-    },
-    {
-      "level": 5,
-      "width": 36,
-      "height": 35,
-      "lives": 3,
-      "pacgum": 70,
-      "points_per_pacgum": 20,
-      "points_per_super_pacgum": 100,
-      "points_per_ghost": 400,
-      "seed": 210,
-      "level_max_time": 110
-    },
-    {
-      "level": 6,
-      "width": 38,
-      "height": 35,
-      "lives": 2,
-      "pacgum": 78,
-      "points_per_pacgum": 22,
-      "points_per_super_pacgum": 110,
-      "points_per_ghost": 450,
-      "seed": 252,
-      "level_max_time": 115
-    },
-    {
-      "level": 7,
-      "width": 40,
-      "height": 37,
-      "lives": 2,
-      "pacgum": 86,
-      "points_per_pacgum": 25,
-      "points_per_super_pacgum": 125,
-      "points_per_ghost": 500,
-      "seed": 294,
-      "level_max_time": 120
-    },
-    {
-      "level": 8,
-      "width": 42,
-      "height": 37,
-      "lives": 2,
-      "pacgum": 95,
-      "points_per_pacgum": 28,
-      "points_per_super_pacgum": 140,
-      "points_per_ghost": 550,
-      "seed": 336,
-      "level_max_time": 125
-    },
-    {
-      "level": 9,
-      "width": 44,
-      "height": 39,
       "lives": 2,
       "pacgum": 105,
       "points_per_pacgum": 30,
@@ -109,16 +21,84 @@
       "level_max_time": 130
     },
     {
+      "level": 3,
+      "lives": 2,
+      "pacgum": 95,
+      "points_per_pacgum": 28,
+      "points_per_super_pacgum": 140,
+      "points_per_ghost": 550,
+      "seed": 336,
+      "level_max_time": 125
+    },
+    {
+      "level": 4,
+      "lives": 2,
+      "pacgum": 86,
+      "points_per_pacgum": 25,
+      "points_per_super_pacgum": 125,
+      "points_per_ghost": 500,
+      "seed": 294,
+      "level_max_time": 120
+    },
+    {
+      "level": 5,
+      "lives": 2,
+      "pacgum": 78,
+      "points_per_pacgum": 22,
+      "points_per_super_pacgum": 110,
+      "points_per_ghost": 450,
+      "seed": 252,
+      "level_max_time": 115
+    },
+    {
+      "level": 6,
+      "lives": 3,
+      "pacgum": 70,
+      "points_per_pacgum": 20,
+      "points_per_super_pacgum": 100,
+      "points_per_ghost": 400,
+      "seed": 210,
+      "level_max_time": 110
+    },
+    {
+      "level": 7,
+      "lives": 3,
+      "pacgum": 62,
+      "points_per_pacgum": 18,
+      "points_per_super_pacgum": 90,
+      "points_per_ghost": 350,
+      "seed": 168,
+      "level_max_time": 105
+    },
+    {
+      "level": 8,
+      "lives": 3,
+      "pacgum": 55,
+      "points_per_pacgum": 15,
+      "points_per_super_pacgum": 75,
+      "points_per_ghost": 300,
+      "seed": 126,
+      "level_max_time": 100
+    },
+    {
+      "level": 9,
+      "lives": 3,
+      "pacgum": 48,
+      "points_per_pacgum": 12,
+      "points_per_super_pacgum": 60,
+      "points_per_ghost": 250,
+      "seed": 84,
+      "level_max_time": 95
+    },
+    {
       "level": 10,
-      "width": 46,
-      "height": 41,
-      "lives": 1,
-      "pacgum": 120,
-      "points_per_pacgum": 35,
-      "points_per_super_pacgum": 175,
-      "points_per_ghost": 750,
-      "seed": 420,
-      "level_max_time": 140
+      "lives": 3,
+      "pacgum": 42,
+      "points_per_pacgum": 10,
+      "points_per_super_pacgum": 50,
+      "points_per_ghost": 200,
+      "seed": 42,
+      "level_max_time": 90
     }
   ]
 }

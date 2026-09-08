@@ -9,6 +9,10 @@ import PIL.ImageDraw
 import arcade
 
 
+import re
+import sys
+
+
 class ConfigError(Exception):
     """Raised when the game configuration is invalid."""
 
@@ -16,17 +20,16 @@ class ConfigError(Exception):
 class ConfigParser:
     """Loads and validates the JSON game configuration."""
 
-    REQUIRED_KEYS = {
-        "level",
-        "width",
-        "height",
-        "lives",
-        "pacgum",
-        "points_per_pacgum",
-        "points_per_super_pacgum",
-        "points_per_ghost",
-        "seed",
-        "level_max_time",
+    DEFAULTS: dict[str, Any] = {
+        "lives": 3,
+        "pacgum": 42,
+        "points_per_pacgum": 10,
+        "points_per_super_pacgum": 50,
+        "points_per_ghost": 200,
+        "seed": 42,
+        "level_max_time": 90,
+        "width": 15,
+        "height": 15,
     }
 
     def __init__(self, filename: str = "src/jsons/config.json") -> None:
@@ -38,108 +41,102 @@ class ConfigParser:
     def load(self) -> None:
         """Read, parse and validate the configuration."""
         if not self.filename.exists():
-            raise ConfigError(
-                f"Configuration file not found: {self.filename}"
+            print(
+                f"Warning: Config file {self.filename} not found. "
+                "Using defaults.",
+                file=sys.stderr,
             )
+            data: dict[str, Any] = {}
+        else:
+            content = self.read_file()
+            try:
+                data = json.loads(content)
+            except json.JSONDecodeError as e:
+                print(
+                    f"Warning: Failed to parse JSON config: {e}. "
+                    "Using defaults.",
+                    file=sys.stderr,
+                )
+                data = {}
 
-        content = self.read_file()
+        if not isinstance(data, dict):
+            print(
+                "Warning: Config root must be object. Using defaults.",
+                file=sys.stderr,
+            )
+            data = {}
 
-        try:
-            data = json.loads(content)
-        except json.JSONDecodeError:
-            raise ConfigError("Invalid configuration file.")
-
-        self.validate_root(data)
-        self.highscore_filename = data.get(
-            "highscore_filename",
-            "src/outputs/high_score.json",
+        self.highscore_filename = str(
+            data.get("highscore_filename", "src/outputs/high_score.json")
         )
 
-        if (
-            not isinstance(self.highscore_filename, str)
-            or not self.highscore_filename
-        ):
-            raise ConfigError(
-                "'highscore_filename' must be a non-empty string."
+        raw_levels = data.get("levels", [])
+        if not isinstance(raw_levels, list):
+            print(
+                "Warning: 'levels' key must be a list. Using default levels.",
+                file=sys.stderr,
             )
+            raw_levels = []
 
-        levels = data["levels"]
-        used_levels: set[int] = set()
+        parsed_levels: list[dict[str, Any]] = []
+        if raw_levels:
+            for index, lvl in enumerate(raw_levels, start=1):
+                lvl_dict = lvl if isinstance(lvl, dict) else {}
+                lvl_num = lvl_dict.get("level", index)
+                if not isinstance(lvl_num, int):
+                    lvl_num = index
+                parsed_levels.append(self.sanitize_level(lvl_dict, lvl_num))
+        else:
+            for index in range(1, 11):
+                parsed_levels.append(self.sanitize_level({}, index))
 
-        for index, level in enumerate(levels, start=1):
-            self.validate_level(level, index)
-            level_number = level["level"]
-
-            if level_number in used_levels:
-                raise ConfigError(
-                    f"Duplicate level number: {level_number}"
-                )
-
-            used_levels.add(level_number)
-
-        self.levels = levels
+        self.levels = parsed_levels
+        self.max_level = max(1, len(self.levels))
 
     def read_file(self) -> str:
-        """Read the file and ignore lines beginning with # or //."""
+        """Read file and ignore lines/inline text beginning with # or //."""
         lines = []
 
         try:
             with self.filename.open("r", encoding="utf-8") as file:
                 for line in file:
-                    stripped = line.strip()
-
-                    if stripped.startswith("#"):
-                        continue
-                    if stripped.startswith("//"):
-                        continue
-
-                    lines.append(line)
+                    # Strip single-line or inline comments
+                    cleaned = re.sub(r"(#|//).*", "", line)
+                    lines.append(cleaned)
         except OSError:
-            raise ConfigError(
-                f"Cannot read {self.filename}")
+            print(f"Warning: Cannot read {self.filename}", file=sys.stderr)
+            return "{}"
 
         return "".join(lines)
 
-    def validate_root(self, data: object) -> None:
-        """Validate the root configuration object."""
-        if not isinstance(data, dict):
-            raise ConfigError("The configuration root must be an object.")
+    def sanitize_level(
+        self, level: dict[str, Any], index: int
+    ) -> dict[str, Any]:
+        """Sanitize one level config with clamping to safe defaults."""
+        result: dict[str, Any] = {"level": index}
 
-        if "levels" not in data:
-            raise ConfigError("Missing required key: 'levels'.")
-
-        if not isinstance(data["levels"], list):
-            raise ConfigError("'levels' must be an array.")
-
-        if not data["levels"]:
-            raise ConfigError("'levels' cannot be empty.")
-
-    def validate_level(self, level: object, index: int) -> None:
-        """Validate one level configuration."""
-        if not isinstance(level, dict):
-            raise ConfigError(f"Level {index} must be an object.")
-
-        missing = self.REQUIRED_KEYS - level.keys()
-        if missing:
-            keys = ", ".join(sorted(missing))
-            raise ConfigError(f"Level {index} is missing: {keys}")
-
-        for key in self.REQUIRED_KEYS:
-            value = level[key]
-            if isinstance(value, bool) or not isinstance(value, int):
-                raise ConfigError(
-                    f"Level {index}: '{key}' must be an integer."
+        for key, default_val in self.DEFAULTS.items():
+            val = level.get(key)
+            is_int = isinstance(val, int) and not isinstance(val, bool)
+            if not is_int:
+                if val is not None:
+                    print(
+                        f"Warning: Level {index} key '{key}' invalid ({val}). "
+                        f"Clamping to default {default_val}.",
+                        file=sys.stderr,
+                    )
+                result[key] = default_val
+            elif key != "seed" and val <= 0:
+                print(
+                    f"Warning: Level {index} key '{key}' must be positive "
+                    f"({val}). Clamping to default {default_val}.",
+                    file=sys.stderr,
                 )
+                result[key] = default_val
+            else:
+                result[key] = val
 
-            if key != "seed" and value <= 0:
-                raise ConfigError(
-                    f"Level {index}: '{key}' must be a positive integer."
-                )
-
-        if not 1 <= level["level"] <= 10:
-            raise ConfigError(
-                f"Level {index}: 'level' must be between 1 and 10."
-            )
+        return result
 
     def get_level(self, level_number: int) -> dict[str, Any]:
         """Return the configuration for one level."""
@@ -147,7 +144,7 @@ class ConfigParser:
             if level["level"] == level_number:
                 return level
 
-        raise ConfigError(f"Level {level_number} does not exist.")
+        return self.sanitize_level({}, level_number)
 
 
 class BaseLevel:
@@ -155,8 +152,6 @@ class BaseLevel:
 
     def __init__(self, config: dict[str, Any]) -> None:
         self.level = config["level"]
-        self.width = config["width"]
-        self.height = config["height"]
         self.lives = config["lives"]
         self.pacgum = config["pacgum"]
         self.points_per_pacgum = config["points_per_pacgum"]
@@ -335,8 +330,8 @@ class Level3(BaseLevel):
             if int(self.revers_time * 10) % 2 == 0:
                 arcade.draw_text(
                     "CONTROLS INVERTED!",
-                    game.width * 0.59,
-                    game.height * 0.8,
+                    game.width * 0.255,
+                    game.height * 0.961,
                     arcade.color.RED,
                     font_size=24.0,
                     font_name="Handjet",
@@ -398,8 +393,8 @@ class Level4(BaseLevel):
             if int(time_left * 10) % 2 == 0:
                 arcade.draw_text(
                     "SHIFTING!",
-                    game.width * 0.59,
-                    game.height * 0.8,
+                    game.width * 0.255,
+                    game.height * 0.961,
                     arcade.color.YELLOW,
                     font_size=30,
                     font_name="Handjet",
@@ -531,8 +526,8 @@ class Level6(BaseLevel):
         if self.is_lagging:
             arcade.draw_text(
                 "! CONNECTION LOST: RUBBERBANDING... !",
-                game.width * 0.59,
-                game.height * 0.8,
+                game.width * 0.255,
+                game.height * 0.961,
                 arcade.color.RED,
                 font_size=20,
                 font_name="Handjet",
@@ -543,8 +538,8 @@ class Level6(BaseLevel):
             time_left = max(0.0, self.normal_duration - current_cycle_time)
             arcade.draw_text(
                 f"PING: 28ms (LAG SPIKE IN {time_left:.1f}s)",
-                game.width * 0.59,
-                game.height * 0.8,
+                game.width * 0.255,
+                game.height * 0.961,
                 arcade.color.GREEN,
                 font_size=18,
                 font_name="Handjet",
@@ -789,7 +784,7 @@ class Level9(BaseLevel):
         self.grace_period: float = 1.0
 
         self.previous_lives: int = -1
-        self.ghost_speed_multiplier: float = 1.15
+        self.ghost_speed_multiplier: float = 1.08
 
     def update(self, game: Any, delta_time: float) -> None:
         """Check player movement and scale ghost speeds."""
@@ -826,8 +821,8 @@ class Level9(BaseLevel):
         if self.stop_timer > 0.1 and int(self.stop_timer * 10) % 2 == 0:
             arcade.draw_text(
                 "RAN KED!",
-                game.width * 0.59,
-                game.height * 0.8,
+                game.width * 0.255,
+                game.height * 0.961,
                 arcade.color.RED,
                 font_size=28,
                 font_name="Handjet",
