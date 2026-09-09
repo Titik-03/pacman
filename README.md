@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by developer.*
+*This project has been created as part of the 42 curriculum by lsebar, mgamal.*
 
 # Pac-Man
 
@@ -99,4 +99,4 @@ The project integrates the external `mazegenerator` package (`mazegenerator-0000
 - `src/vectory.py`: Final game victory screen and leaderboard submission.
 
 ## Project Management
-The project was structured using milestone tracking, progress evaluation, risk analysis, and role assignment. Documentation and evidence are located in the dedicated [`project_management/`](file:///home/user/work/Pac-man/project_management) directory.
+The project was structured using milestone tracking, progress evaluation, risk analysis, and role assignment. Documentation and evidence are located in [project_management/project_management.md](project_management/project_management.md).

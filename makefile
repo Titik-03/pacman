@@ -11,15 +11,11 @@ debug:
 	uv run python -m pdb main.py src/jsons/config.json
 
 clean:
-	rm -rf __pycache__ src/__pycache__ .mypy_cache .pytest_cache *.egg-info build dist /tmp/flake8_out.txt /tmp/subject_text.txt
+	rm -rf __pycache__ src/__pycache__ .mypy_cache
 
 lint:
 	uv run flake8 src/
 	uv run mypy src/ --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
-
-lint-strict:
-	uv run flake8 src/
-	uv run mypy src/ --strict
 
 package:
 	bash package.sh

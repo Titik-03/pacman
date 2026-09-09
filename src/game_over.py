@@ -28,6 +28,7 @@ class GameOver(arcade.View):
         self.score = score
         self.score_class = Score()
         self.player_name = ""
+        self.score_saved = False
         font_path = (
             SCRIPT_DIR / "assets" / "Handjet" / "static" / "Handjet-Bold.ttf"
         )
@@ -43,6 +44,18 @@ class GameOver(arcade.View):
     def y_center(self) -> float:
         """Return dynamic vertical center of the window."""
         return float(self.window.height / 2)
+
+    def save_score_once(self) -> None:
+        """Persist the entered score a single time per game-over screen."""
+        if self.score_saved:
+            return
+
+        name = self.player_name.strip()
+        if not name:
+            return
+
+        self.score_class.write_score(name, self.score)
+        self.score_saved = True
 
     def on_show_view(self) -> None:
         """Play game over sound effect when view appears."""
@@ -94,16 +107,15 @@ class GameOver(arcade.View):
 
         elif key == arcade.key.ENTER:
             SoundManager.get().play_sfx("menu_select")
-            if name := self.player_name.strip():
-                self.score_class.write_score(name, self.score)
+            self.save_score_once()
             if self.selected_option == 0:
-                self.main_menu.new_game(seed=42)
+                self.main_menu.new_game()
             else:
                 self.window.show_view(self.main_menu)
 
         elif key == arcade.key.ESCAPE:
             SoundManager.get().play_sfx("menu_select")
-            self.main_menu.new_game(seed=42)
+            self.main_menu.new_game()
 
         elif key == arcade.key.BACKSPACE:
             self.player_name = self.player_name[:-1]

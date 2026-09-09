@@ -269,7 +269,8 @@ class Player(arcade.Sprite):
                              cols: int,
                              offset_x: float = 0.0,
                              offset_y: float = 0.0,
-                             delta_time: float = 1 / 60
+                             delta_time: float = 1 / 60,
+                             ignore_power_up_speed: bool = False,
                              ) -> None:
         """Update tile-based grid movement toward the target cell."""
 
@@ -287,7 +288,9 @@ class Player(arcade.Sprite):
             self.just_took_damage = False
 
         self.current_speed = (
-            self.speed * 1.6 if self.is_powered_up else self.speed
+            self.speed
+            if ignore_power_up_speed
+            else (self.speed * 1.6 if self.is_powered_up else self.speed)
         )
         step = self.current_speed * delta_time
 

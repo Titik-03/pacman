@@ -616,7 +616,10 @@ class Level7(BaseLevel):
         else:
             multiplier = (game.combo_count // 10) + 1
             bonus = 1.0 + min(0.4, (multiplier - 1) * 0.1)
-            game.player.speed = game.player_speed * bonus
+            if hasattr(game, "get_target_player_speed"):
+                game.player.speed = game.get_target_player_speed(bonus)
+            else:
+                game.player.speed = game.player_speed * bonus
 
         # hit pacman if still moving in red light.
         if (
@@ -711,7 +714,10 @@ class Level8(BaseLevel):
                 # Restore speed with combo.
                 multiplier = (game.combo_count // 10) + 1
                 bonus = 1.0 + min(0.4, (multiplier - 1) * 0.1)
-                game.player.speed = game.player_speed * bonus
+                if hasattr(game, "get_target_player_speed"):
+                    game.player.speed = game.get_target_player_speed(bonus)
+                else:
+                    game.player.speed = game.player_speed * bonus
 
     def trigger_simon_says(self) -> None:
         """Start a random Real or Fake event."""

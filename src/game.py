@@ -307,6 +307,16 @@ class GameWindow(arcade.View):
             return self.player.queued_dir
         return (0, 0)
 
+    def get_target_player_speed(self, combo_bonus: float = 1.0) -> float:
+        """Return the intended base player speed, honoring cheat speed."""
+        base_speed = self.player_speed * 2 if self.speed_up else self.player_speed
+        return base_speed * combo_bonus
+
+    def get_combo_bonus(self) -> float:
+        """Return the current combo-based speed bonus."""
+        multiplier = (self.combo_count // 10) + 1
+        return 1.0 + min(0.4, (multiplier - 1) * 0.1)
+
     def get_furthest_tile_in_direction(
         self,
         start_row: int,
@@ -887,15 +897,14 @@ class GameWindow(arcade.View):
         )
 
         inv_status = 'ON' if self.player.invincible else 'OFF'
-        power_status = 'ON' if self.player.is_powered_up else 'OFF'
         freeze_status = 'ON' if self.freeze_ghosts else 'OFF'
         cheats = [
             "[F1 / ESC] TO Close Menu",
             f"[F2] Toggle Invincibility: {inv_status}",
-            f"[F3] Trigger Power Pellet: {power_status}",
-            f"[F4] Toggle Freeze all ghosts: {freeze_status}",
-            f"[F5] Toggle Debug: {'ON' if self.debug else 'OFF'}",
-            f"[F6] Toggle Speed: {'ON' if self.speed_up else 'OFF'}",
+            f"[F3] Toggle Freeze all ghosts: {freeze_status}",
+            f"[F4] Toggle Debug: {'ON' if self.debug else 'OFF'}",
+            f"[F5] Toggle Speed: {'ON' if self.speed_up else 'OFF'}",
+            "[F6] Trigger Power Pellet",
             "[F7] Add +1 Life",
             "[F8] Skip the level",
         ]
@@ -1111,7 +1120,7 @@ class GameWindow(arcade.View):
                 self.combo_count = 0
                 self.combo_timer = 0.0
                 if not self.player.is_powered_up:
-                    self.player.speed = self.player_speed
+                    self.player.speed = self.get_target_player_speed()
 
         self.trail_particles = [
             t for t in self.trail_particles if t.update(delta_time)]
@@ -1216,6 +1225,7 @@ class GameWindow(arcade.View):
             self.offset_x,
             self.offset_y,
             delta_time,
+            ignore_power_up_speed=self.speed_up,
         )
         self.player.update_animation(delta_time)
 
@@ -1262,7 +1272,7 @@ class GameWindow(arcade.View):
                     self.combo_timer = self.combo_limit
                     multiplier = (self.combo_count // 10) + 1
                     bonus = 1.0 + min(0.4, (multiplier - 1) * 0.1)
-                    self.player.speed = self.player_speed * bonus
+                    self.player.speed = self.get_target_player_speed(bonus)
                     if self.combo_count >= 10 and self.combo_count % 10 == 0:
                         self.floating_scores.append(
                             Floating_score(
@@ -1319,7 +1329,7 @@ class GameWindow(arcade.View):
         SoundManager.get().play_sfx("death")
         self.combo_count = 0
         self.combo_timer = 0.0
-        self.player.speed = self.player_speed
+        self.player.speed = self.get_target_player_speed()
         self.trigger_shake(0.3, 8)
         self.player.take_damage()
         self.player.start_death_animation()
@@ -1476,27 +1486,32 @@ class GameWindow(arcade.View):
 
         if key == arcade.key.F3:
             if self.cheat_menu:
-                self.player.is_powered_up = (not self.player.is_powered_up)
-                self.player.power_timer = (
-                    99999999999999999 if self.player.is_powered_up else 0
-                )
-
-        if key == arcade.key.F4:
-            if self.cheat_menu:
                 self.freeze_ghosts = (not self.freeze_ghosts)
 
-        if key == arcade.key.F5:
+        if key == arcade.key.F4:
             if self.cheat_menu:
                 if self.debug:
                     self.debug = False
                 else:
                     self.debug = True
 
+        if key == arcade.key.F5:
+            if self.cheat_menu:
+                was_speed_up = self.speed_up
+                self.speed_up = (not self.speed_up)
+                if self.speed_up:
+                    self.player.speed = self.get_target_player_speed()
+                elif was_speed_up:
+                    self.player.speed = self.get_target_player_speed(
+                        self.get_combo_bonus()
+                    )
+
         if key == arcade.key.F6:
             if self.cheat_menu:
-                self.speed_up = (not self.speed_up)
-                self.player.speed = self.player_speed * \
-                    2 if self.speed_up else self.player_speed
+                self.player.is_powered_up = (not self.player.is_powered_up)
+                self.player.power_timer = (
+                    99999999999999999 if self.player.is_powered_up else 0
+                )
 
         if key == arcade.key.F7:
             if self.cheat_menu:

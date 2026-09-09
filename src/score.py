@@ -251,6 +251,14 @@ class Score:
 
         # Reload fresh data first to prevent overwriting parallel changes
         self.load_score()
+
+        if any(
+            entry.get("name") == clean_name
+            and int(entry.get("score", -1)) == clean_score
+            for entry in self.scores
+        ):
+            return self.scores
+
         self.scores.append(new_entry)
 
         # Sort highest scores to the top and keep top 10
