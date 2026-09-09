@@ -3,9 +3,10 @@ import math  # Import math for the sine-based hover animation.
 
 
 class MenuItem:
+    """Interactive menu item with hover animation and selection indicator."""
 
     def __init__(self, label: str, x: float, y: float) -> None:
-
+        """Initialize the menu item label, position, and arrow indicator."""
         self.offset = 0  # Keep a generic offset value for layout or animation.
 
         self.arrow_offset: float = -20.0  # Start the arrow slightly left.
@@ -33,7 +34,7 @@ class MenuItem:
         ]
 
     def update(self) -> None:
-
+        """Update the hover animation and arrow offset."""
         self.time += 1 / 60  # Advance time by one frame at 60 FPS.
 
         # Choose the arrow target offset based on hover state.
@@ -43,7 +44,7 @@ class MenuItem:
         self.arrow_offset += (target - self.arrow_offset) * 0.20
 
     def draw(self) -> None:
-
+        """Render the menu item text and selection arrow."""
         # Compute the arrow's x position.
         arrow_x = self.text.x - 30 + self.arrow_offset
         # Add a small vertical wobble.
@@ -71,6 +72,7 @@ class MenuItem:
         self.text.draw()  # Draw the label text.
 
     def contains(self, x: float, y: float) -> bool:
+        """Check whether the given coordinates lie within the text bounds."""
 
         return (  # Return whether the point lies inside the text bounds.
             # Check the x range.

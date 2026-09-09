@@ -19,6 +19,8 @@ EYES_PATH = SCRIPT_DIR / "assets" / "eyes.png"
 
 
 class Ghost(arcade.Sprite):
+    """Base ghost sprite handling AI pathfinding, states, and textures."""
+
     def __init__(
         self,
         center_x: float,
@@ -26,6 +28,7 @@ class Ghost(arcade.Sprite):
         name: str = "",
         texture_path: Any = None,
     ) -> None:
+        """Initialize ghost position, AI state, timers, and textures."""
         super().__init__(path_or_texture=texture_path)
         self.center_x = center_x
         self.center_y = center_y
@@ -67,7 +70,7 @@ class Ghost(arcade.Sprite):
         cell_size: float,
         name: str
     ) -> tuple["Ghost", arcade.SpriteList]:
-
+        """Create and configure a Ghost sprite and its container list."""
         ghost_list: arcade.SpriteList = arcade.SpriteList()
 
         ghost = cls(center_x, center_y, name)
@@ -127,6 +130,7 @@ class Ghost(arcade.Sprite):
         offset_x: float = 0.0,
         offset_y: float = 0.0,
     ) -> tuple[int, int]:
+        """Convert screen coordinates to maze grid row and column."""
         col = int(round(((x - offset_x) - cell_size / 2) / cell_size))
         row = int(
             round(
@@ -145,6 +149,7 @@ class Ghost(arcade.Sprite):
         offset_x: float = 0.0,
         offset_y: float = 0.0,
     ) -> tuple[float, float]:
+        """Convert maze grid row and column to screen coordinates."""
         x = offset_x + col * cell_size + cell_size / 2
         y = offset_y + (rows - 1 - row) * cell_size + cell_size / 2
         return x, y
@@ -161,6 +166,7 @@ class Ghost(arcade.Sprite):
         offset_x: float = 0.0,
         offset_y: float = 0.0,
     ) -> bool:
+        """Check if ghost can move in given direction from current tile."""
         dx, dy = dir_tuple
         if dx == 0 and dy == 0:
             return False
@@ -200,6 +206,7 @@ class Ghost(arcade.Sprite):
         rows: int,
         cols: int,
     ) -> list[tuple[tuple[int, int], tuple[int, int]]]:
+        """Return reachable neighboring tiles and direction vectors."""
         NORTH, EAST, SOUTH, WEST = 1, 2, 4, 8
         cell_val = maze[row][col]
         result = []
@@ -255,7 +262,7 @@ class Ghost(arcade.Sprite):
         self.texture = arcade.load_texture(EYES_PATH)
 
     def update_texrture(self, player: Player) -> None:
-
+        """Update ghost texture and tint based on state and player power."""
         if self.state == "EATEN":
             return
 
@@ -290,7 +297,7 @@ class Ghost(arcade.Sprite):
         size: float = 10,
         line_width: float = 3,
     ) -> None:
-
+        """Draw debug line and marker toward the ghost's target tile."""
         if hasattr(self, "target_tile") and self.target_tile:
             target_row, target_col = self.target_tile
 
@@ -330,6 +337,7 @@ class Ghost(arcade.Sprite):
                      delta_time: float = 1 / 60,
                      blinky: "Ghost | None" = None
                      ) -> None:
+        """Advance ghost AI pathfinding and grid movement for one frame."""
 
         if player.power_timer == 0:
             self.was_eaten = False
@@ -508,7 +516,10 @@ class Ghost(arcade.Sprite):
 
 
 class Blinky(Ghost):
+    """Red ghost (Blinky) directly targeting Pac-Man."""
+
     def __init__(self, center_x: float, center_y: float, name: str) -> None:
+        """Initialize Blinky with red texture and corner position."""
         super().__init__(
             center_x, center_y, texture_path=BLINKY_PATH, name=name
         )
@@ -521,6 +532,7 @@ class Pinky(Ghost):
     AMBUSH_CHANCE = 0.5
 
     def __init__(self, center_x: float, center_y: float, name: str) -> None:
+        """Initialize Pinky with pink texture and corner position."""
         super().__init__(
             center_x, center_y, texture_path=PINKY_PATH, name=name
         )
@@ -528,7 +540,7 @@ class Pinky(Ghost):
     def get_target_tile(
         self, player: Any, player_row: int, player_col: int, **kwargs: Any
     ) -> tuple[int, int]:
-
+        """Target a position ahead of Pac-Man to ambush."""
         if self.state == "FRIGHTENED":
             my_row = kwargs.get("my_row")
             my_col = kwargs.get("my_col")
@@ -561,17 +573,19 @@ class Pinky(Ghost):
 
 
 class Inky(Ghost):
+    """Cyan ghost (Inky) with unpredictable targeting behavior."""
 
     AMBUSH_DISTANCE = 4
     AMBUSH_CHANCE = 0.5
 
     def __init__(self, center_x: float, center_y: float, name: str) -> None:
+        """Initialize Inky with cyan texture and corner position."""
         super().__init__(center_x, center_y, texture_path=INKY_PATH, name=name)
 
     def get_target_tile(
         self, player: Any, player_row: int, player_col: int, **kwargs: Any
     ) -> tuple[int, int]:
-
+        """Target Pac-Man or ambush based on a random chance."""
         if self.state == "FRIGHTENED":
             my_row = kwargs.get("my_row")
             my_col = kwargs.get("my_col")
@@ -603,8 +617,10 @@ class Inky(Ghost):
 
 
 class Clyde(Ghost):
+    """Orange ghost (Clyde) with random movement behavior."""
 
     def __init__(self, center_x: float, center_y: float, name: str) -> None:
+        """Initialize Clyde with orange texture and corner position."""
         super().__init__(
             center_x, center_y, texture_path=CLYDE_PATH, name=name
         )
@@ -612,6 +628,7 @@ class Clyde(Ghost):
     def get_target_tile(
         self, player: Any, player_row: int, player_col: int, **kwargs: Any
     ) -> tuple[int, int]:
+        """Target random tiles across the maze."""
 
         if self.state == "FRIGHTENED":
             my_row = kwargs.get("my_row")

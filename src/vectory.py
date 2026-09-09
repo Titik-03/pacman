@@ -19,6 +19,7 @@ class Vectory(arcade.View):
         lives: int | None = None,
         seed: int | None = None,
     ) -> None:
+        """Initialize victory view state, scores, and fonts."""
         super().__init__()
 
         self.main_menu = main_menu
@@ -42,10 +43,12 @@ class Vectory(arcade.View):
             arcade.load_font(str(font_path))
 
     def get_max_level(self) -> int:
+        """Return the maximum allowed level from config or default."""
         cfg = getattr(self.main_menu, "config_parser", None)
         return cfg.max_level if cfg else 10
 
     def go_to_next_level(self) -> None:
+        """Advance to the next level loading view."""
         SoundManager.get().play_sfx("menu_select")
         if self.next_level <= self.get_max_level():
             loading_view = LoadingView(
@@ -59,6 +62,7 @@ class Vectory(arcade.View):
             self.window.show_view(loading_view)
 
     def on_draw(self) -> None:
+        """Render the victory screen, score, and player name."""
         self.clear()
         arcade.draw_texture_rect(
             self.background,
@@ -95,6 +99,7 @@ class Vectory(arcade.View):
         )
 
     def on_key_press(self, key: int, modifiers: int) -> None:
+        """Handle keyboard navigation and name input."""
         if key == arcade.key.ENTER:
             SoundManager.get().play_sfx("menu_select")
             name = self.player_name.strip() or "PLAYER"
@@ -113,6 +118,7 @@ class Vectory(arcade.View):
     def on_mouse_press(
         self, x: float, y: float, button: int, modifiers: int
     ) -> None:
+        """Handle button clicks to continue or return to menu."""
         if 764 <= x <= 1167:
             if 373 >= y >= 311:
                 if self.next_level <= self.get_max_level():

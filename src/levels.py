@@ -33,6 +33,7 @@ class ConfigParser:
     }
 
     def __init__(self, filename: str = "src/jsons/config.json") -> None:
+        """Initialize ConfigParser with config path and load settings."""
         self.filename = Path(filename)
         self.levels: list[dict[str, Any]] = []
         self.highscore_filename = "src/outputs/high_score.json"
@@ -150,6 +151,7 @@ class BaseLevel:
     """Base class containing common level data and behaviour."""
 
     def __init__(self, config: dict[str, Any]) -> None:
+        """Initialize base level settings, timing, and point thresholds."""
         self.level = config["level"]
         self.lives = config["lives"]
         self.pacgum = config["pacgum"]
@@ -169,9 +171,11 @@ class BaseLevel:
         game.wall_shapes.draw()
 
     def key_press(self, key: int, *args: Any, **kwargs: Any) -> Any:
+        """Handle level-specific key press modifications."""
         return key
 
     def key_release(self, key: int, game: Any) -> Any:
+        """Handle level-specific key release modifications."""
         return key
 
     def draw_top_effects(self, game: Any) -> None:
@@ -185,14 +189,18 @@ class BaseLevel:
 
 
 class Level1(BaseLevel):
+    """Level 1: standard Pac-Man gameplay without modifiers."""
 
     def __init__(self, config: dict[str, Any]) -> None:
+        """Initialize Level 1 configuration."""
         super().__init__(config)
 
 
 class Level2(BaseLevel):
+    """Level 2: darkness mechanic with dynamic flashlight mask."""
 
     def __init__(self, config: dict[str, Any]) -> None:
+        """Initialize Level 2 darkness state and timers."""
         super().__init__(config)
         self.fog_texture = None
         self.light_timer = 0.0
@@ -203,6 +211,7 @@ class Level2(BaseLevel):
     def create_fog_mask(
         self, size: int, vision_radius: int, inner_radius: int
     ) -> Any:
+        """Generate a circular transparent flashlight mask texture."""
         bg_r, bg_g, bg_b = 30, 30, 46
 
         dark_color = (bg_r, bg_g, bg_b, 255)
@@ -230,6 +239,7 @@ class Level2(BaseLevel):
         return arcade.Texture(img)
 
     def update(self, game: Any, delta_time: float) -> None:
+        """Toggle darkness cycle and scale the vision mask."""
         super().update(game, delta_time)
 
         self.light_timer += delta_time
@@ -261,6 +271,7 @@ class Level2(BaseLevel):
                 mask_dim, vision_r, inner_r)
 
     def draw_top_effects(self, game: Any) -> None:
+        """Render the dark fog mask over the maze."""
 
         # Camera shake.
         if self.fog_texture:
@@ -288,14 +299,17 @@ class Level2(BaseLevel):
 
 
 class Level3(BaseLevel):
+    """Level 3: periodic inverted movement controls."""
 
     def __init__(self, config: dict[str, Any]) -> None:
+        """Initialize inverted controls state and timers."""
         super().__init__(config)
         self.revers_time = 0.0
 
         self.revers_controls = False
 
     def update(self, game: Any, delta_time: float) -> None:
+        """Toggle inverted control state on fixed intervals."""
         super().update(game, delta_time)
 
         self.revers_time += delta_time
@@ -341,13 +355,16 @@ class Level3(BaseLevel):
 
 
 class Level4(BaseLevel):
+    """Level 4: periodic maze rotation and shifted directional inputs."""
 
     def __init__(self, config: dict[str, Any]) -> None:
+        """Initialize rotation angle and interval timers."""
         super().__init__(config)
         self.spin_timer = 0.0
         self.current_angle = 0
 
     def update(self, game: Any, delta_time: float) -> None:
+        """Advance timer and increment camera angle by 90 degrees."""
         super().update(game, delta_time)
 
         self.spin_timer += delta_time
@@ -405,13 +422,16 @@ class Level4(BaseLevel):
 
 
 class Level5(BaseLevel):
+    """Level 5: text-based command movement control."""
 
     def __init__(self, config: dict[str, Any]) -> None:
+        """Initialize text input buffer and cursor timer."""
         super().__init__(config)
         self.input_text = ""
         self.flash_time = 0.0
 
     def update(self, game: Any, delta_time: float) -> None:
+        """Update typing cursor blink timer."""
         super().update(game, delta_time)
 
         self.flash_time += delta_time
@@ -420,6 +440,7 @@ class Level5(BaseLevel):
             self.flash_time = 0.0
 
     def key_press(self, key: int, game: Any) -> None:
+        """Process typed words on Enter or delete with Backspace."""
 
         if game.player.is_dying:
             return
@@ -549,9 +570,10 @@ class Level6(BaseLevel):
 
 
 class Level7(BaseLevel):
-    """Red light Green light."""
+    """Level 7: Red Light, Green Light stop-and-go mechanic."""
 
     def __init__(self, config: dict[str, Any]) -> None:
+        """Initialize traffic light phases and brake state."""
         super().__init__(config)
         self.timer: float = 0.0
         self.state: str = "GREEN"
@@ -565,18 +587,18 @@ class Level7(BaseLevel):
             self.yellow_duration + self.red_duration
 
     def key_press(self, key: int, game: Any = None) -> int:
-
+        """Engage brake when spacebar is pressed."""
         if key == arcade.key.SPACE:
             self.is_braking = True
         return key
 
     def key_release(self, key: int, game: Any = None) -> None:
-
+        """Release brake when spacebar is released."""
         if key == arcade.key.SPACE:
             self.is_braking = False
 
     def update(self, game: Any, delta_time: float) -> None:
-
+        """Cycle traffic light states and penalize movement on red."""
         self.timer += delta_time
         cycle_time = self.timer % self.cycle_length
 
@@ -606,7 +628,7 @@ class Level7(BaseLevel):
             game.handle_player_hit()
 
     def draw_top_effects(self, game: Any) -> None:
-
+        """Render current traffic light status on the HUD."""
         center_x = game.width * 0.59
         center_y = game.height * 0.8
 
@@ -635,6 +657,7 @@ class Level8(BaseLevel):
     """Simon says."""
 
     def __init__(self, config: dict[str, Any]) -> None:
+        """Initialize Simon Says commands and reaction timers."""
         super().__init__(config)
         self.state: str = "NORMAL"  # NORMAL, WAITING, FROZEN
         self.timer: float = 0.0
@@ -832,21 +855,26 @@ class Level9(BaseLevel):
 
 
 class Level10(BaseLevel):
+    """Level 10: final challenge level."""
 
     def __init__(self, config: dict[str, Any]) -> None:
+        """Initialize Level 10 configuration."""
         super().__init__(config)
 
     def update(self, game: Any, delta_time: float) -> None:
+        """Update Level 10 gameplay logic."""
         pass
 
 
 class LevelFactory:
+    """Factory to instantiate level instances from level numbers."""
 
     def create_level(
         self,
         level_number: int,
         config: dict[str, Any],
     ) -> BaseLevel:
+        """Return the level instance corresponding to the given number."""
         classes = {
             1: Level1, 2: Level2, 3: Level3, 4: Level4, 5: Level5,
             6: Level6, 7: Level7, 8: Level8, 9: Level9, 10: Level10

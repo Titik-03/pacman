@@ -7,9 +7,12 @@ from src.sound_manager import SoundManager
 
 
 class GameOver(arcade.View):
+    """Game over view displaying final score and name entry."""
+
     def __init__(
         self, window: arcade.Window, main_menu: Any, score: int
     ) -> None:
+        """Initialize the game over view, UI layout, and score system."""
         super().__init__()
         SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
 
@@ -31,9 +34,11 @@ class GameOver(arcade.View):
         self.selected_option = 0
 
     def on_show_view(self) -> None:
+        """Play game over sound effect when view appears."""
         SoundManager.get().play_sfx("game_over")
 
     def on_draw(self) -> None:
+        """Render the game over background, score, and entered name."""
 
         self.clear()
         arcade.draw_texture_rect(
@@ -68,6 +73,7 @@ class GameOver(arcade.View):
         )
 
     def on_key_press(self, key: int, modifiers: int) -> None:
+        """Handle keyboard input for name entry and option navigation."""
         if key in (arcade.key.UP, arcade.key.DOWN, arcade.key.TAB):
             self.selected_option ^= 1
             SoundManager.get().play_sfx("menu_select")
@@ -96,6 +102,7 @@ class GameOver(arcade.View):
     def on_mouse_press(
         self, x: float, y: float, button: int, modifiers: int
     ) -> None:
+        """Handle mouse click events on menu buttons."""
         if x >= 1481:
             if name := self.player_name.strip():
                 self.score_class.write_score(name, self.score)

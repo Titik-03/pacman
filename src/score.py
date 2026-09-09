@@ -6,9 +6,11 @@ import arcade.gui
 
 
 class HighScore(arcade.View):
+    """Dedicated high score leaderboard view."""
 
     # init with deafults.
     def __init__(self, main_menu: arcade.View, window: arcade.Window):
+        """Initialize the high score view and title labels."""
         super().__init__()
 
         self.x_center = self.width / 2
@@ -42,12 +44,12 @@ class HighScore(arcade.View):
     # what will happen if the view is showed.
 
     def on_show_view(self) -> None:
-
+        """Load scores when the view is displayed."""
         h = Score()
         self.score = h.load_score()
 
     def draw_background(self) -> None:
-
+        """Draw decorative background lines for the score view."""
         arcade.set_background_color((8, 12, 28, 255))
 
         color = (0, 180, 255, 30)
@@ -59,6 +61,7 @@ class HighScore(arcade.View):
         arcade.draw_line(1100, 300, 1100, 600, color, 6)
 
     def draw_score_panel(self) -> None:
+        """Draw the table of high score entries."""
 
         x = self.window.width / 2 - 350
         y = self.window.height - 220
@@ -167,6 +170,7 @@ class HighScore(arcade.View):
     # what will draw.
 
     def on_draw(self) -> None:
+        """Render the high score view components."""
 
         # clear the screen before drawing new things to prevent overdrawing
         # on last view.
@@ -177,13 +181,16 @@ class HighScore(arcade.View):
         self.draw_score_panel()
 
     def on_key_press(self, key: int, modifiers: int) -> None:
+        """Handle key press events to return to main menu."""
         if key == arcade.key.ESCAPE:
             self.window.show_view(self.main_menu)
 
 
 class Score:
+    """Manager for persistent high score storage in JSON format."""
 
     def __init__(self, filepath: str = "src/outputs/high_score.json") -> None:
+        """Initialize score manager with file path and load existing scores."""
         self.filepath = filepath
         self.scores: List[Dict] = []
         self.load_score()

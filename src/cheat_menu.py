@@ -3,12 +3,16 @@ import arcade.gui
 
 
 class CheatMenu(arcade.View):
+    """Pause view overlay for cheats."""
+
     def __init__(self, game: arcade.View) -> None:
+        """Initialize the cheat menu with reference to active game view."""
         super().__init__()
 
         self.game = game
 
     def on_draw(self) -> None:
+        """Render the cheat menu overlay."""
         self.clear()
 
         arcade.draw_text(
@@ -30,6 +34,7 @@ class CheatMenu(arcade.View):
         )
 
     def on_key_press(self, symbol: int, modifiers: int) -> None:
+        """Handle key press events to resume game."""
         if symbol == arcade.key.ESCAPE:
             self.window.show_view(self.game)
 

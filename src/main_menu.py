@@ -14,11 +14,14 @@ from src.levels import ConfigParser
 
 # Main menu view.
 class MainMenu(arcade.View):
+    """Main menu view with animated navigation, leaderboard, and options."""
+
     def __init__(
         self,
         window: arcade.Window,
         config_parser: ConfigParser | None = None,
     ) -> None:
+        """Initialize main menu components, items, banners, and particles."""
         super().__init__()
         arcade.load_font("src/assets/Handjet/static/Handjet-Regular.ttf")
         arcade.load_font("src/assets/Handjet/static/Handjet-Bold.ttf")
@@ -78,6 +81,7 @@ class MainMenu(arcade.View):
             )
 
     def on_update(self, delta_time: float) -> None:
+        """Update menu items, particles, and banner animations."""
         for particle in self.particles:
             particle.update(delta_time)
         for item in self.menu_items:
@@ -123,6 +127,7 @@ class MainMenu(arcade.View):
         self.bottom_banner.update()
 
     def on_key_press(self, key: int, modifiers: int) -> None:
+        """Handle keyboard navigation and option activation."""
         if key == arcade.key.ESCAPE:
             for item in self.menu_items:
                 item.hovered = False
@@ -174,6 +179,7 @@ class MainMenu(arcade.View):
     def on_mouse_motion(
         self, x: float, y: float, dx: float, dy: float
     ) -> None:
+        """Track mouse position to update hovered menu items."""
         if self.show_instructions or self.show_highscore:
             return
 
@@ -187,6 +193,7 @@ class MainMenu(arcade.View):
     def on_mouse_press(
         self, x: float, y: float, button: int, modifiers: int
     ) -> None:
+        """Handle mouse clicks on menu items and overlays."""
         # Click anywhere to close instructions
         if self.show_instructions or self.show_highscore:
             for item in self.menu_items:
@@ -215,15 +222,18 @@ class MainMenu(arcade.View):
             arcade.exit()
 
     def on_resize(self, width: int, height: int) -> None:
+        """Adjust layout when the game window is resized."""
         super().on_resize(width, height)
         self.title_text.x = 5
         self.title_text.y = height * 0.8
 
     def on_show_view(self) -> None:
+        """Play menu music and refresh leaderboard scores when shown."""
         SoundManager.get().play_music("menu", loop=True)
         self.scores = self.score_manager.load_score()
 
     def draw_leaderboard(self) -> None:
+        """Render the high scores leaderboard overlay or side panel."""
         item: Any
         width = 700
         row_height = 50
@@ -318,6 +328,7 @@ class MainMenu(arcade.View):
             )
 
     def draw_instructions(self) -> None:
+        """Render the instructions panel or overlay."""
         width = 1150
         height = 400
 
@@ -356,10 +367,12 @@ class MainMenu(arcade.View):
         )
 
     def new_game(self, seed: int = 42) -> None:
+        """Start a new game by transitioning to the level 1 loading view."""
         loading_view = LoadingView(self.window, self, seed, level=1)
         self.window.show_view(loading_view)
 
     def on_draw(self) -> None:
+        """Render the main menu background, banners, items, and overlays."""
         self.clear()
 
         arcade.draw_texture_rect(

@@ -4,12 +4,16 @@ import arcade.gui
 
 
 class PauseMenu(arcade.View):
+    """Pause view overlay for pausing gameplay."""
+
     def __init__(self, game: arcade.View) -> None:
+        """Initialize the pause menu with reference to active game view."""
         super().__init__()
 
         self.game = game
 
     def on_draw(self) -> None:
+        """Render the pause menu overlay."""
         self.clear()
 
         arcade.draw_text(
@@ -31,6 +35,7 @@ class PauseMenu(arcade.View):
         )
 
     def on_key_press(self, symbol: int, modifiers: int) -> None:
+        """Handle key press events to resume the game."""
         if symbol == arcade.key.ESCAPE:
             self.window.show_view(self.game)
 

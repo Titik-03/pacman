@@ -5,9 +5,10 @@ from arcade.types import Color
 
 
 class Particle:
+    """Floating ambient background particle."""
 
     def __init__(self, width: int, height: int) -> None:
-
+        """Initialize particle position, size, speed, color, and drift."""
         self.screen_width = width
         self.screen_height = height
 
@@ -36,7 +37,7 @@ class Particle:
         self.time = random.uniform(0, 6)
 
     def update(self, delta_time: float) -> None:
-
+        """Update particle position and wrap around screen height."""
         self.time += delta_time  # Advance the internal animation timer.
         self.x += self.drift * delta_time  # Move horizontally based on drift.
         self.y += self.speed * delta_time  # Move upward based on speed.
@@ -48,7 +49,7 @@ class Particle:
             self.x = random.randint(0, self.screen_width)
 
     def draw(self) -> None:
-
+        """Render the glowing circular particle."""
         # Add a pulsing alpha variation.
         alpha = self.alpha + math.sin(self.time * 3) * 30
         # Clamp alpha to a visible range.
@@ -66,6 +67,7 @@ class ShatterParticle:
     """Undertale-style soul shatter shard particle."""
 
     def __init__(self, x: float, y: float):
+        """Initialize shard position, velocity, dimensions, and color."""
         self.x = x + random.uniform(-4, 4)
         self.y = y + random.uniform(-4, 4)
         speed = random.uniform(140, 360)
@@ -89,6 +91,7 @@ class ShatterParticle:
         ])
 
     def update(self, delta_time: float) -> bool:
+        """Update shard physics and lifetime; return False when expired."""
         self.lifetime -= delta_time
         if self.lifetime <= 0:
             return False
@@ -99,6 +102,7 @@ class ShatterParticle:
         return True
 
     def draw(self) -> None:
+        """Render the rotating shard rectangle."""
         alpha = int(255 * max(0.0, self.lifetime / self.max_lifetime))
         arcade.draw_rect_filled(
             arcade.rect.XYWH(self.x, self.y, self.w, self.h),
@@ -108,6 +112,8 @@ class ShatterParticle:
 
 
 class Floating_score:
+    """Floating score popup text that drifts upward and fades out."""
+
     def __init__(
         self,
         x: float,
@@ -115,6 +121,7 @@ class Floating_score:
         text: str,
         color: tuple[int, int, int],
     ) -> None:
+        """Initialize floating score text, position, color, and duration."""
         self.x = x
         self.y = y
         self.text = text
@@ -123,11 +130,13 @@ class Floating_score:
         self.floating_speed = 50.0
 
     def update(self, delta_time: float) -> bool:
+        """Float upward and decrease lifetime; return False when expired."""
         self.time -= delta_time
         self.y += self.floating_speed*delta_time
         return self.time > 0
 
     def draw(self) -> None:
+        """Render the fading score text."""
         alpha = int(255 * self.time / 0.8)
         r, g, b = self.color
         arcade.draw_text(
@@ -144,6 +153,8 @@ class Floating_score:
 
 
 class TrailParticle:
+    """Fading motion trail ghost sprite for dash effects."""
+
     def __init__(
         self,
         x: float,
@@ -155,6 +166,7 @@ class TrailParticle:
         color: tuple[int, int, int] | Color = (203, 166, 247),
         lifetime: float = 0.22,
     ):
+        """Initialize trail sprite properties, transform, and lifetime."""
         self.x = x
         self.y = y
         self.texture = texture
@@ -166,10 +178,12 @@ class TrailParticle:
         self.max_lifetime = lifetime
 
     def update(self, delta_time: float) -> bool:
+        """Decrease trail lifetime; return False when expired."""
         self.lifetime -= delta_time
         return self.lifetime > 0
 
     def draw(self) -> None:
+        """Render the fading ghost sprite texture."""
         alpha = int(140 * max(0.0, self.lifetime / self.max_lifetime))
 
         tint_color = Color(int(self.color[0]), int(
@@ -184,9 +198,12 @@ class TrailParticle:
 
 
 class Shockwave:
+    """Expanding circular shockwave effect."""
+
     def __init__(
         self, x: float, y: float, color: tuple[int, int, int]
     ) -> None:
+        """Initialize shockwave center, color, and expansion parameters."""
         self.x = x
         self.y = y
         self.max_radius = 300.0
@@ -196,10 +213,12 @@ class Shockwave:
         self.color = color
 
     def update(self, delta_time: float) -> bool:
+        """Expand shockwave radius; return False when expired."""
         self.lifetime -= delta_time
         return self.lifetime > 0
 
     def draw(self) -> None:
+        """Render the expanding circular ring."""
         r, g, b = self.color
         progress = 1.0 - (self.lifetime / self.duration)
         radius = self.max_radius * progress
@@ -214,7 +233,10 @@ class Shockwave:
 
 
 class CoinSparkle:
+    """Tiny sparkle particle emitted when collecting a coin."""
+
     def __init__(self, x: float, y: float) -> None:
+        """Initialize sparkle position, velocity, color, and lifetime."""
         self.x = x
         self.y = y
         self.vx = random.uniform(-60, 60)
@@ -224,12 +246,14 @@ class CoinSparkle:
             [arcade.color.YELLOW, arcade.color.WHITE, arcade.color.GOLD])
 
     def update(self, delta_time: float) -> bool:
+        """Move sparkle according to velocity; return False when expired."""
         self.lifetime -= delta_time
         self.x += self.vx * delta_time
         self.y += self.vy * delta_time
         return self.lifetime > 0
 
     def draw(self) -> None:
+        """Render the fading sparkle point."""
         alpha = int(255 * (self.lifetime / 0.25))
         arcade.draw_point(
             self.x,

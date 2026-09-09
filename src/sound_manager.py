@@ -3,10 +3,12 @@ import arcade
 
 
 class SoundManager:
+    """Singleton audio manager for sound effects and background music."""
 
     _instance: "SoundManager | None" = None
 
     def __init__(self) -> None:
+        """Initialize sound effects, music tracks, and volume levels."""
         self.sfx = {
             "coin":        arcade.load_sound("src/assets/coin.wav"),
             "power_pellet": arcade.load_sound("src/assets/powerup.wav"),
@@ -37,16 +39,19 @@ class SoundManager:
 
     @classmethod
     def get(cls) -> "SoundManager":
+        """Return the singleton instance of SoundManager."""
         if cls._instance is None:
             cls._instance = SoundManager()
         return cls._instance
 
     def play_sfx(self, name: str) -> None:
+        """Play a sound effect by name."""
         sound = self.sfx.get(name)
         if sound:
             arcade.play_sound(sound, volume=self.sfx_volume)
 
     def play_music(self, name: str, loop: bool = True) -> None:
+        """Play a background music track by name, optionally looping."""
         if self._current_music_name == name:
             return
         self.stop_music()
@@ -58,6 +63,7 @@ class SoundManager:
             self._current_music_name = name
 
     def stop_music(self) -> None:
+        """Stop the currently playing background music."""
         if self._current_music_player:
             arcade.stop_sound(self._current_music_player)
         self._current_music_player = None

@@ -52,6 +52,7 @@ GLOW = (203, 166, 247, 80)
 
 
 class GameWindow(arcade.View):
+    """Main game view that manages gameplay, rendering, and input."""
 
     def __init__(self,
                  menu: arcade.View,
@@ -61,6 +62,7 @@ class GameWindow(arcade.View):
                  score: int = 0,
                  lives: int | None = None,
                  ) -> None:
+        """Initialize the game state, maze, player, ghosts, and UI."""
 
         super().__init__()
         self.main_menu = menu
@@ -284,18 +286,21 @@ class GameWindow(arcade.View):
         self.coin_sparkles: list[CoinSparkle] = []
 
     def get_unlocked_abilities(self) -> list[dict[str, Any]]:
+        """Return the list of abilities unlocked at the current level."""
         return [
             ability for ability in self.ability_defs
             if self.level >= ability["unlock_level"]
         ]
 
     def get_ability_by_key(self, key: int) -> dict[str, Any] | None:
+        """Return the ability bound to the given key, or None if locked."""
         for ability in self.ability_defs:
             if key == ability["key"] and self.level >= ability["unlock_level"]:
                 return ability
         return None
 
     def get_player_facing_dir(self) -> tuple[int, int]:
+        """Return the direction the player is currently facing."""
         if self.player.current_dir != (0, 0):
             return self.player.current_dir
         if self.player.queued_dir != (0, 0):
@@ -308,6 +313,7 @@ class GameWindow(arcade.View):
         start_col: int,
         direction: tuple[int, int],
     ) -> tuple[int, int]:
+        """Find the furthest open tile in a direction before a wall."""
         dx, dy = direction
         row, col = start_row, start_col
 
@@ -334,6 +340,7 @@ class GameWindow(arcade.View):
         return row, col
 
     def reset_ghost_colors(self) -> None:
+        """Update ghost tint colors based on current game state."""
         active_stop_time = self.get_ability_by_key(arcade.key.Q)
         active_frost_walk = self.get_ability_by_key(arcade.key.E)
 
@@ -372,16 +379,19 @@ class GameWindow(arcade.View):
                 ghost.color = (255, 255, 255)
 
     def trigger_shake(self, duration: float, intensity: float) -> None:
+        """Start screen shake effect with given duration and intensity."""
         self.shake_time = duration
         self.shake_intensity = intensity
 
     def on_mouse_motion(
         self, x: float, y: float, dx: float, dy: float
     ) -> None:
+        """Track the current mouse position."""
         self.mouse_x = x
         self.mouse_y = y
 
     def init_ghosts(self) -> None:
+        """Create and position all four ghosts in their home corners."""
 
         # Blinky init.
         blinky_row = 0
@@ -480,6 +490,7 @@ class GameWindow(arcade.View):
         )
 
     def init_maze(self) -> None:
+        """Build the maze walls, coins, and power pellets from the grid."""
 
         cs = self.cell_size
         wall_thickness = 4
@@ -553,6 +564,7 @@ class GameWindow(arcade.View):
         self.target_coins = len(self.coins_lst)
 
     def draw_background_image(self) -> None:
+        """Clear the screen and draw the background texture."""
         self.clear()
         arcade.draw_texture_rect(
             self.background,
@@ -565,6 +577,7 @@ class GameWindow(arcade.View):
         )
 
     def draw_ability(self) -> None:
+        """Draw the current ability icon on the HUD."""
         unlocked = self.get_unlocked_abilities()
         idx = unlocked[-1]["icon_index"] if unlocked else 0
         arcade.draw_texture_rect(
@@ -573,6 +586,7 @@ class GameWindow(arcade.View):
         )
 
     def draw_cooldown_slider(self) -> None:
+        """Draw the ability cooldown progress bar on the HUD."""
         x = 1550
         w = 280
         h = 24
@@ -681,6 +695,7 @@ class GameWindow(arcade.View):
             )
 
     def trigger_ability(self, key: int) -> None:
+        """Activate the ability bound to the given key if it's ready."""
         ability = self.get_ability_by_key(key)
         if ability is None:
             return
@@ -734,6 +749,7 @@ class GameWindow(arcade.View):
             SoundManager.get().play_sfx("power_pellet")
 
     def draw_maze_background(self) -> None:
+        """Draw the dark background and border behind the maze."""
         self.maze_width = self.cols * self.cell_size
         self.maze_height = self.rows * self.cell_size
 
@@ -757,6 +773,7 @@ class GameWindow(arcade.View):
         )
 
     def draw_debug(self) -> None:
+        """Draw ghost target markers and grid debug info."""
 
         self.blinky.draw_target_x(
             self.cell_size,
@@ -793,6 +810,7 @@ class GameWindow(arcade.View):
         )
 
     def draw_hearts(self) -> None:
+        """Draw life hearts on the HUD, capped at 5 with a multiplier."""
         # Draw red hearts for lives next to LIVES: label in Dek.png
         size = 14 * (self.height / 1080.0)
         spacing = 38 * (self.width / 1920.0)
@@ -822,8 +840,7 @@ class GameWindow(arcade.View):
             arcade.draw_text(
                 f"x{lives}",
                 x=text_x,
-                y=self.lives_y + 3
-                ,
+                y=self.lives_y + 3,
                 color=MOCHA_RED,
                 font_size=font_sz,
                 font_name="Handjet",
@@ -832,6 +849,7 @@ class GameWindow(arcade.View):
             )
 
     def draw_cheat_menu(self) -> None:
+        """Draw the cheat menu overlay with toggle options."""
         # blur.
         arcade.draw_rect_filled(
             arcade.rect.XYWH(
@@ -898,10 +916,12 @@ class GameWindow(arcade.View):
             )
 
     def on_text(self, text: str) -> None:
+        """Forward text input events to the current level."""
         if hasattr(self.level_obj, 'on_text'):
             self.level_obj.on_text(text)
 
     def on_draw(self) -> None:
+        """Render the entire game frame including HUD, maze, and entities."""
         self.clear()
 
         self.ui_camera.position = (
@@ -997,6 +1017,7 @@ class GameWindow(arcade.View):
             self.manager.draw()
 
     def go_to_game_over(self) -> None:
+        """Switch to the game over screen."""
         SoundManager.get().stop_music()
         self.shatter_particles.clear()
         self.player.visible = True
@@ -1004,6 +1025,7 @@ class GameWindow(arcade.View):
         self.window.show_view(self.game_over)
 
     def go_to_next_level(self) -> None:
+        """Transition to the next level via the loading screen."""
         SoundManager.get().stop_music()
         from src.loading import LoadingView
         loading_view = LoadingView(
@@ -1017,6 +1039,7 @@ class GameWindow(arcade.View):
         self.window.show_view(loading_view)
 
     def go_to_victory(self) -> None:
+        """Switch to the victory screen."""
         SoundManager.get().stop_music()
         self.vectory = Vectory(
             self.window,
@@ -1029,6 +1052,7 @@ class GameWindow(arcade.View):
         self.window.show_view(self.vectory)
 
     def ghosts_chase_player(self, delta_time: float) -> None:
+        """Update all ghost AI chase logic for one frame."""
 
         self.blinky.chase_player(
             self.player,
@@ -1076,6 +1100,7 @@ class GameWindow(arcade.View):
         )
 
     def on_update(self, delta_time: float) -> None:
+        """Advance game logic by one frame: movement, collisions, timers."""
 
         self.shock = [s for s in self.shock if s.update(delta_time)]
         self.coin_sparkles = [
@@ -1284,6 +1309,7 @@ class GameWindow(arcade.View):
                 break
 
     def handle_player_hit(self) -> None:
+        """Process the player taking damage from a ghost."""
         if (
             self.player.is_dying
             or self.shatter_particles
@@ -1299,6 +1325,7 @@ class GameWindow(arcade.View):
         self.player.start_death_animation()
 
     def respawn_after_death(self) -> None:
+        """Reset player and ghosts to spawn positions after a death."""
         self.shatter_particles.clear()
         self.player.visible = True
         self.player.respawn_at(self.player_spawn_x, self.player_spawn_y)
@@ -1328,6 +1355,7 @@ class GameWindow(arcade.View):
             ghost.texture = arcade.load_texture(ghost.normal_texture_path)
 
     def on_key_release(self, key: int, modifiers: int) -> None:
+        """Handle key release events for player and level logic."""
         if self.level == 5 and hasattr(self.level_obj, 'key_release'):
             self.level_obj.key_release(key, self)
             return
@@ -1339,6 +1367,7 @@ class GameWindow(arcade.View):
         self.player.on_key_release(key)
 
     def on_show_view(self) -> None:
+        """Start music and set up the pause menu UI when the view appears."""
         SoundManager.get().play_music("gameplay", loop=True)
         self.manager.enable()
 
@@ -1414,10 +1443,12 @@ class GameWindow(arcade.View):
         )
 
     def on_hide_view(self) -> None:
+        """Stop music and disable the UI manager when the view is hidden."""
         SoundManager.get().stop_music()
         self.manager.disable()
 
     def on_key_press(self, key: int, modifiers: int) -> None:
+        """Handle key presses for menus, cheats, abilities, and movement."""
         if key == arcade.key.ESCAPE:
             if self.cheat_menu:
                 self.cheat_menu = False

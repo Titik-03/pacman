@@ -7,7 +7,10 @@ ASSETS_PATH = "src/assets/Untitled/5.png"
 
 
 class Player(arcade.Sprite):
+    """Player character sprite handling movement, lives, and animations."""
+
     def __init__(self, center_x: float, center_y: float, speed: float) -> None:
+        """Initialize player position, speed, textures, and animation state."""
         super().__init__(str(ASSETS_PATH))
         self.center_x = center_x
         self.center_y = center_y
@@ -106,6 +109,7 @@ class Player(arcade.Sprite):
         self.just_started = True
 
     def update_invincibility(self, delta_time: float) -> None:
+        """Update invincibility timer and flashing alpha effect."""
 
         if self.is_dying:
             self.alpha = 255
@@ -143,6 +147,7 @@ class Player(arcade.Sprite):
         cell_size: float,
         speed: float = 180.0,
     ) -> tuple["Player", arcade.SpriteList]:
+        """Create and configure a Player sprite and its container list."""
         player_list: arcade.SpriteList = arcade.SpriteList()
 
         player = Player(center_x, center_y, speed)
@@ -153,6 +158,7 @@ class Player(arcade.Sprite):
         return player, player_list
 
     def on_key_press(self, key: int) -> None:
+        """Queue movement direction based on directional key press."""
         if self.is_dying:
             return
         if key == arcade.key.UP or key == arcade.key.W:
@@ -169,6 +175,7 @@ class Player(arcade.Sprite):
             self.just_started = False
 
     def on_key_release(self, key: int) -> None:
+        """Handle key release events for the player."""
         pass
 
     def can_move(
@@ -181,6 +188,7 @@ class Player(arcade.Sprite):
         offset_x: float = 0.0,
         offset_y: float = 0.0,
     ) -> bool:
+        """Check if player can move in direction without hitting a wall."""
         dx, dy = dir_tuple
         if dx == 0 and dy == 0:
             return False
@@ -228,6 +236,7 @@ class Player(arcade.Sprite):
     def update_animation(
         self, delta_time: float = 1 / 60, *args: Any, **kwargs: Any
     ) -> None:
+        """Advance walk or death animation frames and flip textures."""
         if self.is_dying:
             self.death_timer += delta_time
             if self.death_timer >= self.death_frame_duration:
@@ -262,6 +271,7 @@ class Player(arcade.Sprite):
                              offset_y: float = 0.0,
                              delta_time: float = 1 / 60
                              ) -> None:
+        """Update tile-based grid movement toward the target cell."""
 
         if self.is_powered_up:
             self.power_timer -= delta_time

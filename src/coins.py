@@ -4,7 +4,10 @@ import arcade
 
 
 class Coin:
+    """Collectible coin or power pellet in the maze."""
+
     def __init__(self, x: float, y: float, is_powerup: bool = False) -> None:
+        """Initialize coin position, type, radius, and colors."""
         self.x = x
         self.y = y
         self.is_eaten = False
@@ -21,6 +24,7 @@ class Coin:
             self.glow_color = None
 
     def draw(self) -> None:
+        """Render the animated hovering coin and optional glow."""
         if self.is_eaten:
             return
 

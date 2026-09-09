@@ -6,6 +6,8 @@ SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
 
 
 class LoadingView(arcade.View):
+    """Intermediate loading view with progress bar and animations."""
+
     def __init__(
         self,
         window: arcade.Window,
@@ -15,6 +17,7 @@ class LoadingView(arcade.View):
         score: int = 0,
         lives: int | None = None,
     ) -> None:
+        """Initialize the loading view state, timers, and UI texts."""
         super().__init__()
         self.window = window
         self.main_menu = main_menu
@@ -68,11 +71,13 @@ class LoadingView(arcade.View):
         )
 
     def on_show_view(self) -> None:
+        """Prepare background and stop music when view is shown."""
         arcade.set_background_color(self.MOCHA_BASE)
         SoundManager.get().stop_music()
         # Instantiate GameWindow immediately so game assets/maze are ready
 
     def on_update(self, delta_time: float) -> None:
+        """Advance loading progress and transition to the game window."""
         self.elapsed += delta_time
         self.progress = min(1.0, self.elapsed / self.loading_duration)
 
@@ -90,6 +95,7 @@ class LoadingView(arcade.View):
             )
 
     def on_draw(self) -> None:
+        """Render the loading screen, progress bar, and Pac-Man animation."""
         self.clear()
         self.title_text.draw()
         self.sub_text.draw()
