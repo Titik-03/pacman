@@ -34,7 +34,7 @@ class Vectory(arcade.View):
         self.lives = lives
         self.player_name = ""
         self.seed = seed
-        self.background = arcade.load_texture("src/assets/bgv.png")
+        self.background = arcade.load_texture("src/assets/Desktop - 4.png")
 
         font_path = (
             SCRIPT_DIR / "assets" / "Handjet" / "static" / "Handjet-Bold.ttf"
@@ -75,8 +75,8 @@ class Vectory(arcade.View):
         )
         arcade.draw_text(
             f"{self.score}",
-            self.x_center + 15,
-            1020,
+            960,
+            1144,
             arcade.color.GOLD,
             font_size=40,
             font_name="Handjet",
@@ -87,9 +87,9 @@ class Vectory(arcade.View):
         has_name = bool(self.player_name)
         display_name = self.player_name.upper() if has_name else "TYPE NAME"
         arcade.draw_text(
-            f"{display_name}_",
-            self.x_center,
-            self.y_center - 60,
+            f"{display_name}",
+            self.x_center + 5,
+            self.y_center - 40,
             (180, 190, 254),
             font_size=36,
             font_name="Handjet",
@@ -119,14 +119,14 @@ class Vectory(arcade.View):
         self, x: float, y: float, button: int, modifiers: int
     ) -> None:
         """Handle button clicks to continue or return to menu."""
-        if 764 <= x <= 1167:
-            if 373 >= y >= 311:
+        if 845 <= x <= 1084:
+            if 458 >= y >= 389:
                 if self.next_level <= self.get_max_level():
                     self.go_to_next_level()
                 else:
                     name = self.player_name.strip() or "PLAYER"
                     self.score_class.write_score(name, self.score)
                     self.window.show_view(self.main_menu)
-            elif 273 >= y >= 211:
+            elif 353 >= y >= 288:
                 SoundManager.get().play_sfx("menu_select")
                 self.window.show_view(self.main_menu)

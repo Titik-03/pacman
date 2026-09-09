@@ -51,8 +51,8 @@ class GameOver(arcade.View):
             ))
         arcade.draw_text(
             f"{self.score}",
-            self.x_center + 110,
-            self.y_center + 60,
+            1112,
+            695,
             (180, 190, 254),
             font_size=42,
             font_name="Handjet",
@@ -62,8 +62,8 @@ class GameOver(arcade.View):
         )
         arcade.draw_text(
             f"{self.player_name.upper()}",
-            self.x_center + 100,
-            self.y_center - 30,
+            1006,
+            595,
             (180, 190, 254),
             font_size=42,
             font_name="Handjet",
@@ -103,13 +103,13 @@ class GameOver(arcade.View):
         self, x: float, y: float, button: int, modifiers: int
     ) -> None:
         """Handle mouse click events on menu buttons."""
-        if x >= 1481:
+        if x >= 1600:
             if name := self.player_name.strip():
                 self.score_class.write_score(name, self.score)
 
-            if 560 <= y <= 690:
+            if 720 <= y <= 807:
                 SoundManager.get().play_sfx("menu_select")
                 self.main_menu.new_game(seed=42)
-            elif 250 <= y <= 390:
+            elif 435 <= y <= 520:
                 SoundManager.get().play_sfx("menu_select")
                 self.window.show_view(self.main_menu)
