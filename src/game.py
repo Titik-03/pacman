@@ -309,7 +309,11 @@ class GameWindow(arcade.View):
 
     def get_target_player_speed(self, combo_bonus: float = 1.0) -> float:
         """Return the intended base player speed, honoring cheat speed."""
-        base_speed = self.player_speed * 2 if self.speed_up else self.player_speed
+
+        if self.speed_up:
+            base_speed = self.player_speed * 2
+        else:
+            base_speed = self.player_speed
         return base_speed * combo_bonus
 
     def get_combo_bonus(self) -> float:

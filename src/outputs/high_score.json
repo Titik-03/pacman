@@ -1,1 +1,14 @@
-[]
+[
+    {
+        "name": "RET",
+        "score": 385
+    },
+    {
+        "name": "MAIN",
+        "score": 280
+    },
+    {
+        "name": "PLAYER",
+        "score": 40
+    }
+]
