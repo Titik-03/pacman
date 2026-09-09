@@ -1,0 +1,48 @@
+1. LAUNCHING THE GAME
+---------------------
+- Standalone executable (Platform / Desktop):
+    ./Pac-Man
+- Terminal with custom configuration:
+    ./Pac-Man [path_to_config.json]
+- Python source:
+    python3 pac-man.py [path_to_config.json]
+
+2. CONTROLS
+-----------
+- Movement:          Arrow Keys  or  W / A / S / D
+- Special Abilities:
+    [Q]              Time Stop (Temporarily halts ghost movement)
+    [E]              Frost Walk (Slows down ghosts in radius)
+    [F]              Speed Dash (Quick burst of speed)
+- Pause / Resume:    [P]  or  [ESC]
+- Fullscreen Toggle: [F11]
+- Menu Navigation:   Arrow Keys / Mouse
+- Select / Submit:   [ENTER] / Left Click
+
+3. OPTIONS & CHEAT SHORTCUTS (Evaluation)
+-----------------------------------------
+- Press [C] during gameplay to toggle the on-screen Cheat Menu.
+- Direct evaluation shortcuts:
+    [F1]             Toggle Debug Overlay
+    [F2]             Freeze / Unfreeze Ghosts
+    [F3]             Toggle Invincibility
+    [F4]             Toggle Wall Collision
+    [F5]             Speed Boost
+    [F6]             Add +1000 Score Points
+    [F7]             Add +1 Extra Life
+    [F8]             Instant Level Skip / Victory
+
+4. CONFIGURATION
+----------------
+- Game parameters are set via JSON file (e.g. config.json).
+- Supports comments prefixed with '#' or '//'.
+- Configurable attributes per level:
+    * lives:                   Number of lives (clamped 1-10)
+    * pacgum:                  Total coins/dots to generate
+    * points_per_pacgum:       Points per regular pacgum
+    * points_per_super_pacgum: Points per energizer pellet
+    * points_per_ghost:        Points per eaten frightened ghost
+    * seed:                    RNG seed for maze generation
+    * level_max_time:          Time limit per level (seconds)
+- Highscores are persistently stored in JSON format (default: src/outputs/high_score.json).
+================================================================================

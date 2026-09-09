@@ -9,3 +9,4 @@ __mypy_cache__
 *.egg-info
 build
 dist
+pacman-package/

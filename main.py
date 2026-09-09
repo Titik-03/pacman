@@ -7,11 +7,19 @@ from src.levels import ConfigError, ConfigParser
 
 def main() -> None:
     """Main entry point for the Pac-man application."""
-    if len(sys.argv) != 2:
+    if len(sys.argv) == 1:
+        for candidate in ("config.json", "src/jsons/config.json"):
+            if Path(candidate).is_file():
+                config_path = candidate
+                break
+        else:
+            print("Usage: python3 pac-man.py <config.json>", file=sys.stderr)
+            sys.exit(1)
+    elif len(sys.argv) == 2:
+        config_path = sys.argv[1]
+    else:
         print("Usage: python3 pac-man.py <config.json>", file=sys.stderr)
         sys.exit(1)
-
-    config_path = sys.argv[1]
     if not Path(config_path).is_file():
         print(
             f"Error: Configuration file '{config_path}' not found.",

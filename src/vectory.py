@@ -70,6 +70,24 @@ class Vectory(arcade.View):
             )
             self.window.show_view(loading_view)
 
+    def restart_game(self) -> None:
+        """Save score and restart the game from level 1."""
+        SoundManager.get().play_sfx("menu_select")
+        name = self.player_name.strip() or "PLAYER"
+        self.score_class.write_score(name, self.score)
+        seed = self.seed if self.seed is not None else 42
+        new_game_fn = getattr(self.main_menu, "new_game", None)
+        if callable(new_game_fn):
+            new_game_fn(seed=seed)
+        else:
+            loading_view = LoadingView(
+                self.window,
+                self.main_menu,
+                seed=seed,
+                level=1,
+            )
+            self.window.show_view(loading_view)
+
     def on_draw(self) -> None:
         """Render the victory screen, score, and player name."""
         self.clear()
@@ -131,18 +149,15 @@ class Vectory(arcade.View):
     def on_mouse_press(
         self, x: float, y: float, button: int, modifiers: int
     ) -> None:
-        """Handle button clicks to continue or return to menu."""
+        """Handle button clicks to retry from level 1 or return to menu."""
         scale_x = self.window.width / BASE_WIDTH
         scale_y = self.window.height / BASE_HEIGHT
 
         if 845 * scale_x <= x <= 1084 * scale_x:
             if 389 * scale_y <= y <= 458 * scale_y:
-                if self.next_level <= self.get_max_level():
-                    self.go_to_next_level()
-                else:
-                    name = self.player_name.strip() or "PLAYER"
-                    self.score_class.write_score(name, self.score)
-                    self.window.show_view(self.main_menu)
+                self.restart_game()
             elif 288 * scale_y <= y <= 353 * scale_y:
                 SoundManager.get().play_sfx("menu_select")
+                name = self.player_name.strip() or "PLAYER"
+                self.score_class.write_score(name, self.score)
                 self.window.show_view(self.main_menu)
