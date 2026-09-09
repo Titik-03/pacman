@@ -1,3 +1,4 @@
+from typing import Any
 from arcade import load_texture
 import random
 import math
@@ -46,7 +47,7 @@ MOCHA_SURFACE0 = (49, 50, 68)    # #313244
 MOCHA_SURFACE1 = (69, 71, 90)    # #45475a
 MOCHA_MANTLE = (24, 24, 37)      # #181825
 
-NEON = MOCHA_MAUVE
+NEON = (203, 166, 247, 255)
 GLOW = (203, 166, 247, 80)
 
 
@@ -58,7 +59,7 @@ class GameWindow(arcade.View):
                  seed: int = 42,
                  level: int = 1,
                  score: int = 0,
-                 lives: int = None,
+                 lives: int | None = None,
                  ) -> None:
 
         super().__init__()
@@ -188,9 +189,11 @@ class GameWindow(arcade.View):
 
         self.init_ghosts()
 
-        self.wall_shapes = shapes.ShapeElementList()
-        self.wall_list = arcade.SpriteList(use_spatial_hash=True)
-        self.coins_lst = []
+        self.wall_shapes: shapes.ShapeElementList = shapes.ShapeElementList()
+        self.wall_list: arcade.SpriteList = arcade.SpriteList(
+            use_spatial_hash=True
+        )
+        self.coins_lst: list[Coin] = []
 
         self.init_maze()
 
@@ -206,7 +209,7 @@ class GameWindow(arcade.View):
             self.main_menu, "config_parser", None
         ) or ConfigParser()
         # self.pause_menu = PauseMenu(self)
-        self.cheat_menu = CheatMenu(self)
+        self.cheat_menu: Any = CheatMenu(self)
         self.pause = False
         self.cheat_menu = False
         self.cheat_menu_timer = 0.0
@@ -214,13 +217,13 @@ class GameWindow(arcade.View):
         self.debug = False
         self.freeze_ghosts = False
 
-        self.game_over = None
-        self.vectory = None
+        self.game_over: GameOver | None = None
+        self.vectory: Vectory | None = None
         self.shatter_particles: list[ShatterParticle] = []
         self.camera = arcade.Camera2D()
         self.ui_camera = arcade.Camera2D()
         self.spin_camera = arcade.Camera2D()
-        self.floating_scores = []
+        self.floating_scores: list[Floating_score] = []
 
         self.shake_time = 0.0
         self.shake_intensity = 0.0
@@ -238,7 +241,7 @@ class GameWindow(arcade.View):
         self.mouse_y = 0.0
 
         # Ability system
-        self.ability_defs = [
+        self.ability_defs: list[dict[str, Any]] = [
             {
                 "name": "FROST WALK [E]",
                 "key": arcade.key.E,
@@ -277,16 +280,16 @@ class GameWindow(arcade.View):
         self.trail_particles: list[TrailParticle] = []
         self.trail_timer = 0.0
         self.TRAIL_INTERVAL = 0.04
-        self.shock = []
-        self.coin_sparkles = []
+        self.shock: list[Shockwave] = []
+        self.coin_sparkles: list[CoinSparkle] = []
 
-    def get_unlocked_abilities(self) -> list[dict[str, object]]:
+    def get_unlocked_abilities(self) -> list[dict[str, Any]]:
         return [
             ability for ability in self.ability_defs
             if self.level >= ability["unlock_level"]
         ]
 
-    def get_ability_by_key(self, key: int) -> dict[str, object] | None:
+    def get_ability_by_key(self, key: int) -> dict[str, Any] | None:
         for ability in self.ability_defs:
             if key == ability["key"] and self.level >= ability["unlock_level"]:
                 return ability
@@ -368,15 +371,17 @@ class GameWindow(arcade.View):
             else:
                 ghost.color = (255, 255, 255)
 
-    def trigger_shake(self, duration, intensity):
+    def trigger_shake(self, duration: float, intensity: float) -> None:
         self.shake_time = duration
         self.shake_intensity = intensity
 
-    def on_mouse_motion(self, x, y, dx, dy):
+    def on_mouse_motion(
+        self, x: float, y: float, dx: float, dy: float
+    ) -> None:
         self.mouse_x = x
         self.mouse_y = y
 
-    def init_ghosts(self):
+    def init_ghosts(self) -> None:
 
         # Blinky init.
         blinky_row = 0
@@ -474,7 +479,7 @@ class GameWindow(arcade.View):
             self.offset_y
         )
 
-    def init_maze(self):
+    def init_maze(self) -> None:
 
         cs = self.cell_size
         wall_thickness = 4
@@ -499,7 +504,8 @@ class GameWindow(arcade.View):
                         Coin(x + cs / 2, y + cs / 2, is_powerup=False))
                 elif cell & 0b1111 == 0b1111:
                     self.wall_shapes.append(shapes.create_rectangle(
-                        x + cs / 2, y + cs / 2, cs - 3, cs - 3, MOCHA_RED))
+                        x + cs / 2, y + cs / 2, cs - 3, cs - 3,
+                        (*MOCHA_RED, 255)))
                 if cell & NORTH:
                     self.wall_shapes.append(shapes.create_line(
                         x, y + cs, x + cs, y + cs, GLOW, 6))
@@ -546,7 +552,7 @@ class GameWindow(arcade.View):
 
         self.target_coins = len(self.coins_lst)
 
-    def draw_background_image(self):
+    def draw_background_image(self) -> None:
         self.clear()
         arcade.draw_texture_rect(
             self.background,
@@ -558,7 +564,7 @@ class GameWindow(arcade.View):
             )
         )
 
-    def draw_ability(self):
+    def draw_ability(self) -> None:
         unlocked = self.get_unlocked_abilities()
         idx = unlocked[-1]["icon_index"] if unlocked else 0
         arcade.draw_texture_rect(
@@ -566,7 +572,7 @@ class GameWindow(arcade.View):
             arcade.LBWH(1140, 60, 400, 630)
         )
 
-    def draw_cooldown_slider(self):
+    def draw_cooldown_slider(self) -> None:
         x = 1550
         w = 280
         h = 24
@@ -674,7 +680,7 @@ class GameWindow(arcade.View):
                 line_width=2
             )
 
-    def trigger_ability(self, key):
+    def trigger_ability(self, key: int) -> None:
         ability = self.get_ability_by_key(key)
         if ability is None:
             return
@@ -727,7 +733,7 @@ class GameWindow(arcade.View):
             self.player.queued_dir = (0, 0)
             SoundManager.get().play_sfx("power_pellet")
 
-    def draw_maze_background(self):
+    def draw_maze_background(self) -> None:
         self.maze_width = self.cols * self.cell_size
         self.maze_height = self.rows * self.cell_size
 
@@ -750,7 +756,7 @@ class GameWindow(arcade.View):
             border_width=2
         )
 
-    def draw_debug(self):
+    def draw_debug(self) -> None:
 
         self.blinky.draw_target_x(
             self.cell_size,
@@ -786,13 +792,17 @@ class GameWindow(arcade.View):
             10, 10
         )
 
-    def draw_hearts(self):
+    def draw_hearts(self) -> None:
         # Draw red hearts for lives next to LIVES: label in Dek.png
         size = 14 * (self.height / 1080.0)
         spacing = 38 * (self.width / 1920.0)
         color = MOCHA_RED
 
-        for i in range(max(0, self.player.lives)):
+        lives = max(0, self.player.lives)
+        max_hearts = 5
+        hearts_to_draw = min(lives, max_hearts)
+
+        for i in range(hearts_to_draw):
             cx = self.lives_x + i * spacing
             cy = self.lives_y
             arcade.draw_circle_filled(
@@ -806,7 +816,22 @@ class GameWindow(arcade.View):
                 color
             )
 
-    def draw_cheat_menu(self):
+        if lives > max_hearts:
+            font_sz = int(24 * (self.height / 1080.0))
+            text_x = self.lives_x + max_hearts * spacing - 10
+            arcade.draw_text(
+                f"x{lives}",
+                x=text_x,
+                y=self.lives_y + 3
+                ,
+                color=MOCHA_RED,
+                font_size=font_sz,
+                font_name="Handjet",
+                bold=True,
+                anchor_y="center"
+            )
+
+    def draw_cheat_menu(self) -> None:
         # blur.
         arcade.draw_rect_filled(
             arcade.rect.XYWH(
@@ -872,11 +897,11 @@ class GameWindow(arcade.View):
                 bold=True
             )
 
-    def on_text(self, text: str):
+    def on_text(self, text: str) -> None:
         if hasattr(self.level_obj, 'on_text'):
             self.level_obj.on_text(text)
 
-    def on_draw(self):
+    def on_draw(self) -> None:
         self.clear()
 
         self.ui_camera.position = (
@@ -971,14 +996,14 @@ class GameWindow(arcade.View):
             )
             self.manager.draw()
 
-    def go_to_game_over(self):
+    def go_to_game_over(self) -> None:
         SoundManager.get().stop_music()
         self.shatter_particles.clear()
         self.player.visible = True
         self.game_over = GameOver(self.window, self.main_menu, self.score)
         self.window.show_view(self.game_over)
 
-    def go_to_next_level(self):
+    def go_to_next_level(self) -> None:
         SoundManager.get().stop_music()
         from src.loading import LoadingView
         loading_view = LoadingView(
@@ -991,7 +1016,7 @@ class GameWindow(arcade.View):
         )
         self.window.show_view(loading_view)
 
-    def go_to_victory(self):
+    def go_to_victory(self) -> None:
         SoundManager.get().stop_music()
         self.vectory = Vectory(
             self.window,
@@ -1003,7 +1028,7 @@ class GameWindow(arcade.View):
         )
         self.window.show_view(self.vectory)
 
-    def ghosts_chase_player(self, delta_time):
+    def ghosts_chase_player(self, delta_time: float) -> None:
 
         self.blinky.chase_player(
             self.player,
@@ -1050,7 +1075,7 @@ class GameWindow(arcade.View):
             delta_time
         )
 
-    def on_update(self, delta_time: float):
+    def on_update(self, delta_time: float) -> None:
 
         self.shock = [s for s in self.shock if s.update(delta_time)]
         self.coin_sparkles = [
@@ -1225,7 +1250,7 @@ class GameWindow(arcade.View):
 
                     self.collected_coins += 1
 
-    def check_ghost_collisions(self):
+    def check_ghost_collisions(self) -> None:
         """Handles Pac-Man <-> ghost contact: taking damage or eating a scared
         ghost.
         """
@@ -1258,7 +1283,7 @@ class GameWindow(arcade.View):
                 self.handle_player_hit()
                 break
 
-    def handle_player_hit(self):
+    def handle_player_hit(self) -> None:
         if (
             self.player.is_dying
             or self.shatter_particles
@@ -1273,7 +1298,7 @@ class GameWindow(arcade.View):
         self.player.take_damage()
         self.player.start_death_animation()
 
-    def respawn_after_death(self):
+    def respawn_after_death(self) -> None:
         self.shatter_particles.clear()
         self.player.visible = True
         self.player.respawn_at(self.player_spawn_x, self.player_spawn_y)
@@ -1302,7 +1327,7 @@ class GameWindow(arcade.View):
             ghost.color = (255, 255, 255)
             ghost.texture = arcade.load_texture(ghost.normal_texture_path)
 
-    def on_key_release(self, key, modifiers):
+    def on_key_release(self, key: int, modifiers: int) -> None:
         if self.level == 5 and hasattr(self.level_obj, 'key_release'):
             self.level_obj.key_release(key, self)
             return
@@ -1313,7 +1338,7 @@ class GameWindow(arcade.View):
 
         self.player.on_key_release(key)
 
-    def on_show_view(self):
+    def on_show_view(self) -> None:
         SoundManager.get().play_music("gameplay", loop=True)
         self.manager.enable()
 
@@ -1324,33 +1349,33 @@ class GameWindow(arcade.View):
             "normal": arcade.gui.UIFlatButton.UIStyle(
                 font_size=20,
                 font_name="Handjet",
-                font_color=MOCHA_TEXT,
-                bg=MOCHA_SURFACE0,
-                border=MOCHA_MAUVE,
+                font_color=(*MOCHA_TEXT, 255),
+                bg=(*MOCHA_SURFACE0, 255),
+                border=(*MOCHA_MAUVE, 255),
                 border_width=2,
             ),
             "hover": arcade.gui.UIFlatButton.UIStyle(
                 font_size=20,
                 font_name="Handjet",
-                font_color=MOCHA_TEXT,
-                bg=MOCHA_SURFACE1,
-                border=MOCHA_LAVENDER,
+                font_color=(*MOCHA_TEXT, 255),
+                bg=(*MOCHA_SURFACE1, 255),
+                border=(*MOCHA_LAVENDER, 255),
                 border_width=2,
             ),
             "press": arcade.gui.UIFlatButton.UIStyle(
                 font_size=20,
                 font_name="Handjet",
-                font_color=MOCHA_TEXT,
-                bg=MOCHA_MANTLE,
-                border=MOCHA_MAUVE,
+                font_color=(*MOCHA_TEXT, 255),
+                bg=(*MOCHA_MANTLE, 255),
+                border=(*MOCHA_MAUVE, 255),
                 border_width=3,
             ),
             "disabled": arcade.gui.UIFlatButton.UIStyle(
                 font_size=20,
                 font_name="Handjet",
-                font_color=(120, 118, 136),
-                bg=MOCHA_CRUST,
-                border=(56, 64, 96),
+                font_color=(120, 118, 136, 255),
+                bg=(*MOCHA_CRUST, 255),
+                border=(56, 64, 96, 255),
                 border_width=1,
             )
         }
@@ -1363,13 +1388,13 @@ class GameWindow(arcade.View):
 
         # nested function to do things if the buttons was clicked.
         @resume_game.event("on_click")
-        def on_click_start(event):
+        def on_click_start(event: arcade.gui.UIOnClickEvent) -> None:
             # This is the action! Swap from current menu view to game view.
             SoundManager.get().play_sfx("menu_select")
             self.pause = False
 
         @quit_game.event("on_click")
-        def on_click_quit(event):
+        def on_click_quit(event: arcade.gui.UIOnClickEvent) -> None:
             SoundManager.get().play_sfx("menu_select")
             SoundManager.get().stop_music()
             self.window.show_view(self.main_menu)
@@ -1388,11 +1413,11 @@ class GameWindow(arcade.View):
             )
         )
 
-    def on_hide_view(self):
+    def on_hide_view(self) -> None:
         SoundManager.get().stop_music()
         self.manager.disable()
 
-    def on_key_press(self, key, modifiers):
+    def on_key_press(self, key: int, modifiers: int) -> None:
         if key == arcade.key.ESCAPE:
             if self.cheat_menu:
                 self.cheat_menu = False

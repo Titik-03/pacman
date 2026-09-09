@@ -41,14 +41,14 @@ class HighScore(arcade.View):
 
     # what will happen if the view is showed.
 
-    def on_show_view(self):
+    def on_show_view(self) -> None:
 
         h = Score()
         self.score = h.load_score()
 
-    def draw_background(self):
+    def draw_background(self) -> None:
 
-        arcade.set_background_color((8, 12, 28))
+        arcade.set_background_color((8, 12, 28, 255))
 
         color = (0, 180, 255, 30)
 
@@ -58,7 +58,7 @@ class HighScore(arcade.View):
         arcade.draw_line(1100, 600, 1500, 600, color, 6)
         arcade.draw_line(1100, 300, 1100, 600, color, 6)
 
-    def draw_score_panel(self):
+    def draw_score_panel(self) -> None:
 
         x = self.window.width / 2 - 350
         y = self.window.height - 220
@@ -128,7 +128,7 @@ class HighScore(arcade.View):
             score = item.get("score", 0)
 
             if i == 0:
-                color = arcade.color.GOLD
+                color: tuple[int, ...] = arcade.color.GOLD
             elif i == 1:
                 color = (220, 220, 220)
             elif i == 2:
@@ -166,7 +166,7 @@ class HighScore(arcade.View):
 
     # what will draw.
 
-    def on_draw(self):
+    def on_draw(self) -> None:
 
         # clear the screen before drawing new things to prevent overdrawing
         # on last view.
@@ -176,7 +176,7 @@ class HighScore(arcade.View):
         self.high_score_text.draw()
         self.draw_score_panel()
 
-    def on_key_press(self, key, modifiers):
+    def on_key_press(self, key: int, modifiers: int) -> None:
         if key == arcade.key.ESCAPE:
             self.window.show_view(self.main_menu)
 

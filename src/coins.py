@@ -4,7 +4,7 @@ import arcade
 
 
 class Coin:
-    def __init__(self, x, y, is_powerup: bool = False):
+    def __init__(self, x: float, y: float, is_powerup: bool = False) -> None:
         self.x = x
         self.y = y
         self.is_eaten = False
@@ -12,13 +12,15 @@ class Coin:
         if self.is_powerup:
             self.radius = 9
             self.color = (245, 224, 220)  # Catppuccin Mocha Rosewater
-            self.glow_color = (245, 224, 220, 100)
+            self.glow_color: tuple[int, int, int, int] | None = (
+                245, 224, 220, 100
+            )
         else:
             self.radius = 4
             self.color = (249, 226, 175)  # Catppuccin Mocha Yellow
             self.glow_color = None
 
-    def draw(self):
+    def draw(self) -> None:
         if self.is_eaten:
             return
 

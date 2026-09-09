@@ -4,12 +4,12 @@ import arcade.gui
 
 
 class PauseMenu(arcade.View):
-    def __init__(self, game: arcade.View):
+    def __init__(self, game: arcade.View) -> None:
         super().__init__()
 
         self.game = game
 
-    def on_draw(self):
+    def on_draw(self) -> None:
         self.clear()
 
         arcade.draw_text(
@@ -30,7 +30,7 @@ class PauseMenu(arcade.View):
             anchor_x="center",
         )
 
-    def on_key_press(self, symbol, modifiers):
+    def on_key_press(self, symbol: int, modifiers: int) -> None:
         if symbol == arcade.key.ESCAPE:
             self.window.show_view(self.game)
 

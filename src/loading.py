@@ -13,8 +13,8 @@ class LoadingView(arcade.View):
         seed: int = 42,
         level: int = 1,
         score: int = 0,
-        lives: int = None,
-    ):
+        lives: int | None = None,
+    ) -> None:
         super().__init__()
         self.window = window
         self.main_menu = main_menu
@@ -28,7 +28,7 @@ class LoadingView(arcade.View):
         self.seed = seed
 
         # Catppuccin Mocha Color Palette
-        self.MOCHA_BASE = (30, 30, 46)        # #1e1e2e
+        self.MOCHA_BASE = (30, 30, 46, 255)   # #1e1e2e
         self.MOCHA_SURFACE0 = (49, 50, 68)    # #313244
         self.MOCHA_TEXT = (205, 214, 244)     # #cdd6f4
         self.MOCHA_MAUVE = (203, 166, 247)    # #cba6f7
@@ -67,12 +67,12 @@ class LoadingView(arcade.View):
             anchor_y="center"
         )
 
-    def on_show_view(self):
+    def on_show_view(self) -> None:
         arcade.set_background_color(self.MOCHA_BASE)
         SoundManager.get().stop_music()
         # Instantiate GameWindow immediately so game assets/maze are ready
 
-    def on_update(self, delta_time: float):
+    def on_update(self, delta_time: float) -> None:
         self.elapsed += delta_time
         self.progress = min(1.0, self.elapsed / self.loading_duration)
 
@@ -89,7 +89,7 @@ class LoadingView(arcade.View):
                 )
             )
 
-    def on_draw(self):
+    def on_draw(self) -> None:
         self.clear()
         self.title_text.draw()
         self.sub_text.draw()

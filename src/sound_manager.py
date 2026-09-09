@@ -1,11 +1,12 @@
+from typing import Any
 import arcade
 
 
 class SoundManager:
 
-    _instance = None
+    _instance: "SoundManager | None" = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.sfx = {
             "coin":        arcade.load_sound("src/assets/coin.wav"),
             "power_pellet": arcade.load_sound("src/assets/powerup.wav"),
@@ -31,8 +32,8 @@ class SoundManager:
 
         self.sfx_volume = 0.8
         self.music_volume = 0.5
-        self._current_music_name = None
-        self._current_music_player = None
+        self._current_music_name: str | None = None
+        self._current_music_player: Any = None
 
     @classmethod
     def get(cls) -> "SoundManager":
@@ -40,12 +41,12 @@ class SoundManager:
             cls._instance = SoundManager()
         return cls._instance
 
-    def play_sfx(self, name: str):
+    def play_sfx(self, name: str) -> None:
         sound = self.sfx.get(name)
         if sound:
             arcade.play_sound(sound, volume=self.sfx_volume)
 
-    def play_music(self, name: str, loop: bool = True):
+    def play_music(self, name: str, loop: bool = True) -> None:
         if self._current_music_name == name:
             return
         self.stop_music()
@@ -56,7 +57,7 @@ class SoundManager:
             )
             self._current_music_name = name
 
-    def stop_music(self):
+    def stop_music(self) -> None:
         if self._current_music_player:
             arcade.stop_sound(self._current_music_player)
         self._current_music_player = None

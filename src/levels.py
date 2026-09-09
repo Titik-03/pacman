@@ -117,8 +117,7 @@ class ConfigParser:
 
         for key, default_val in self.DEFAULTS.items():
             val = level.get(key)
-            is_int = isinstance(val, int) and not isinstance(val, bool)
-            if not is_int:
+            if not isinstance(val, int) or isinstance(val, bool):
                 if val is not None:
                     print(
                         f"Warning: Level {index} key '{key}' invalid ({val}). "
@@ -169,10 +168,10 @@ class BaseLevel:
         """Draw level-specific visual effects (walls)."""
         game.wall_shapes.draw()
 
-    def key_press(self, key):
+    def key_press(self, key: int, *args: Any, **kwargs: Any) -> Any:
         return key
 
-    def key_release(self, key, game: Any) -> None:
+    def key_release(self, key: int, game: Any) -> Any:
         return key
 
     def draw_top_effects(self, game: Any) -> None:
@@ -203,7 +202,7 @@ class Level2(BaseLevel):
 
     def create_fog_mask(
         self, size: int, vision_radius: int, inner_radius: int
-    ):
+    ) -> Any:
         bg_r, bg_g, bg_b = 30, 30, 46
 
         dark_color = (bg_r, bg_g, bg_b, 255)
@@ -368,9 +367,10 @@ class Level4(BaseLevel):
             return key
 
         # Get the right key based on the current angle.
-        keys = [arcade.key.UP, arcade.key.RIGHT,
-                arcade.key.DOWN, arcade.key.LEFT]
-        alt_keys = [arcade.key.W, arcade.key.D, arcade.key.S, arcade.key.A]
+        keys: list[int] = [arcade.key.UP, arcade.key.RIGHT,
+                           arcade.key.DOWN, arcade.key.LEFT]
+        alt_keys: list[int] = [arcade.key.W, arcade.key.D,
+                               arcade.key.S, arcade.key.A]
 
         shift = self.current_angle // 90
 

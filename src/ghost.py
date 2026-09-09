@@ -1,3 +1,5 @@
+from typing import Any
+from arcade.types import Color
 from src.player import Player
 import random
 import pathlib
@@ -18,7 +20,11 @@ EYES_PATH = SCRIPT_DIR / "assets" / "eyes.png"
 
 class Ghost(arcade.Sprite):
     def __init__(
-        self, center_x: float, center_y: float, texture_path, name: str
+        self,
+        center_x: float,
+        center_y: float,
+        name: str = "",
+        texture_path: Any = None,
     ) -> None:
         super().__init__(path_or_texture=texture_path)
         self.center_x = center_x
@@ -48,10 +54,10 @@ class Ghost(arcade.Sprite):
         self.normal_texture_path = texture_path
 
         # Home corner
-        self.home_row = None
-        self.home_col = None
+        self.home_row: Any = None
+        self.home_col: Any = None
         self.name = name
-        self.target_tile = None
+        self.target_tile: Any = None
 
     @classmethod
     def create_ghost(
@@ -76,12 +82,12 @@ class Ghost(arcade.Sprite):
     # Coordinate helpers
 
     def get_target_tile(
-            self,
-            player,
-            player_row,
-            player_col,
-            **kwargs
-    ):
+        self,
+        player: Any,
+        player_row: int,
+        player_col: int,
+        **kwargs: Any,
+    ) -> tuple[int, int]:
         """
         Returns the row and column this ghost wants
         to chase.
@@ -112,7 +118,15 @@ class Ghost(arcade.Sprite):
 
         return player_row, player_col
 
-    def get_cell(self, x, y, cell_size, rows, offset_x=0.0, offset_y=0.0):
+    def get_cell(
+        self,
+        x: float,
+        y: float,
+        cell_size: float,
+        rows: int,
+        offset_x: float = 0.0,
+        offset_y: float = 0.0,
+    ) -> tuple[int, int]:
         col = int(round(((x - offset_x) - cell_size / 2) / cell_size))
         row = int(
             round(
@@ -123,8 +137,14 @@ class Ghost(arcade.Sprite):
         return row, col
 
     def get_cell_center(
-        self, row, col, cell_size, rows, offset_x=0.0, offset_y=0.0
-    ):
+        self,
+        row: int,
+        col: int,
+        cell_size: float,
+        rows: int,
+        offset_x: float = 0.0,
+        offset_y: float = 0.0,
+    ) -> tuple[float, float]:
         x = offset_x + col * cell_size + cell_size / 2
         y = offset_y + (rows - 1 - row) * cell_size + cell_size / 2
         return x, y
@@ -134,7 +154,7 @@ class Ghost(arcade.Sprite):
     def can_move(
         self,
         dir_tuple: tuple[int, int],
-        maze,
+        maze: list[list[int]],
         cell_size: float,
         rows: int,
         cols: int,
@@ -172,7 +192,14 @@ class Ghost(arcade.Sprite):
 
         return True
 
-    def neighbors(self, row, col, maze, rows, cols):
+    def neighbors(
+        self,
+        row: int,
+        col: int,
+        maze: list[list[int]],
+        rows: int,
+        cols: int,
+    ) -> list[tuple[tuple[int, int], tuple[int, int]]]:
         NORTH, EAST, SOUTH, WEST = 1, 2, 4, 8
         cell_val = maze[row][col]
         result = []
@@ -186,7 +213,14 @@ class Ghost(arcade.Sprite):
             result.append(((row, col - 1), (-1, 0)))
         return result
 
-    def next_direction_bfs(self, start, goal, maze, rows, cols):
+    def next_direction_bfs(
+        self,
+        start: tuple[int, int],
+        goal: tuple[int, int],
+        maze: list[list[int]],
+        rows: int,
+        cols: int,
+    ) -> tuple[int, int]:
         """BFS from start cell to goal cell.
         Returns the first-step direction.
         """
@@ -194,7 +228,9 @@ class Ghost(arcade.Sprite):
             return (0, 0)
 
         visited = {start}
-        queue = deque([(start, None)])  # (cell, first_dir_taken)
+        queue: deque[tuple[tuple[int, int], tuple[int, int] | None]] = deque(
+            [(start, None)]
+        )  # (cell, first_dir_taken)
 
         while queue:
             (row, col), first_dir = queue.popleft()
@@ -218,7 +254,7 @@ class Ghost(arcade.Sprite):
         self.can_damage = True
         self.texture = arcade.load_texture(EYES_PATH)
 
-    def update_texrture(self, player: Player):
+    def update_texrture(self, player: Player) -> None:
 
         if self.state == "EATEN":
             return
@@ -246,14 +282,14 @@ class Ghost(arcade.Sprite):
 
     def draw_target_x(
         self,
-        cell_size,
-        offset_x,
-        offset_y,
-        rows,
-        color=arcade.color.RED,
-        size=10,
-        line_width=3,
-    ):
+        cell_size: float,
+        offset_x: float,
+        offset_y: float,
+        rows: int,
+        color: tuple[int, int, int] | Color = arcade.color.RED,
+        size: float = 10,
+        line_width: float = 3,
+    ) -> None:
 
         if hasattr(self, "target_tile") and self.target_tile:
             target_row, target_col = self.target_tile
@@ -285,14 +321,14 @@ class Ghost(arcade.Sprite):
     # chase the player.
     def chase_player(self,
                      player: Player,
-                     maze,
+                     maze: list[list[int]],
                      cell_size: float,
                      rows: int,
                      cols: int,
                      offset_x: float = 0.0,
                      offset_y: float = 0.0,
                      delta_time: float = 1 / 60,
-                     blinky: "Ghost" = None
+                     blinky: "Ghost | None" = None
                      ) -> None:
 
         if player.power_timer == 0:
@@ -472,7 +508,7 @@ class Ghost(arcade.Sprite):
 
 
 class Blinky(Ghost):
-    def __init__(self, center_x, center_y, name: str):
+    def __init__(self, center_x: float, center_y: float, name: str) -> None:
         super().__init__(
             center_x, center_y, texture_path=BLINKY_PATH, name=name
         )
@@ -484,12 +520,14 @@ class Pinky(Ghost):
     AMBUSH_DISTANCE = 4
     AMBUSH_CHANCE = 0.5
 
-    def __init__(self, center_x, center_y, name: str):
+    def __init__(self, center_x: float, center_y: float, name: str) -> None:
         super().__init__(
             center_x, center_y, texture_path=PINKY_PATH, name=name
         )
 
-    def get_target_tile(self, player, player_row, player_col, **kwargs):
+    def get_target_tile(
+        self, player: Any, player_row: int, player_col: int, **kwargs: Any
+    ) -> tuple[int, int]:
 
         if self.state == "FRIGHTENED":
             my_row = kwargs.get("my_row")
@@ -527,10 +565,12 @@ class Inky(Ghost):
     AMBUSH_DISTANCE = 4
     AMBUSH_CHANCE = 0.5
 
-    def __init__(self, center_x, center_y, name: str):
+    def __init__(self, center_x: float, center_y: float, name: str) -> None:
         super().__init__(center_x, center_y, texture_path=INKY_PATH, name=name)
 
-    def get_target_tile(self, player, player_row, player_col, **kwargs):
+    def get_target_tile(
+        self, player: Any, player_row: int, player_col: int, **kwargs: Any
+    ) -> tuple[int, int]:
 
         if self.state == "FRIGHTENED":
             my_row = kwargs.get("my_row")
@@ -564,12 +604,14 @@ class Inky(Ghost):
 
 class Clyde(Ghost):
 
-    def __init__(self, center_x, center_y, name: str):
+    def __init__(self, center_x: float, center_y: float, name: str) -> None:
         super().__init__(
             center_x, center_y, texture_path=CLYDE_PATH, name=name
         )
 
-    def get_target_tile(self, player, player_row, player_col, **kwargs):
+    def get_target_tile(
+        self, player: Any, player_row: int, player_col: int, **kwargs: Any
+    ) -> tuple[int, int]:
 
         if self.state == "FRIGHTENED":
             my_row = kwargs.get("my_row")

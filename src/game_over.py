@@ -1,14 +1,15 @@
+from typing import Any
+import pathlib
 import arcade
 import arcade.gui
 from src.score import Score
 from src.sound_manager import SoundManager
-import pathlib
 
 
 class GameOver(arcade.View):
     def __init__(
-        self, window: arcade.Window, main_menu: arcade.View, score: int
-    ):
+        self, window: arcade.Window, main_menu: Any, score: int
+    ) -> None:
         super().__init__()
         SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
 
@@ -29,10 +30,10 @@ class GameOver(arcade.View):
         arcade.load_font(str(font_path))
         self.selected_option = 0
 
-    def on_show_view(self):
+    def on_show_view(self) -> None:
         SoundManager.get().play_sfx("game_over")
 
-    def on_draw(self):
+    def on_draw(self) -> None:
 
         self.clear()
         arcade.draw_texture_rect(
@@ -66,7 +67,7 @@ class GameOver(arcade.View):
             anchor_y="center",
         )
 
-    def on_key_press(self, key, modifiers):
+    def on_key_press(self, key: int, modifiers: int) -> None:
         if key in (arcade.key.UP, arcade.key.DOWN, arcade.key.TAB):
             self.selected_option ^= 1
             SoundManager.get().play_sfx("menu_select")
@@ -92,7 +93,9 @@ class GameOver(arcade.View):
         ):
             self.player_name += chr(key).upper()
 
-    def on_mouse_press(self, x, y, button, modifiers):
+    def on_mouse_press(
+        self, x: float, y: float, button: int, modifiers: int
+    ) -> None:
         if x >= 1481:
             if name := self.player_name.strip():
                 self.score_class.write_score(name, self.score)

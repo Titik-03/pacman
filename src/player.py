@@ -1,4 +1,5 @@
 import pathlib
+from typing import Any
 import arcade
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
@@ -151,7 +152,7 @@ class Player(arcade.Sprite):
 
         return player, player_list
 
-    def on_key_press(self, key: int):
+    def on_key_press(self, key: int) -> None:
         if self.is_dying:
             return
         if key == arcade.key.UP or key == arcade.key.W:
@@ -167,13 +168,13 @@ class Player(arcade.Sprite):
             self.queued_dir = (1, 0)
             self.just_started = False
 
-    def on_key_release(self, key: int):
+    def on_key_release(self, key: int) -> None:
         pass
 
     def can_move(
         self,
         dir_tuple: tuple[int, int],
-        maze,
+        maze: list[list[int]],
         cell_size: float,
         rows: int,
         cols: int,
@@ -219,13 +220,13 @@ class Player(arcade.Sprite):
 
         return True
 
-    def activate_power_up(self, duration: float = 10.0):
+    def activate_power_up(self, duration: float = 10.0) -> None:
         """Triggers the power-up state and resets/starts the duration clock."""
         self.is_powered_up = True
         self.power_timer = duration
 
     def update_animation(
-        self, delta_time: float = 1 / 60, *args, **kwargs
+        self, delta_time: float = 1 / 60, *args: Any, **kwargs: Any
     ) -> None:
         if self.is_dying:
             self.death_timer += delta_time
@@ -253,7 +254,7 @@ class Player(arcade.Sprite):
             ) if self.queued_dir[0] < 0 else base_tex
 
     def update_grid_movement(self,
-                             maze,
+                             maze: list[list[int]],
                              cell_size: float,
                              rows: int,
                              cols: int,

@@ -6,13 +6,13 @@ from arcade.types import Color
 
 class Particle:
 
-    def __init__(self, width, height):
+    def __init__(self, width: int, height: int) -> None:
 
         self.screen_width = width
         self.screen_height = height
 
-        self.x = random.randint(0, width)
-        self.y = random.randint(0, height)
+        self.x: float = float(random.randint(0, width))
+        self.y: float = float(random.randint(0, height))
 
         # Pick a small random radius.
         self.radius = random.choice([1, 1, 7, 7, 2, 3, 4, 6, 6, 6])
@@ -35,7 +35,7 @@ class Particle:
         # Start the animation clock at a random point.
         self.time = random.uniform(0, 6)
 
-    def update(self, delta_time):
+    def update(self, delta_time: float) -> None:
 
         self.time += delta_time  # Advance the internal animation timer.
         self.x += self.drift * delta_time  # Move horizontally based on drift.
@@ -47,7 +47,7 @@ class Particle:
             # Give it a new random x position.
             self.x = random.randint(0, self.screen_width)
 
-    def draw(self):
+    def draw(self) -> None:
 
         # Add a pulsing alpha variation.
         alpha = self.alpha + math.sin(self.time * 3) * 30
@@ -98,7 +98,7 @@ class ShatterParticle:
         self.angle += self.spin * delta_time
         return True
 
-    def draw(self):
+    def draw(self) -> None:
         alpha = int(255 * max(0.0, self.lifetime / self.max_lifetime))
         arcade.draw_rect_filled(
             arcade.rect.XYWH(self.x, self.y, self.w, self.h),
@@ -108,7 +108,13 @@ class ShatterParticle:
 
 
 class Floating_score:
-    def __init__(self, x, y, text, color) -> None:
+    def __init__(
+        self,
+        x: float,
+        y: float,
+        text: str,
+        color: tuple[int, int, int],
+    ) -> None:
         self.x = x
         self.y = y
         self.text = text
@@ -116,12 +122,12 @@ class Floating_score:
         self.time = 0.8
         self.floating_speed = 50.0
 
-    def update(self, delta_time):
+    def update(self, delta_time: float) -> bool:
         self.time -= delta_time
         self.y += self.floating_speed*delta_time
         return self.time > 0
 
-    def draw(self):
+    def draw(self) -> None:
         alpha = int(255 * self.time / 0.8)
         r, g, b = self.color
         arcade.draw_text(
@@ -146,7 +152,7 @@ class TrailParticle:
         angle: float,
         width: float,
         height: float,
-        color=(203, 166, 247),
+        color: tuple[int, int, int] | Color = (203, 166, 247),
         lifetime: float = 0.22,
     ):
         self.x = x
@@ -178,7 +184,9 @@ class TrailParticle:
 
 
 class Shockwave:
-    def __init__(self, x: float, y: float, color) -> None:
+    def __init__(
+        self, x: float, y: float, color: tuple[int, int, int]
+    ) -> None:
         self.x = x
         self.y = y
         self.max_radius = 300.0
@@ -187,11 +195,11 @@ class Shockwave:
         self.lifetime = self.duration
         self.color = color
 
-    def update(self, delta_time):
+    def update(self, delta_time: float) -> bool:
         self.lifetime -= delta_time
         return self.lifetime > 0
 
-    def draw(self):
+    def draw(self) -> None:
         r, g, b = self.color
         progress = 1.0 - (self.lifetime / self.duration)
         radius = self.max_radius * progress

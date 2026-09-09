@@ -4,12 +4,12 @@ import math  # Import math for the sine-based hover animation.
 
 class MenuItem:
 
-    def __init__(self, label: str, x: float, y: float):
+    def __init__(self, label: str, x: float, y: float) -> None:
 
         self.offset = 0  # Keep a generic offset value for layout or animation.
 
-        self.arrow_offset = -20  # Start the arrow slightly left of the text.
-        self.time = 0  # Track elapsed time for animation.
+        self.arrow_offset: float = -20.0  # Start the arrow slightly left.
+        self.time: float = 0.0  # Track elapsed time for animation.
 
         self.text = arcade.Text(  # Create the text object for the menu item.
             label,  # Use the provided label string.
@@ -32,7 +32,7 @@ class MenuItem:
             (self.text.x + self.arrow_offset, self.text.y + 28),
         ]
 
-    def update(self):
+    def update(self) -> None:
 
         self.time += 1 / 60  # Advance time by one frame at 60 FPS.
 
@@ -42,7 +42,7 @@ class MenuItem:
         # Smoothly move the arrow toward the target.
         self.arrow_offset += (target - self.arrow_offset) * 0.20
 
-    def draw(self):
+    def draw(self) -> None:
 
         # Compute the arrow's x position.
         arrow_x = self.text.x - 30 + self.arrow_offset
@@ -70,7 +70,7 @@ class MenuItem:
 
         self.text.draw()  # Draw the label text.
 
-    def contains(self, x, y):
+    def contains(self, x: float, y: float) -> bool:
 
         return (  # Return whether the point lies inside the text bounds.
             # Check the x range.

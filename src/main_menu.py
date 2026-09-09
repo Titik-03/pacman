@@ -1,3 +1,4 @@
+from typing import Any
 import arcade
 import arcade.gui
 
@@ -32,7 +33,7 @@ class MainMenu(arcade.View):
             filepath=self.config_parser.highscore_filename
         )
         self.window = window
-        self.scores = []
+        self.scores: list[dict[str, Any]] = []
         self.background = arcade.load_texture("src/assets/menu.png")
         self.instructions_image = arcade.load_texture("src/assets/Frame 1.png")
         self.title_text = arcade.Text(
@@ -76,7 +77,7 @@ class MainMenu(arcade.View):
                 )
             )
 
-    def on_update(self, delta_time):
+    def on_update(self, delta_time: float) -> None:
         for particle in self.particles:
             particle.update(delta_time)
         for item in self.menu_items:
@@ -121,7 +122,7 @@ class MainMenu(arcade.View):
         self.top_banner.update()
         self.bottom_banner.update()
 
-    def on_key_press(self, key, modifiers):
+    def on_key_press(self, key: int, modifiers: int) -> None:
         if key == arcade.key.ESCAPE:
             for item in self.menu_items:
                 item.hovered = False
@@ -170,7 +171,9 @@ class MainMenu(arcade.View):
             elif self.hovered == 3:
                 arcade.exit()
 
-    def on_mouse_motion(self, x, y, dx, dy):
+    def on_mouse_motion(
+        self, x: float, y: float, dx: float, dy: float
+    ) -> None:
         if self.show_instructions or self.show_highscore:
             return
 
@@ -181,7 +184,9 @@ class MainMenu(arcade.View):
                 self.hovered = index
                 break
 
-    def on_mouse_press(self, x, y, button, modifiers):
+    def on_mouse_press(
+        self, x: float, y: float, button: int, modifiers: int
+    ) -> None:
         # Click anywhere to close instructions
         if self.show_instructions or self.show_highscore:
             for item in self.menu_items:
@@ -209,16 +214,17 @@ class MainMenu(arcade.View):
         elif self.hovered == 3:
             arcade.exit()
 
-    def on_resize(self, width: int, height: int):
+    def on_resize(self, width: int, height: int) -> None:
         super().on_resize(width, height)
         self.title_text.x = 5
         self.title_text.y = height * 0.8
 
-    def on_show_view(self):
+    def on_show_view(self) -> None:
         SoundManager.get().play_music("menu", loop=True)
         self.scores = self.score_manager.load_score()
 
-    def draw_leaderboard(self):
+    def draw_leaderboard(self) -> None:
+        item: Any
         width = 700
         row_height = 50
 
@@ -311,7 +317,7 @@ class MainMenu(arcade.View):
                 anchor_x="right",
             )
 
-    def draw_instructions(self):
+    def draw_instructions(self) -> None:
         width = 1150
         height = 400
 
@@ -349,11 +355,11 @@ class MainMenu(arcade.View):
             )
         )
 
-    def new_game(self, seed: int = 42):
+    def new_game(self, seed: int = 42) -> None:
         loading_view = LoadingView(self.window, self, seed, level=1)
         self.window.show_view(loading_view)
 
-    def on_draw(self):
+    def on_draw(self) -> None:
         self.clear()
 
         arcade.draw_texture_rect(
