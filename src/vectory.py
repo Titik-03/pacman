@@ -5,6 +5,8 @@ from src.loading import LoadingView
 from src.sound_manager import SoundManager
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
+BASE_WIDTH = 1920
+BASE_HEIGHT = 1200
 
 
 class Vectory(arcade.View):
@@ -25,9 +27,6 @@ class Vectory(arcade.View):
         self.main_menu = main_menu
         self.window = window
 
-        self.x_center = self.width / 2
-        self.y_center = self.height / 2
-
         self.score = score
         self.score_class = Score()
         self.next_level = next_level
@@ -41,6 +40,16 @@ class Vectory(arcade.View):
         )
         if font_path.exists():
             arcade.load_font(str(font_path))
+
+    @property
+    def x_center(self) -> float:
+        """Return dynamic horizontal center of the window."""
+        return float(self.window.width / 2)
+
+    @property
+    def y_center(self) -> float:
+        """Return dynamic vertical center of the window."""
+        return float(self.window.height / 2)
 
     def get_max_level(self) -> int:
         """Return the maximum allowed level from config or default."""
@@ -64,6 +73,10 @@ class Vectory(arcade.View):
     def on_draw(self) -> None:
         """Render the victory screen, score, and player name."""
         self.clear()
+        scale_x = self.window.width / BASE_WIDTH
+        scale_y = self.window.height / BASE_HEIGHT
+        font_scale = min(scale_x, scale_y)
+
         arcade.draw_texture_rect(
             self.background,
             arcade.LBWH(
@@ -75,10 +88,10 @@ class Vectory(arcade.View):
         )
         arcade.draw_text(
             f"{self.score}",
-            960,
-            1144,
+            960 * scale_x,
+            1144 * scale_y,
             arcade.color.GOLD,
-            font_size=40,
+            font_size=max(1, int(40 * font_scale)),
             font_name="Handjet",
             bold=True,
             anchor_x="center",
@@ -88,10 +101,10 @@ class Vectory(arcade.View):
         display_name = self.player_name.upper() if has_name else "TYPE NAME"
         arcade.draw_text(
             f"{display_name}",
-            self.x_center + 5,
-            self.y_center - 40,
+            self.x_center + 5 * scale_x,
+            self.y_center - 40 * scale_y,
             (180, 190, 254),
-            font_size=36,
+            font_size=max(1, int(36 * font_scale)),
             font_name="Handjet",
             bold=True,
             anchor_x="center",
@@ -119,14 +132,17 @@ class Vectory(arcade.View):
         self, x: float, y: float, button: int, modifiers: int
     ) -> None:
         """Handle button clicks to continue or return to menu."""
-        if 845 <= x <= 1084:
-            if 458 >= y >= 389:
+        scale_x = self.window.width / BASE_WIDTH
+        scale_y = self.window.height / BASE_HEIGHT
+
+        if 845 * scale_x <= x <= 1084 * scale_x:
+            if 389 * scale_y <= y <= 458 * scale_y:
                 if self.next_level <= self.get_max_level():
                     self.go_to_next_level()
                 else:
                     name = self.player_name.strip() or "PLAYER"
                     self.score_class.write_score(name, self.score)
                     self.window.show_view(self.main_menu)
-            elif 353 >= y >= 288:
+            elif 288 * scale_y <= y <= 353 * scale_y:
                 SoundManager.get().play_sfx("menu_select")
                 self.window.show_view(self.main_menu)

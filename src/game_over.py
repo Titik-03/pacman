@@ -6,6 +6,10 @@ from src.score import Score
 from src.sound_manager import SoundManager
 
 
+BASE_WIDTH = 1920
+BASE_HEIGHT = 1200
+
+
 class GameOver(arcade.View):
     """Game over view displaying final score and name entry."""
 
@@ -20,9 +24,6 @@ class GameOver(arcade.View):
         self.window = window
         self.background = arcade.load_texture("src/assets/game0ver.png")
 
-        self.x_center = self.width / 2
-        self.y_center = self.height / 2
-
         self.manager = arcade.gui.UIManager()
         self.score = score
         self.score_class = Score()
@@ -33,14 +34,27 @@ class GameOver(arcade.View):
         arcade.load_font(str(font_path))
         self.selected_option = 0
 
+    @property
+    def x_center(self) -> float:
+        """Return dynamic horizontal center of the window."""
+        return float(self.window.width / 2)
+
+    @property
+    def y_center(self) -> float:
+        """Return dynamic vertical center of the window."""
+        return float(self.window.height / 2)
+
     def on_show_view(self) -> None:
         """Play game over sound effect when view appears."""
         SoundManager.get().play_sfx("game_over")
 
     def on_draw(self) -> None:
         """Render the game over background, score, and entered name."""
-
         self.clear()
+        scale_x = self.window.width / BASE_WIDTH
+        scale_y = self.window.height / BASE_HEIGHT
+        font_scale = min(scale_x, scale_y)
+
         arcade.draw_texture_rect(
             self.background,
             arcade.LBWH(
@@ -51,10 +65,10 @@ class GameOver(arcade.View):
             ))
         arcade.draw_text(
             f"{self.score}",
-            1112,
-            695,
+            1112 * scale_x,
+            695 * scale_y,
             (180, 190, 254),
-            font_size=42,
+            font_size=max(1, int(42 * font_scale)),
             font_name="Handjet",
             bold=True,
             anchor_x="center",
@@ -62,10 +76,10 @@ class GameOver(arcade.View):
         )
         arcade.draw_text(
             f"{self.player_name.upper()}",
-            1006,
-            595,
+            1006 * scale_x,
+            595 * scale_y,
             (180, 190, 254),
-            font_size=42,
+            font_size=max(1, int(42 * font_scale)),
             font_name="Handjet",
             bold=True,
             anchor_x="left",
@@ -103,13 +117,16 @@ class GameOver(arcade.View):
         self, x: float, y: float, button: int, modifiers: int
     ) -> None:
         """Handle mouse click events on menu buttons."""
-        if x >= 1600:
+        scale_x = self.window.width / BASE_WIDTH
+        scale_y = self.window.height / BASE_HEIGHT
+
+        if x >= 1600 * scale_x:
             if name := self.player_name.strip():
                 self.score_class.write_score(name, self.score)
 
-            if 720 <= y <= 807:
+            if 720 * scale_y <= y <= 807 * scale_y:
                 SoundManager.get().play_sfx("menu_select")
                 self.main_menu.new_game(seed=42)
-            elif 435 <= y <= 520:
+            elif 435 * scale_y <= y <= 520 * scale_y:
                 SoundManager.get().play_sfx("menu_select")
                 self.window.show_view(self.main_menu)
