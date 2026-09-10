@@ -657,7 +657,7 @@ class Level7(BaseLevel):
 
 
 class Level8(BaseLevel):
-    """Simon says."""
+    """Lahcen says."""
 
     def __init__(self, config: dict[str, Any]) -> None:
         """Initialize Simon Says commands and reaction timers."""
@@ -732,7 +732,7 @@ class Level8(BaseLevel):
 
         if self.is_simon:
             self.current_prompt_text = (
-                f"SIMON SAYS: PRESS {direction_text}...!"
+                f"LAHCEN SAYS: PRESS {direction_text}...!"
             )
         else:
             self.current_prompt_text = f"PRESS {direction_text}..!"
