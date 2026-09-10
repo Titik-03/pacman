@@ -13,9 +13,8 @@
 - Special Abilities:
     [Q]              Time Stop (Temporarily halts ghost movement)
     [E]              Frost Walk (Slows down ghosts in radius)
-    [F]              Speed Dash (Quick burst of speed)
-- Pause / Resume:    [P]  or  [ESC]
-- Fullscreen Toggle: [F11]
+    [F]              instant forward teleport
+- Pause / Resume:    [ESC]
 - Menu Navigation:   Arrow Keys / Mouse
 - Select / Submit:   [ENTER] / Left Click
 
@@ -24,13 +23,13 @@
 - Press [C] during gameplay to toggle the on-screen Cheat Menu.
 - Direct evaluation shortcuts:
     [F1]             Toggle Debug Overlay
-    [F2]             Freeze / Unfreeze Ghosts
     [F3]             Toggle Invincibility
-    [F4]             Toggle Wall Collision
+    [F2]             Freeze / Unfreeze Ghosts
+    [F4]             Toggle Debug
     [F5]             Speed Boost
-    [F6]             Add +1000 Score Points
+    [F6]             Trigger Power Pellet
     [F7]             Add +1 Extra Life
-    [F8]             Instant Level Skip / Victory
+    [F8]             Instant Level Skip
 
 4. CONFIGURATION
 ----------------
