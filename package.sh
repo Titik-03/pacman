@@ -8,7 +8,7 @@ mkdir -p "$PACKAGE_DIR/src"
 
 cp -r src/assets src/jsons "$PACKAGE_DIR/src/"
 cp src/jsons/config.json "$PACKAGE_DIR/"
-cp INSTRUCTIONS.txt README.md "$PACKAGE_DIR/"
+cp INSTRUCTIONS.txt "$PACKAGE_DIR/"
 
 uv run pyinstaller \
     --onefile \
