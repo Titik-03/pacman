@@ -28,8 +28,6 @@ class ConfigParser:
         "points_per_ghost": 200,
         "seed": 42,
         "level_max_time": 90,
-        "width": 15,
-        "height": 15,
     }
 
     def __init__(self, filename: str = "src/jsons/config.json") -> None:
@@ -47,51 +45,58 @@ class ConfigParser:
                 "Using defaults.",
                 file=sys.stderr,
             )
-            data: dict[str, Any] = {}
-        else:
-            content = self.read_file()
-            try:
-                data = json.loads(content)
-            except json.JSONDecodeError as e:
-                print(
-                    f"Warning: Failed to parse JSON config: {e}. "
-                    "Using defaults.",
-                    file=sys.stderr,
-                )
-                data = {}
+            self.levels = [{"level": i, **self.DEFAULTS} for i in range(1, 11)]
+            self.max_level = 10
+            return
+
+        content = self.read_file()
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError as e:
+            print(
+                f"Warning: Failed to parse JSON config: {e}. "
+                "Using defaults.",
+                file=sys.stderr,
+            )
+            self.levels = [{"level": i, **self.DEFAULTS} for i in range(1, 11)]
+            self.max_level = 10
+            return
 
         if not isinstance(data, dict):
             print(
                 "Warning: Config root must be object. Using defaults.",
                 file=sys.stderr,
             )
-            data = {}
+            self.levels = [{"level": i, **self.DEFAULTS} for i in range(1, 11)]
+            self.max_level = 10
+            return
 
         self.highscore_filename = str(
             data.get("highscore_filename", "src/outputs/high_score.json")
         )
 
-        raw_levels = data.get("levels", [])
-        if not isinstance(raw_levels, list):
+        raw_levels = data.get("levels")
+        if not isinstance(raw_levels, list) or not raw_levels:
+            reason = (
+                "missing"
+                if raw_levels is None
+                else "empty"
+                if isinstance(raw_levels, list)
+                else f"invalid ({raw_levels})"
+            )
             print(
-                "Warning: 'levels' key must be a list. Using default levels.",
+                f"Warning: 'levels' key {reason}. Using default levels.",
                 file=sys.stderr,
             )
-            raw_levels = []
-
-        parsed_levels: list[dict[str, Any]] = []
-        if raw_levels:
-            for index, lvl in enumerate(raw_levels, start=1):
-                lvl_dict = lvl if isinstance(lvl, dict) else {}
-                lvl_num = lvl_dict.get("level", index)
-                if not isinstance(lvl_num, int):
-                    lvl_num = index
-                parsed_levels.append(self.sanitize_level(lvl_dict, lvl_num))
+            self.levels = [
+                {"level": index, **self.DEFAULTS} for index in range(1, 11)
+            ]
         else:
-            for index in range(1, 11):
-                parsed_levels.append(self.sanitize_level({}, index))
+            self.levels = [
+                self.sanitize_level(lvl, index)
+                for index, lvl in enumerate(raw_levels, start=1)
+            ]
 
-        self.levels = parsed_levels
         self.max_level = max(1, len(self.levels))
 
     def read_file(self) -> str:
@@ -114,25 +119,33 @@ class ConfigParser:
         self, level: dict[str, Any], index: int
     ) -> dict[str, Any]:
         """Sanitize one level config with clamping to safe defaults."""
-        result: dict[str, Any] = {"level": index}
+        if not isinstance(level, dict):
+            level = {}
 
-        for key, default_val in self.DEFAULTS.items():
+        lvl = level.get("level")
+        is_valid_lvl = (
+            isinstance(lvl, int) and not isinstance(lvl, bool) and lvl > 0
+        )
+        level_id = lvl if is_valid_lvl else index
+        expected = {"level": index, **self.DEFAULTS}
+        result: dict[str, Any] = {}
+
+        for key, default in expected.items():
             val = level.get(key)
-            if not isinstance(val, int) or isinstance(val, bool):
-                if val is not None:
-                    print(
-                        f"Warning: Level {index} key '{key}' invalid ({val}). "
-                        f"Clamping to default {default_val}.",
-                        file=sys.stderr,
-                    )
-                result[key] = default_val
-            elif key != "seed" and val <= 0:
+            if (
+                val is None
+                or not isinstance(val, int)
+                or isinstance(val, bool)
+                or (key != "seed" and val <= 0)
+                or (key == "lives" and val > 10)
+            ):
+                reason = "missing" if val is None else f"invalid ({val})"
                 print(
-                    f"Warning: Level {index} key '{key}' must be positive "
-                    f"({val}). Clamping to default {default_val}.",
+                    f"Warning: Level {level_id} key '{key}' {reason}. "
+                    f"Clamping to default {default}.",
                     file=sys.stderr,
                 )
-                result[key] = default_val
+                result[key] = default
             else:
                 result[key] = val
 
@@ -144,7 +157,7 @@ class ConfigParser:
             if level["level"] == level_number:
                 return level
 
-        return self.sanitize_level({}, level_number)
+        return {"level": level_number, **self.DEFAULTS}
 
 
 class BaseLevel:

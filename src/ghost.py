@@ -154,50 +154,6 @@ class Ghost(arcade.Sprite):
         y = offset_y + (rows - 1 - row) * cell_size + cell_size / 2
         return x, y
 
-    # Pathfinding helpers
-
-    def can_move(
-        self,
-        dir_tuple: tuple[int, int],
-        maze: list[list[int]],
-        cell_size: float,
-        rows: int,
-        cols: int,
-        offset_x: float = 0.0,
-        offset_y: float = 0.0,
-    ) -> bool:
-        """Check if ghost can move in given direction from current tile."""
-        dx, dy = dir_tuple
-        if dx == 0 and dy == 0:
-            return False
-
-        col = int(
-            round(((self.center_x - offset_x) - cell_size / 2) / cell_size)
-        )
-        row = int(round(((rows - 1) * cell_size + cell_size /
-                  2 - (self.center_y - offset_y)) / cell_size))
-
-        col = max(0, min(cols - 1, col))
-        row = max(0, min(rows - 1, row))
-
-        cell_val = maze[row][col]
-
-        NORTH, EAST, SOUTH, WEST = 1, 2, 4, 8
-
-        if dy == 1 and (cell_val & NORTH):
-            return False
-
-        if dy == -1 and (cell_val & SOUTH):
-            return False
-
-        if dx == 1 and (cell_val & EAST):
-            return False
-
-        if dx == -1 and (cell_val & WEST):
-            return False
-
-        return True
-
     def neighbors(
         self,
         row: int,

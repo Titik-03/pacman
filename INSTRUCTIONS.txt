@@ -1,7 +1,7 @@
 1. LAUNCHING THE GAME
 ---------------------
 - Standalone executable (Platform / Desktop):
-    ./Pac-Man
+    ./Pac-Man or double click
 - Terminal with custom configuration:
     ./Pac-Man [path_to_config.json]
 - Python source:

@@ -4,6 +4,7 @@
 
 ## Description
 A modern, polished recreation of the classic 1980 arcade game Pac-Man developed in Python using the Python Arcade library. Featuring custom maze generation via an external generator package, multiple level progressions, ghost AI pathfinding, configurable game parameters, dynamic particle effects, sound effects, and persistent highscore tracking.
+The project was listed on itch.io platform : [`Pac-man Release`](https://titik-gm.itch.io/pac-man)
 
 ## Instructions
 ### Dependencies & Installation
@@ -26,6 +27,11 @@ make run
 Run flake8 and mypy static type checking:
 ```bash
 make lint
+```
+### Play Mode
+Run the game without reinstalling dependencies:
+```bash
+make play
 ```
 
 ### Debug Mode

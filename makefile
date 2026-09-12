@@ -4,8 +4,11 @@ install:
 	uv sync
 	UV_SKIP_WHEEL_FILENAME_CHECK=1 uv pip install mazegenerator-00001-py3-none-any.whl
 
-run:
+run:	install
 	uv run python main.py src/jsons/config.json
+
+play: 
+	uv run python main.py src/jsons/config.json 
 
 debug:
 	uv run python -m pdb main.py src/jsons/config.json
